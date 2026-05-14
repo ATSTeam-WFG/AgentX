@@ -36,6 +36,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://test:test@localhost:5432/agentx_test
+      DIRECT_URL: postgresql://test:test@localhost:5432/agentx_test
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       QR_HMAC_SECRET: ${{ secrets.QR_HMAC_SECRET }}
