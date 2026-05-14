@@ -35,7 +35,7 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
       })
       await tx.userScore.create({ data: { userId: created.id } })
       return created
-    })
+    }, { maxWait: 10000, timeout: 15000 })
   } else {
     user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
@@ -43,7 +43,7 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
       })
       await tx.userScore.create({ data: { userId: created.id } })
       return created
-    })
+    }, { maxWait: 10000, timeout: 15000 })
   }
 
   const session = await createSession(user.id)

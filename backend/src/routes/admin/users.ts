@@ -85,7 +85,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
           payloadJson: { delta: parsed.data.delta, reason: parsed.data.reason },
         },
       })
-    })
+    }, { maxWait: 10000, timeout: 15000 })
 
     return reply.send({ ok: true })
   })
@@ -109,7 +109,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
           payloadJson: { previousState: 'pending_approval' },
         },
       })
-    })
+    }, { maxWait: 10000, timeout: 15000 })
 
     return reply.send({ ok: true, message: 'User approved' })
   })

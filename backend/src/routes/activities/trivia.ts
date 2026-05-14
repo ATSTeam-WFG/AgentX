@@ -154,7 +154,7 @@ export async function triviaRoutes(fastify: FastifyInstance) {
         update: { totalPoints: { increment: pointsAwarded }, activitiesCompleted: { increment: 1 } },
         create: { userId, totalPoints: pointsAwarded, activitiesCompleted: 1 },
       })
-    })
+    }, { maxWait: 10000, timeout: 15000 })
 
     return reply.send(responsePayload)
   })

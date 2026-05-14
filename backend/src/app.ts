@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
+import Redis from 'ioredis'
 import multipart from '@fastify/multipart'
 import websocket from '@fastify/websocket'
 
@@ -49,10 +50,41 @@ export async function buildApp() {
 
   await app.register(jwt, { secret: config.JWT_SECRET })
 
+  const rateLimitRedis = new Redis(config.REDIS_URL, {
+    connectTimeout: 500,
+    maxRetriesPerRequest: 1,
+    enableReadyCheck: false,
+    lazyConnect: false,
+  })
+
   await app.register(rateLimit, {
     global: true,
-    max: 100,
+    max: 300,
     timeWindow: '1 minute',
+    hook: 'preHandler',
+    redis: rateLimitRedis,
+    skipOnError: true,
+    skip(request) {
+      const secret = config.STRESS_BYPASS_SECRET
+      return secret !== '' && request.headers['x-stress-bypass'] === secret
+    },
+    keyGenerator(request) {
+      const auth = request.headers.authorization
+      if (auth?.startsWith('Bearer ')) {
+        const parts = auth.slice(7).split('.')
+        if (parts.length === 3) {
+          try {
+            const payload = JSON.parse(
+              Buffer.from(parts[1], 'base64url').toString('utf8')
+            )
+            if (typeof payload.sub === 'string') return `user:${payload.sub}`
+          } catch {
+            // fall through to IP
+          }
+        }
+      }
+      return request.ip
+    },
   })
 
   await app.register(multipart, {

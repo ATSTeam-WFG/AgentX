@@ -13,6 +13,7 @@ const schema = z.object({
   OBJECT_STORAGE_ACCESS_KEY: z.string().optional(),
   OBJECT_STORAGE_SECRET_KEY: z.string().optional(),
   OBJECT_STORAGE_ENDPOINT: z.string().optional(),
+  STRESS_BYPASS_SECRET: z.string().default(''),
 })
 
 const result = schema.safeParse(process.env)

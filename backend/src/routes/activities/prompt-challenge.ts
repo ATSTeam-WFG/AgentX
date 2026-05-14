@@ -130,7 +130,7 @@ export async function promptChallengeRoutes(fastify: FastifyInstance) {
           create: { userId, totalPoints: 0, activitiesCompleted: 1 },
         })
       }
-    })
+    }, { maxWait: 10000, timeout: 15000 })
 
     return reply.send(responsePayload)
   })

@@ -3,7 +3,8 @@ import { check } from 'k6'
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js'
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
-const TOKEN = __ENV.USER_TOKEN || ''
+const TOKENS = (__ENV.USER_TOKENS || __ENV.USER_TOKEN || '').split(',').filter(Boolean)
+const BYPASS_SECRET = __ENV.STRESS_BYPASS_SECRET || ''
 const VUS = parseInt(__ENV.VU_COUNT || '150', 10)
 
 // Seeded touchpoint IDs — each VU cycles through them
@@ -37,7 +38,12 @@ export default function () {
     return
   }
 
-  const headers = { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }
+  const token = TOKENS[__VU % TOKENS.length] || ''
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    ...(BYPASS_SECRET ? { 'x-stress-bypass': BYPASS_SECRET } : {}),
+  }
   const tokenIdx = __VU % QR_TOKENS.length
   const qrToken = QR_TOKENS[tokenIdx]
 

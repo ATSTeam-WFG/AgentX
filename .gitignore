@@ -30,3 +30,6 @@ Thumbs.db
 
 # Files
 files/
+
+# Scripts
+stress.sh

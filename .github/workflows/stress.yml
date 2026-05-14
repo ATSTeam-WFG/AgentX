@@ -10,9 +10,14 @@ on:
   schedule:
     - cron: '0 2 * * *'  # 2am UTC nightly
 
+concurrency:
+  group: stress-tests
+  cancel-in-progress: false
+
 jobs:
   stress:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +32,7 @@ jobs:
           QR_TOKENS: ${{ secrets.STRESS_QR_TOKENS }}
           VU_COUNT: ${{ github.event.inputs.vus || '100' }}
         run: |
+          failed=0
           for script in k6/*.js; do
             echo "Running $script"
             k6 run \
@@ -34,5 +40,9 @@ jobs:
               -e USER_TOKEN="$USER_TOKEN" \
               -e QR_TOKENS="$QR_TOKENS" \
               -e VU_COUNT="$VU_COUNT" \
-              "$script" || true
+              "$script" || { echo "FAILED: $script"; failed=$((failed + 1)); }
           done
+          if [ "$failed" -gt 0 ]; then
+            echo "$failed script(s) failed"
+            exit 1
+          fi

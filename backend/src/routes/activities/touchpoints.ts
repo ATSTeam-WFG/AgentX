@@ -59,7 +59,7 @@ export async function touchpointsRoutes(fastify: FastifyInstance) {
         update: { totalPoints: { increment: touchpoint.points } },
         create: { userId, totalPoints: touchpoint.points, activitiesCompleted: 0 },
       })
-    })
+    }, { maxWait: 10000, timeout: 15000 })
 
     return reply.send(responsePayload)
   })
