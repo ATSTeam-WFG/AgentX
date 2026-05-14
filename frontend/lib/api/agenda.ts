@@ -1,0 +1,30 @@
+import { apiFetch } from '../api';
+
+export interface AgendaEvent {
+  id: string;
+  day: number;
+  name: string;
+  description?: string;
+  location?: string;
+  speaker?: string;
+  starts_at: string;
+  ends_at: string;
+  version: number;
+}
+
+export interface AgendaResponse {
+  events: AgendaEvent[];
+  version: number;
+}
+
+export const getAgenda = (since?: number) =>
+  apiFetch<AgendaResponse>(`/v1/agenda${since != null ? `?since=${since}` : ''}`);
+
+export const getAgendaEvent = (id: string) =>
+  apiFetch<AgendaEvent>(`/v1/agenda/${id}`);
+
+export const postSessionFeedback = (eventId: string, payload: Record<string, unknown>) =>
+  apiFetch<void>(`/v1/agenda-events/${eventId}/feedback`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
