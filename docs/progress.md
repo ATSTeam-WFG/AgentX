@@ -2,8 +2,8 @@
 
 Tracks implementation status across each phase defined in [`backend.md`](./backend.md).
 
-**Last updated:** 2026-05-13
-**Current phase:** Not started
+**Last updated:** 2026-05-14
+**Current phase:** Phase 1 — In Progress
 
 ---
 
@@ -13,18 +13,18 @@ Schema, auth, core content delivery. PWA reads everything from the API.
 
 | Task | Status | Notes |
 |---|---|---|
-| Postgres schema + migrations | Not started | |
-| Auth: signup flow (invitee match + walk-in) | Not started | |
-| Auth: session JWT issue + refresh + revoke | Not started | |
-| Admin auth (separate table + bcrypt) | Not started | |
-| `GET /v1/me` — profile endpoint | Not started | |
-| `GET /v1/agenda` — version-aware | Not started | |
-| `GET /v1/initiatives` | Not started | |
-| `GET /v1/sponsors` | Not started | |
-| `GET /v1/announcements` | Not started | |
-| Admin: invitee CSV upload | Not started | |
-| Admin: basic login | Not started | |
-| Hosting provider decision | Not started | See open question #1 |
+| Postgres schema + migrations | Blocked | Needs Supabase project + DATABASE_URL in .env |
+| Auth: signup flow (invitee match + walk-in) | Done | `src/routes/auth.ts` |
+| Auth: session JWT issue + refresh + revoke | Done | `src/routes/auth.ts` |
+| Admin auth (separate table + bcrypt) | Done | `src/routes/admin/auth.ts` |
+| `GET /v1/me` — profile endpoint | Done | `src/routes/profile.ts` |
+| `GET /v1/agenda` — version-aware | Done | `src/routes/agenda.ts` |
+| `GET /v1/initiatives` | Done | `src/routes/initiatives.ts` |
+| `GET /v1/sponsors` | Done | `src/routes/sponsors.ts` |
+| `GET /v1/announcements` | Done | `src/routes/announcements.ts` |
+| Admin: invitee CSV upload | Done | `src/routes/admin/invitees.ts` |
+| Admin: basic login | Done | `src/routes/admin/auth.ts` |
+| Hosting provider decision | Done | Supabase |
 
 ---
 

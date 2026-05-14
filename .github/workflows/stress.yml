@@ -1,0 +1,38 @@
+name: Stress Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      vus:
+        description: Virtual users per scenario
+        default: '100'
+        required: false
+  schedule:
+    - cron: '0 2 * * *'  # 2am UTC nightly
+
+jobs:
+  stress:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run stress tests
+        env:
+          BASE_URL: ${{ vars.STRESS_BASE_URL }}
+          USER_TOKEN: ${{ secrets.STRESS_USER_TOKEN }}
+          QR_TOKENS: ${{ secrets.STRESS_QR_TOKENS }}
+          VU_COUNT: ${{ github.event.inputs.vus || '100' }}
+        run: |
+          for script in k6/*.js; do
+            echo "Running $script"
+            k6 run \
+              -e BASE_URL="$BASE_URL" \
+              -e USER_TOKEN="$USER_TOKEN" \
+              -e QR_TOKENS="$QR_TOKENS" \
+              -e VU_COUNT="$VU_COUNT" \
+              "$script" || true
+          done

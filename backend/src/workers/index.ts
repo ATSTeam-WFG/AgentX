@@ -10,19 +10,19 @@ async function processNextJob() {
   const now = new Date()
   const lockUntil = new Date(now.getTime() + LOCK_DURATION_MS)
 
-  const job = await prisma.$queryRaw<{ id: string; type: string; payload_json: unknown }[]>`
-    SELECT id, type, payload_json
+  const job = await prisma.$queryRaw<{ id: string; type: string; payloadJson: unknown }[]>`
+    SELECT id, type, "payloadJson"
     FROM "Job"
     WHERE status = 'pending'
-      AND (locked_until IS NULL OR locked_until < ${now})
-    ORDER BY created_at ASC
+      AND ("lockedUntil" IS NULL OR "lockedUntil" < ${now})
+    ORDER BY "createdAt" ASC
     LIMIT 1
     FOR UPDATE SKIP LOCKED
   `
 
   if (!job.length) return
 
-  const { id, type, payload_json } = job[0]
+  const { id, type, payloadJson } = job[0]
 
   await prisma.job.update({
     where: { id },
@@ -30,7 +30,7 @@ async function processNextJob() {
   })
 
   try {
-    const payload = payload_json as Record<string, unknown>
+    const payload = payloadJson as Record<string, unknown>
     if (type === 'avatar_generation') {
       await handleAvatarGeneration(id, payload)
     } else if (type === 'golden_points_scoring') {

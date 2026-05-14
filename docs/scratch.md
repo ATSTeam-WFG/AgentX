@@ -104,3 +104,5 @@ Data Schema
     
 - Activity
     - Name, Type, Score associated with it, Time based on not, Timer
+
+
