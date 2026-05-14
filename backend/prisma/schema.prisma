@@ -1,0 +1,418 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum AttendeeType {
+  invited
+  walk_in
+}
+
+enum AdminRole {
+  super_admin
+  moderator
+  support
+}
+
+enum ActivityType {
+  trivia
+  avatar
+  prompt_challenge
+  golden_points
+  touchpoint
+}
+
+enum JobType {
+  avatar_generation
+  golden_points_scoring
+  push_notification
+}
+
+enum JobStatus {
+  pending
+  running
+  done
+  failed
+}
+
+enum GoldenPointsStatus {
+  pending
+  ai_scored
+  flagged_for_review
+  approved
+  rejected
+}
+
+enum SponsorTier {
+  title
+  gold
+  silver
+  partner
+}
+
+enum SponsorSurface {
+  home
+  profile
+  agenda
+}
+
+// ============================================================
+// Identity
+// ============================================================
+
+model Invitee {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String
+  attendeeType AttendeeType
+  createdAt    DateTime     @default(now())
+
+  user         User?
+}
+
+model User {
+  id                   String       @id @default(uuid())
+  name                 String
+  email                String       @unique
+  attendeeType         AttendeeType
+  inviteeId            String?      @unique
+  invitee              Invitee?     @relation(fields: [inviteeId], references: [id])
+  pendingAdminApproval Boolean      @default(false)
+  avatarUrl            String?
+  onboardingInterests  Json?
+  createdAt            DateTime     @default(now())
+  lastSeenAt           DateTime?
+
+  sessions                Session[]
+  activityAttempts        ActivityAttempt[]
+  submissions             Submission[]
+  triviaAnswers           TriviaAnswer[]
+  promptChallengeAnswers  PromptChallengeAnswer[]
+  goldenPointsSubmissions GoldenPointsSubmission[]
+  touchpointScans         TouchpointScan[]
+  userScore               UserScore?
+  pointAdjustments        PointAdjustment[]
+  eventFeedbacks          EventFeedback[]
+  appFeedbacks            AppFeedback[]
+  sponsorImpressions      SponsorImpression[]
+}
+
+model Session {
+  tokenId    String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         AdminRole
+  createdAt    DateTime  @default(now())
+
+  pointAdjustments    PointAdjustment[]
+  goldenPointsReviews GoldenPointsSubmission[]
+  auditLogs           AuditLog[]
+  announcements       Announcement[]
+}
+
+// ============================================================
+// Content
+// ============================================================
+
+model AgendaEvent {
+  id          String    @id @default(uuid())
+  day         Int
+  name        String
+  description String?
+  location    String
+  speaker     String?
+  startsAt    DateTime
+  endsAt      DateTime
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  feedbacks   EventFeedback[]
+}
+
+model Initiative {
+  id               String  @id @default(uuid())
+  name             String
+  team             String
+  shortDescription String
+  whatItDoes       String
+  audience         String
+  whyBuilt         String
+  rolloutNotes     String?
+  demoUrl          String?
+  kioskLocation    String?
+  splashUrl        String?
+  displayOrder     Int     @default(0)
+}
+
+model Sponsor {
+  id           String      @id @default(uuid())
+  name         String
+  tier         SponsorTier
+  logoUrl      String
+  description  String?
+  displayOrder Int         @default(0)
+
+  impressions  SponsorImpression[]
+}
+
+model SponsorImpression {
+  id        String         @id @default(uuid())
+  sponsorId String
+  sponsor   Sponsor        @relation(fields: [sponsorId], references: [id])
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  surface   SponsorSurface
+  createdAt DateTime       @default(now())
+}
+
+model Announcement {
+  id                 String    @id @default(uuid())
+  title              String
+  body               String
+  publishedAt        DateTime  @default(now())
+  publishedByAdminId String
+  publishedBy        AdminUser @relation(fields: [publishedByAdminId], references: [id])
+  expiresAt          DateTime?
+}
+
+// ============================================================
+// Activity Definitions
+// ============================================================
+
+model Activity {
+  id         String       @id @default(uuid())
+  type       ActivityType
+  name       String
+  maxPoints  Int
+  isOneShot  Boolean      @default(true)
+  isOpen     Boolean      @default(true)
+  configJson Json?
+  createdAt  DateTime     @default(now())
+
+  attempts    ActivityAttempt[]
+  submissions Submission[]
+}
+
+model TriviaQuestion {
+  id           String  @id @default(uuid())
+  questionText String
+  optionsJson  Json
+  correctIndex Int
+  category     String
+  difficulty   String
+  isActive     Boolean @default(true)
+
+  answers      TriviaAnswer[]
+}
+
+model PromptChallengeQuestion {
+  id           String  @id @default(uuid())
+  category     String
+  scenarioText String
+  optionsJson  Json
+  correctIndex Int
+  explanation  String
+  displayOrder Int     @default(0)
+
+  answers      PromptChallengeAnswer[]
+}
+
+model Touchpoint {
+  id                  String   @id @default(uuid())
+  name                String
+  qrToken             String   @unique
+  points              Int
+  locationDescription String?
+  isActive            Boolean  @default(true)
+
+  scans               TouchpointScan[]
+}
+
+// ============================================================
+// Activity User Data
+// ============================================================
+
+model ActivityAttempt {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  activityId    String
+  activity      Activity  @relation(fields: [activityId], references: [id])
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  pointsAwarded Int       @default(0)
+  payloadJson   Json?
+
+  triviaAnswers TriviaAnswer[]
+
+  @@unique([userId, activityId])
+}
+
+model Submission {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  activityId      String
+  activity        Activity @relation(fields: [activityId], references: [id])
+  kind            String
+  payloadJson     Json?
+  clientDedupeKey String   @unique
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model TriviaAnswer {
+  id            String          @id @default(uuid())
+  attemptId     String
+  attempt       ActivityAttempt @relation(fields: [attemptId], references: [id])
+  questionId    String
+  question      TriviaQuestion  @relation(fields: [questionId], references: [id])
+  userId        String
+  user          User            @relation(fields: [userId], references: [id])
+  selectedIndex Int
+  isCorrect     Boolean
+  answeredAt    DateTime        @default(now())
+}
+
+model PromptChallengeAnswer {
+  id            String                  @id @default(uuid())
+  userId        String
+  user          User                    @relation(fields: [userId], references: [id])
+  questionId    String
+  question      PromptChallengeQuestion @relation(fields: [questionId], references: [id])
+  selectedIndex Int
+  isCorrect     Boolean
+  pointsAwarded Int
+  answeredAt    DateTime                @default(now())
+
+  @@unique([userId, questionId])
+}
+
+model GoldenPointsSubmission {
+  id                String             @id @default(uuid())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id])
+  text              String
+  wordCount         Int
+  aiScore           Int?
+  aiFeedback        String?
+  aiScoredAt        DateTime?
+  status            GoldenPointsStatus @default(pending)
+  pointsAwarded     Int                @default(0)
+  reviewedByAdminId String?
+  reviewedBy        AdminUser?         @relation(fields: [reviewedByAdminId], references: [id])
+  reviewedAt        DateTime?
+  createdAt         DateTime           @default(now())
+}
+
+model TouchpointScan {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  touchpointId  String
+  touchpoint    Touchpoint @relation(fields: [touchpointId], references: [id])
+  scannedAt     DateTime   @default(now())
+  pointsAwarded Int
+
+  @@unique([userId, touchpointId])
+}
+
+// ============================================================
+// Scoring
+// ============================================================
+
+model UserScore {
+  userId              String   @id
+  user                User     @relation(fields: [userId], references: [id])
+  totalPoints         Int      @default(0)
+  activitiesCompleted Int      @default(0)
+  updatedAt           DateTime @updatedAt
+
+  @@index([totalPoints(sort: Desc)])
+}
+
+model PointAdjustment {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  delta       Int
+  reason      String
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+// ============================================================
+// Feedback
+// ============================================================
+
+model EventFeedback {
+  id            String      @id @default(uuid())
+  agendaEventId String
+  agendaEvent   AgendaEvent @relation(fields: [agendaEventId], references: [id])
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  ratingsJson   Json
+  comment       String?
+  createdAt     DateTime    @default(now())
+}
+
+model AppFeedback {
+  id          String   @id @default(uuid())
+  userId      String?
+  // user_id is intentionally nullable and stripped before insert when is_anonymous = true
+  user        User?    @relation(fields: [userId], references: [id])
+  answersJson Json
+  comment     String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// ============================================================
+// Operational
+// ============================================================
+
+model Job {
+  id          String    @id @default(uuid())
+  type        JobType
+  payloadJson Json
+  status      JobStatus @default(pending)
+  attempts    Int       @default(0)
+  lastError   String?
+  lockedBy    String?
+  lockedUntil DateTime?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([status, lockedUntil])
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id])
+  action      String
+  targetType  String
+  targetId    String
+  payloadJson Json?
+  createdAt   DateTime  @default(now())
+}
