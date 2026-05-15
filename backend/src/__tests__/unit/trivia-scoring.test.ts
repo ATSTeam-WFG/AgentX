@@ -9,43 +9,43 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function scoreTrivia(correctCount: number, totalCount: number, maxPoints: number): number {
-  return Math.round((correctCount / totalCount) * maxPoints)
+function scoreTrivia(correctCount: number, pointsPerQuestion: number): number {
+  return correctCount * pointsPerQuestion
 }
 
 describe('trivia scoring formula', () => {
   it('all correct: full points', () => {
-    expect(scoreTrivia(50, 50, 100)).toBe(100)
+    expect(scoreTrivia(20, 10)).toBe(200)
   })
 
   it('half correct: half points', () => {
-    expect(scoreTrivia(25, 50, 100)).toBe(50)
+    expect(scoreTrivia(10, 10)).toBe(100)
   })
 
   it('none correct: zero points', () => {
-    expect(scoreTrivia(0, 50, 100)).toBe(0)
+    expect(scoreTrivia(0, 10)).toBe(0)
   })
 
-  it('1/3 correct rounds correctly', () => {
-    expect(scoreTrivia(1, 3, 100)).toBe(33)
+  it('one correct: exactly one question worth of points', () => {
+    expect(scoreTrivia(1, 10)).toBe(10)
   })
 
-  it('2/3 correct rounds correctly', () => {
-    expect(scoreTrivia(2, 3, 100)).toBe(67)
+  it('custom pointsPerQuestion', () => {
+    expect(scoreTrivia(5, 20)).toBe(100)
   })
 })
 
 describe('Fisher-Yates shuffle', () => {
   it('preserves all elements', () => {
-    const input = Array.from({ length: 60 }, (_, i) => `q-${i}`)
+    const input = Array.from({ length: 20 }, (_, i) => `q-${i}`)
     const result = shuffle(input)
-    expect(result).toHaveLength(60)
+    expect(result).toHaveLength(20)
     expect(new Set(result)).toEqual(new Set(input))
   })
 
-  it('slice to 50 produces exactly 50 elements', () => {
-    const input = Array.from({ length: 60 }, (_, i) => i)
-    expect(shuffle(input).slice(0, 50)).toHaveLength(50)
+  it('slice to 20 produces exactly 20 elements when bank has 20', () => {
+    const input = Array.from({ length: 20 }, (_, i) => i)
+    expect(shuffle(input).slice(0, 20)).toHaveLength(20)
   })
 
   it('does not mutate the original array', () => {

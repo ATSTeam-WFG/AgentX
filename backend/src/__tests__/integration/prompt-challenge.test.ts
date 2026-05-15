@@ -68,7 +68,7 @@ describe('GET /v1/activities/prompt-challenge/questions', () => {
 })
 
 describe('POST /v1/activities/prompt-challenge/answer', () => {
-  it('correct answer awards 10 points (configJson.pointsPerQuestion)', async () => {
+  it('correct answer awards 20 points (configJson.pointsCorrect)', async () => {
     const { token, user } = await createTestUser()
     const { questions } = (await getQuestions(token)).json()
     const q = questions[0]
@@ -78,13 +78,13 @@ describe('POST /v1/activities/prompt-challenge/answer', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.isCorrect).toBe(true)
-    expect(body.pointsAwarded).toBe(10)
+    expect(body.pointsAwarded).toBe(20)
 
     const score = await prisma.userScore.findUnique({ where: { userId: user.id } })
-    expect(score?.totalPoints).toBe(10)
+    expect(score?.totalPoints).toBe(20)
   })
 
-  it('wrong answer awards 0 points and does not change score', async () => {
+  it('wrong answer awards 10 points (configJson.pointsWrong)', async () => {
     const { token, user } = await createTestUser()
     const { questions } = (await getQuestions(token)).json()
     const q = questions[0]
@@ -92,10 +92,10 @@ describe('POST /v1/activities/prompt-challenge/answer', () => {
     const wrongIdx = (dbQ!.correctIndex + 1) % 4
     const res = await submitAnswer(token, q.id, wrongIdx, 'pc-wrong-1')
     expect(res.json().isCorrect).toBe(false)
-    expect(res.json().pointsAwarded).toBe(0)
+    expect(res.json().pointsAwarded).toBe(10)
 
     const score = await prisma.userScore.findUnique({ where: { userId: user.id } })
-    expect(score?.totalPoints).toBe(0)
+    expect(score?.totalPoints).toBe(10)
   })
 
   it('idempotent: second answer to same question returns same response without re-awarding', async () => {

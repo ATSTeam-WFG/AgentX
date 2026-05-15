@@ -3,29 +3,18 @@ import { prisma } from '../../db'
 import { redis } from '../../redis'
 import { closeTestApp } from './app'
 
-// Truncate in FK-safe order (children before parents); seed fixtures preserved
-const TRUNCATE_TABLES = [
-  'TriviaAnswer',
-  'TouchpointScan',
-  'PromptChallengeAnswer',
-  'GoldenPointsSubmission',
-  'SponsorImpression',
-  'EventFeedback',
-  'AppFeedback',
-  'Job',
-  'ActivityAttempt',
-  'Submission',
-  'AuditLog',
-  'PointAdjustment',
-  'UserScore',
-  'Session',
-  'User',
-]
+// Single atomic TRUNCATE with CASCADE — avoids FK violations from pgbouncer
+// running individual DELETEs on separate connections. Seed fixtures (Activity,
+// TriviaQuestion, Touchpoint, etc.) are intentionally omitted.
+const USER_DATA_TABLES = [
+  'TriviaAnswer', 'TouchpointScan', 'PromptChallengeAnswer',
+  'GoldenPointsSubmission', 'SponsorImpression', 'EventFeedback', 'AppFeedback',
+  'Job', 'ActivityAttempt', 'Submission', 'AuditLog', 'PointAdjustment',
+  'UserScore', 'Session', 'User',
+].map((t) => `"${t}"`).join(', ')
 
 beforeEach(async () => {
-  for (const table of TRUNCATE_TABLES) {
-    await prisma.$executeRawUnsafe(`DELETE FROM "${table}"`)
-  }
+  await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${USER_DATA_TABLES} CASCADE`)
   try {
     await redis.flushdb()
   } catch {

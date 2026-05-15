@@ -3,7 +3,7 @@
 Tracks implementation status across each phase defined in [`backend.md`](./backend.md).
 
 **Last updated:** 2026-05-14
-**Current phase:** Phase 1 — In Progress
+**Current phase:** Phase 3 — Not started
 
 ---
 
@@ -13,7 +13,7 @@ Schema, auth, core content delivery. PWA reads everything from the API.
 
 | Task | Status | Notes |
 |---|---|---|
-| Postgres schema + migrations | Blocked | Needs Supabase project + DATABASE_URL in .env |
+| Postgres schema + migrations | Done | Supabase |
 | Auth: signup flow (invitee match + walk-in) | Done | `src/routes/auth.ts` |
 | Auth: session JWT issue + refresh + revoke | Done | `src/routes/auth.ts` |
 | Admin auth (separate table + bcrypt) | Done | `src/routes/admin/auth.ts` |
@@ -34,17 +34,17 @@ Trivia, Prompt Challenge, Touchpoints. Scoring and leaderboard.
 
 | Task | Status | Notes |
 |---|---|---|
-| `POST /v1/activities/trivia/start` | Not started | |
-| `POST /v1/activities/trivia/complete` + dedupe | Not started | |
-| `GET /v1/activities/prompt-challenge/questions` | Not started | |
-| `POST /v1/activities/prompt-challenge/answer` + dedupe | Not started | |
-| `POST /v1/touchpoints/scan` + QR token verification | Not started | |
-| Touchpoint HMAC token generation | Not started | |
-| `user_scores` atomic update | Not started | |
-| `GET /v1/leaderboard` | Not started | |
-| `GET /v1/activities` — user completion state | Not started | |
-| One-shot constraint testing | Not started | |
-| Dedupe_key retry simulation tests | Not started | |
+| `POST /v1/activities/trivia/start` | Done | `src/routes/activities/trivia.ts` |
+| `POST /v1/activities/trivia/complete` + dedupe | Done | `src/routes/activities/trivia.ts` |
+| `GET /v1/activities/prompt-challenge/questions` | Done | `src/routes/activities/prompt-challenge.ts` |
+| `POST /v1/activities/prompt-challenge/answer` + dedupe | Done | `src/routes/activities/prompt-challenge.ts` |
+| `POST /v1/touchpoints/scan` + QR token verification | Done | `src/routes/touchpoints.ts` |
+| Touchpoint HMAC token generation | Done | `src/lib/qr.ts` |
+| `user_scores` atomic update | Done | Prisma transactions in activity routes |
+| `GET /v1/leaderboard` | Done | `src/routes/leaderboard.ts` |
+| `GET /v1/activities` — user completion state | Done | `src/routes/activities/index.ts` |
+| One-shot constraint testing | Done | 95 tests passing |
+| Dedupe_key retry simulation tests | Done | 95 tests passing |
 
 ---
 
@@ -127,6 +127,5 @@ Pre-event readiness. Must complete before event day.
 | Invitee list format | WFG Team | Phase 1 |
 | AI avatar provider | Engineering | Phase 3 |
 | AI scoring provider | Engineering | Phase 3 |
-| Hosting provider | Engineering | Phase 1 |
 | Trivia question bank | WFG Team | Phase 2 |
 | Prompt Challenge content | WFG Team | Phase 2 |
