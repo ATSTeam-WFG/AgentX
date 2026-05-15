@@ -32,13 +32,13 @@ async function completeTrivia(
 }
 
 describe('POST /v1/activities/trivia/start', () => {
-  it('returns attemptId and 50 questions without correctIndex', async () => {
+  it('returns attemptId and 20 questions without correctIndex', async () => {
     const { token } = await createTestUser()
     const res = await startTrivia(token)
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.attemptId).toBeTruthy()
-    expect(body.questions).toHaveLength(50)
+    expect(body.questions).toHaveLength(20)
     for (const q of body.questions) {
       expect(q).not.toHaveProperty('correctIndex')
       expect(q.optionsJson).toHaveLength(4)
@@ -77,10 +77,10 @@ describe('POST /v1/activities/trivia/complete', () => {
     const body = res.json()
     expect(body.correctCount).toBe(1)
     expect(body.totalQuestions).toBe(1)
-    expect(body.pointsAwarded).toBe(100) // 1/1 * 100
+    expect(body.pointsAwarded).toBe(10) // 1 correct × 10 pts
 
     const score = await prisma.userScore.findUnique({ where: { userId: user.id } })
-    expect(score?.totalPoints).toBe(100)
+    expect(score?.totalPoints).toBe(10)
     expect(score?.activitiesCompleted).toBe(1)
   })
 

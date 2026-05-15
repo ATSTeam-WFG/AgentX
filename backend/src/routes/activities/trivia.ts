@@ -117,7 +117,9 @@ export async function triviaRoutes(fastify: FastifyInstance) {
       }))
 
     const correctCount = scored.filter((a) => a.isCorrect).length
-    const pointsAwarded = Math.round((correctCount / scored.length) * activity.maxPoints)
+    const configJson = activity.configJson as { pointsPerQuestion?: number } | null
+    const pointsPerQuestion = configJson?.pointsPerQuestion ?? 10
+    const pointsAwarded = correctCount * pointsPerQuestion
 
     const responsePayload = {
       pointsAwarded,

@@ -161,173 +161,125 @@ async function main() {
 
   // Activities
   const activities = [
-    { id: 'seed-activity-trivia',     type: 'trivia'           as const, name: 'Summit Trivia',        maxPoints: 100, isOneShot: true,  isOpen: true,  configJson: null },
-    { id: 'seed-activity-prompt',     type: 'prompt_challenge' as const, name: 'Prompt Challenge',      maxPoints: 50,  isOneShot: false, isOpen: true,  configJson: { pointsPerQuestion: 10 } },
+    { id: 'seed-activity-trivia',     type: 'trivia'           as const, name: 'Summit Trivia',        maxPoints: 200, isOneShot: true,  isOpen: true,  configJson: { pointsPerQuestion: 10 } },
+    { id: 'seed-activity-prompt',     type: 'prompt_challenge' as const, name: 'Prompt Challenge',      maxPoints: 100, isOneShot: false, isOpen: true,  configJson: { pointsCorrect: 20, pointsWrong: 10 } },
     { id: 'seed-activity-touchpoint', type: 'touchpoint'       as const, name: 'Touchpoint Scans',      maxPoints: 0,   isOneShot: false, isOpen: true,  configJson: null },
     { id: 'seed-activity-avatar',     type: 'avatar'           as const, name: 'AI Avatar Creator',     maxPoints: 50,  isOneShot: true,  isOpen: false, configJson: null },
     { id: 'seed-activity-golden',     type: 'golden_points'    as const, name: 'Golden Points',         maxPoints: 100, isOneShot: false, isOpen: false, configJson: null },
   ]
   for (const act of activities) {
-    await prisma.activity.upsert({ where: { id: act.id }, update: {}, create: act })
+    const { id, ...data } = act
+    await prisma.activity.upsert({ where: { id }, update: { maxPoints: data.maxPoints, configJson: data.configJson }, create: act })
   }
   console.log(`Seeded ${activities.length} activities`)
 
-  // Trivia questions (60 questions across 4 categories, 2 difficulties)
+  // Trivia questions (20 questions from demo — v7 HTML)
   const triviaQuestions = [
-    // Title Insurance — easy
-    { id: 'seed-trivia-01', category: 'Title Insurance', difficulty: 'easy', questionText: 'What does title insurance primarily protect against?', optionsJson: ['Future property damage', 'Past defects in the title', 'Mortgage default', 'Natural disasters'], correctIndex: 1 },
-    { id: 'seed-trivia-02', category: 'Title Insurance', difficulty: 'easy', questionText: 'Who typically pays for the lender\'s title insurance policy?', optionsJson: ['The lender', 'The seller', 'The buyer', 'The real estate agent'], correctIndex: 2 },
-    { id: 'seed-trivia-03', category: 'Title Insurance', difficulty: 'easy', questionText: 'What is an ALTA policy?', optionsJson: ['A type of homeowner\'s insurance', 'A standard title insurance policy issued by American Land Title Association', 'A federal mortgage guarantee', 'An appraisal method'], correctIndex: 1 },
-    { id: 'seed-trivia-04', category: 'Title Insurance', difficulty: 'easy', questionText: 'How long does a title insurance policy last?', optionsJson: ['1 year', '5 years', 'As long as you own the property', '30 years'], correctIndex: 2 },
-    { id: 'seed-trivia-05', category: 'Title Insurance', difficulty: 'easy', questionText: 'What is a title search?', optionsJson: ['A review of public records to check for title defects', 'An inspection of the physical property', 'A credit check on the buyer', 'A survey of the land boundaries'], correctIndex: 0 },
-    { id: 'seed-trivia-06', category: 'Title Insurance', difficulty: 'easy', questionText: 'What is an owner\'s title insurance policy?', optionsJson: ['Protects the lender\'s interest', 'Protects the homeowner\'s equity interest', 'Covers construction defects', 'Insures against property tax liens only'], correctIndex: 1 },
-    { id: 'seed-trivia-07', category: 'Title Insurance', difficulty: 'easy', questionText: 'What does a title company do during closing?', optionsJson: ['Approves the mortgage loan', 'Facilitates the transfer of property and issues title insurance', 'Appraises the property value', 'Conducts home inspections'], correctIndex: 1 },
-    { id: 'seed-trivia-08', category: 'Title Insurance', difficulty: 'easy', questionText: 'Which of these is a common title defect?', optionsJson: ['Low appraisal value', 'Unpaid liens from a previous owner', 'High interest rates', 'Poor credit score of buyer'], correctIndex: 1 },
-    // Title Insurance — hard
-    { id: 'seed-trivia-09', category: 'Title Insurance', difficulty: 'hard', questionText: 'What is a "chain of title"?', optionsJson: ['The physical boundary markers of a property', 'The chronological sequence of ownership transfers for a property', 'The list of all liens on a property', 'The mortgage payment schedule'], correctIndex: 1 },
-    { id: 'seed-trivia-10', category: 'Title Insurance', difficulty: 'hard', questionText: 'What is subrogation in title insurance?', optionsJson: ['The process of canceling a policy', 'The insurer\'s right to pursue a third party after paying a claim', 'Transferring coverage to a new owner', 'Reducing the policy amount over time'], correctIndex: 1 },
-    { id: 'seed-trivia-11', category: 'Title Insurance', difficulty: 'hard', questionText: 'What does "marketable title" mean?', optionsJson: ['A title that will sell quickly', 'A title free from reasonable doubt or litigation risk', 'A title with the highest appraised value', 'A title held by a licensed agent'], correctIndex: 1 },
-    { id: 'seed-trivia-12', category: 'Title Insurance', difficulty: 'hard', questionText: 'What is an "endorsement" in a title insurance policy?', optionsJson: ['A cancellation notice', 'A modification that adds or limits coverage', 'A claim filing form', 'A premium payment receipt'], correctIndex: 1 },
-    { id: 'seed-trivia-13', category: 'Title Insurance', difficulty: 'hard', questionText: 'Which party\'s interest does the ALTA lender\'s policy protect?', optionsJson: ['The buyer', 'The seller', 'The mortgage lender', 'The title company'], correctIndex: 2 },
-    { id: 'seed-trivia-14', category: 'Title Insurance', difficulty: 'hard', questionText: 'What is a "mechanic\'s lien" and why is it relevant to title insurance?', optionsJson: ['A lien by the DMV for unpaid car taxes', 'A claim by contractors for unpaid work that can cloud title', 'A mortgage held by a mechanics union', 'A lien against machinery on the property'], correctIndex: 1 },
-    { id: 'seed-trivia-15', category: 'Title Insurance', difficulty: 'hard', questionText: 'What is the primary difference between CLTA and ALTA policies?', optionsJson: ['CLTA covers lenders; ALTA covers owners', 'ALTA offers broader coverage including survey-related issues', 'They are identical policies from different states', 'CLTA is cheaper because it covers more risks'], correctIndex: 1 },
-    // Real Estate Law — easy
-    { id: 'seed-trivia-16', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is escrow in a real estate transaction?', optionsJson: ['A type of mortgage', 'A neutral third-party holding funds until conditions are met', 'The property deed', 'A home inspection report'], correctIndex: 1 },
-    { id: 'seed-trivia-17', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What does "closing disclosure" refer to?', optionsJson: ['A document listing all final loan terms and closing costs', 'The seller\'s disclosure of property defects', 'A notice of foreclosure', 'An appraisal report'], correctIndex: 0 },
-    { id: 'seed-trivia-18', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is a deed?', optionsJson: ['A mortgage contract', 'A legal document transferring property ownership', 'A home inspection checklist', 'An insurance certificate'], correctIndex: 1 },
-    { id: 'seed-trivia-19', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is "recording" a deed?', optionsJson: ['Photographing the property', 'Filing the deed with the county to make ownership public record', 'Notarizing the deed', 'Sending the deed to the lender'], correctIndex: 1 },
-    { id: 'seed-trivia-20', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is a "contingency" in a real estate contract?', optionsJson: ['The final sale price', 'A condition that must be met for the sale to proceed', 'A type of mortgage interest rate', 'A property tax adjustment'], correctIndex: 1 },
-    { id: 'seed-trivia-21', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What does "joint tenancy" mean in property ownership?', optionsJson: ['Renting a property together', 'Owning property with right of survivorship among co-owners', 'A lease agreement between two tenants', 'A temporary ownership arrangement'], correctIndex: 1 },
-    { id: 'seed-trivia-22', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is a "quitclaim deed"?', optionsJson: ['A deed that guarantees clear title', 'A deed that transfers whatever interest the grantor has without warranties', 'A deed used to cancel a mortgage', 'A deed issued at foreclosure'], correctIndex: 1 },
-    { id: 'seed-trivia-23', category: 'Real Estate Law', difficulty: 'easy', questionText: 'What is the "right of first refusal" in real estate?', optionsJson: ['The buyer\'s right to inspect before closing', 'The right to match any offer before a property is sold to another party', 'The seller\'s right to refuse all offers', 'The lender\'s right to foreclose first'], correctIndex: 1 },
-    // Real Estate Law — hard
-    { id: 'seed-trivia-24', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What is "adverse possession"?', optionsJson: ['Foreclosure by the government', 'Acquiring title by openly occupying another\'s land for a statutory period', 'A hostile takeover of a business property', 'Buying land below market value'], correctIndex: 1 },
-    { id: 'seed-trivia-25', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What is an "easement appurtenant"?', optionsJson: ['An easement that expires after one year', 'An easement benefiting a neighboring property and transferring with the land', 'A personal right to use property that cannot be transferred', 'A government-granted access right'], correctIndex: 1 },
-    { id: 'seed-trivia-26', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What is a "lis pendens"?', optionsJson: ['A type of property tax', 'A notice that a lawsuit affecting title to real property is pending', 'A lien for unpaid contractor work', 'A deed restriction'], correctIndex: 1 },
-    { id: 'seed-trivia-27', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What does RESPA regulate?', optionsJson: ['Property appraisal standards', 'Settlement procedures and kickbacks in real estate transactions', 'Zoning and land use', 'Construction safety standards'], correctIndex: 1 },
-    { id: 'seed-trivia-28', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What is a "covenant running with the land"?', optionsJson: ['A temporary lease restriction', 'A deed restriction that binds future owners of the property', 'A verbal agreement between neighbors', 'A property tax covenant'], correctIndex: 1 },
-    { id: 'seed-trivia-29', category: 'Real Estate Law', difficulty: 'hard', questionText: 'Under TRID, what is the required waiting period after a Closing Disclosure is issued?', optionsJson: ['24 hours', '3 business days', '7 calendar days', '10 business days'], correctIndex: 1 },
-    { id: 'seed-trivia-30', category: 'Real Estate Law', difficulty: 'hard', questionText: 'What is "tenancy in common"?', optionsJson: ['A lease shared by multiple tenants', 'Co-ownership where each owner holds a separate transferable interest without survivorship rights', 'Joint ownership with equal shares only', 'A type of condominium ownership'], correctIndex: 1 },
-    // WFG History — easy
-    { id: 'seed-trivia-31', category: 'WFG History', difficulty: 'easy', questionText: 'What does WFG stand for?', optionsJson: ['Western Financial Group', 'Williston Financial Group', 'Western Federal Group', 'Worldwide Financial Group'], correctIndex: 1 },
-    { id: 'seed-trivia-32', category: 'WFG History', difficulty: 'easy', questionText: 'In what state was WFG founded?', optionsJson: ['California', 'Texas', 'Oregon', 'Florida'], correctIndex: 2 },
-    { id: 'seed-trivia-33', category: 'WFG History', difficulty: 'easy', questionText: 'What year was WFG founded?', optionsJson: ['2005', '2010', '2012', '2015'], correctIndex: 2 },
-    { id: 'seed-trivia-34', category: 'WFG History', difficulty: 'easy', questionText: 'What type of company is WFG primarily?', optionsJson: ['A mortgage lender', 'A title insurance and settlement services company', 'A real estate brokerage', 'A property management firm'], correctIndex: 1 },
-    { id: 'seed-trivia-35', category: 'WFG History', difficulty: 'easy', questionText: 'Who founded WFG?', optionsJson: ['Patrick Stone', 'Warren Buffett', 'Steve Jobs', 'Robert Shiller'], correctIndex: 0 },
-    { id: 'seed-trivia-36', category: 'WFG History', difficulty: 'easy', questionText: 'What is WFG\'s headquarters city?', optionsJson: ['Seattle', 'Portland', 'San Francisco', 'Denver'], correctIndex: 1 },
-    { id: 'seed-trivia-37', category: 'WFG History', difficulty: 'easy', questionText: 'WFG operates in how many states?', optionsJson: ['All 50 states', '35 states', '25 states', '10 states'], correctIndex: 0 },
-    { id: 'seed-trivia-38', category: 'WFG History', difficulty: 'easy', questionText: 'What is WFG\'s primary value proposition?', optionsJson: ['Lowest title insurance rates', 'Agent-centric, technology-forward title and settlement services', 'Fastest mortgage approvals', 'International real estate expertise'], correctIndex: 1 },
-    // WFG History — hard
-    { id: 'seed-trivia-39', category: 'WFG History', difficulty: 'hard', questionText: 'What does WFG\'s "Agents First" philosophy emphasize?', optionsJson: ['Automated agent replacement', 'Empowering title agents with tools, support, and partnership', 'Reducing agent commissions', 'Centralizing all operations at headquarters'], correctIndex: 1 },
-    { id: 'seed-trivia-40', category: 'WFG History', difficulty: 'hard', questionText: 'Which underwriter does WFG use for its title policies?', optionsJson: ['First American', 'Old Republic', 'WFG National Title Insurance Company', 'Fidelity National'], correctIndex: 2 },
-    { id: 'seed-trivia-41', category: 'WFG History', difficulty: 'hard', questionText: 'What technology platform does WFG offer agents for order management?', optionsJson: ['TitlePoint', 'WEST', 'MyWFG', 'SoftPro'], correctIndex: 2 },
-    { id: 'seed-trivia-42', category: 'WFG History', difficulty: 'hard', questionText: 'WFG was acquired by which parent company?', optionsJson: ['Fidelity National Financial', 'Stewart Information Services', 'Doma Holdings', 'Williston Holding Company'], correctIndex: 3 },
-    { id: 'seed-trivia-43', category: 'WFG History', difficulty: 'hard', questionText: 'What is WFG\'s "Emerald" program?', optionsJson: ['A luxury real estate listing service', 'A recognition and rewards program for top-performing agents', 'A green building certification', 'An escrow reserve fund'], correctIndex: 1 },
-    { id: 'seed-trivia-44', category: 'WFG History', difficulty: 'hard', questionText: 'Which annual WFG event brings together top agents and executives?', optionsJson: ['WFG Summit', 'Executive Summit', 'Emerald Conference', 'Title Leaders Forum'], correctIndex: 1 },
-    { id: 'seed-trivia-45', category: 'WFG History', difficulty: 'hard', questionText: 'What innovation did WFG pioneer in the closing process?', optionsJson: ['Blockchain title recording', 'Digital and remote online notarization (RON) closings', 'Instant title commitments via AI', 'Drone property surveys'], correctIndex: 1 },
-    // Industry Trends — easy
-    { id: 'seed-trivia-46', category: 'Industry Trends', difficulty: 'easy', questionText: 'What does RON stand for in real estate closings?', optionsJson: ['Real Online Notarization', 'Remote Online Notarization', 'Registered Official Notary', 'Remote Order Network'], correctIndex: 1 },
-    { id: 'seed-trivia-47', category: 'Industry Trends', difficulty: 'easy', questionText: 'What is a "digital closing"?', optionsJson: ['A closing conducted entirely in person', 'A closing where some or all documents are signed electronically', 'A closing managed by a robot', 'A closing done via postal mail only'], correctIndex: 1 },
-    { id: 'seed-trivia-48', category: 'Industry Trends', difficulty: 'easy', questionText: 'What trend has most impacted title industry technology in recent years?', optionsJson: ['Blockchain replacing all land records', 'Digital closings and remote online notarization', 'Elimination of title insurance requirements', 'Cryptocurrency property purchases'], correctIndex: 1 },
-    { id: 'seed-trivia-49', category: 'Industry Trends', difficulty: 'easy', questionText: 'What is "proptech"?', optionsJson: ['Property tax technology', 'Technology innovation applied to the real estate industry', 'Proprietary mortgage technology', 'Property protection software'], correctIndex: 1 },
-    { id: 'seed-trivia-50', category: 'Industry Trends', difficulty: 'easy', questionText: 'What does "e-closing" refer to?', optionsJson: ['Email correspondence during closing', 'An electronic or paperless closing process', 'Extended closing timeline', 'Emergency closing procedures'], correctIndex: 1 },
-    { id: 'seed-trivia-51', category: 'Industry Trends', difficulty: 'easy', questionText: 'What is the CFPB\'s role in real estate transactions?', optionsJson: ['Insuring mortgages', 'Regulating consumer financial products and protecting homebuyers', 'Setting property values', 'Approving title companies'], correctIndex: 1 },
-    { id: 'seed-trivia-52', category: 'Industry Trends', difficulty: 'easy', questionText: 'What does "wire fraud" mean in real estate?', optionsJson: ['Faulty electrical wiring disclosure', 'Fraudulent redirection of closing funds via fake wire instructions', 'Mortgage wire transfer delays', 'Title company fee disputes'], correctIndex: 1 },
-    { id: 'seed-trivia-53', category: 'Industry Trends', difficulty: 'easy', questionText: 'What is a "purchase money mortgage"?', optionsJson: ['A mortgage used to buy the property being financed', 'A mortgage for home improvements only', 'A second mortgage after refinancing', 'A government-backed mortgage program'], correctIndex: 0 },
-    // Industry Trends — hard
-    { id: 'seed-trivia-54', category: 'Industry Trends', difficulty: 'hard', questionText: 'How does AI currently impact title searches?', optionsJson: ['AI replaces all human title examiners', 'AI automates document extraction and risk flagging to speed up searches', 'AI has no current application in title searches', 'AI sets title insurance premiums automatically'], correctIndex: 1 },
-    { id: 'seed-trivia-55', category: 'Industry Trends', difficulty: 'hard', questionText: 'What is "instant title" in the modern market?', optionsJson: ['Waiving title insurance entirely', 'An AI-driven process that issues title commitments in minutes instead of days', 'A federal program providing immediate title transfers', 'Title insurance with no waiting period for claims'], correctIndex: 1 },
-    { id: 'seed-trivia-56', category: 'Industry Trends', difficulty: 'hard', questionText: 'What challenge does "IPEN" (In-Person Electronic Notarization) address vs RON?', optionsJson: ['IPEN is cheaper than RON', 'IPEN requires physical presence but uses electronic signatures, bridging traditional and digital', 'IPEN is only for commercial properties', 'IPEN does not require a notary'], correctIndex: 1 },
-    { id: 'seed-trivia-57', category: 'Industry Trends', difficulty: 'hard', questionText: 'What is the primary cybersecurity risk in a real estate transaction?', optionsJson: ['Title insurance fraud', 'Business email compromise redirecting wire transfers', 'Forged property deeds', 'Unauthorized property access'], correctIndex: 1 },
-    { id: 'seed-trivia-58', category: 'Industry Trends', difficulty: 'hard', questionText: 'How has the 2024-2025 interest rate environment affected title volume?', optionsJson: ['Title volume increased significantly due to refinancing', 'Title volume compressed as higher rates reduced purchase and refi transactions', 'Title volume was unaffected', 'Title volume doubled due to cash buyers'], correctIndex: 1 },
-    { id: 'seed-trivia-59', category: 'Industry Trends', difficulty: 'hard', questionText: 'What is a "lien release" and why is it critical at closing?', optionsJson: ['A document releasing the buyer from inspection obligations', 'A document confirming all prior liens on the property have been satisfied', 'The seller\'s agreement to release earnest money', 'A waiver of the property survey requirement'], correctIndex: 1 },
-    { id: 'seed-trivia-60', category: 'Industry Trends', difficulty: 'hard', questionText: 'What does MISMO stand for and why does it matter?', optionsJson: ['Mortgage Industry Standards Maintenance Organization — it standardizes data exchange in mortgage', 'Multiple Issuer Secured Mortgage Organization — it insures lender pools', 'Minimum Insurance Standards for Mortgage Operations', 'Mortgage Identification and Security Monitoring Office'], correctIndex: 0 },
+    { id: 'seed-trivia-01', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does "title insurance" protect against?', optionsJson: ['Natural disasters', 'Defects in ownership history', 'Property tax increases', 'Zoning changes'], correctIndex: 1 },
+    { id: 'seed-trivia-02', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is a "chain of title"?', optionsJson: ['A lock for property gates', 'A chronological list of ownership records', 'A type of mortgage', 'A legal boundary dispute'], correctIndex: 1 },
+    { id: 'seed-trivia-03', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does "clear title" mean?', optionsJson: ['Recently repainted property', 'Free of liens and legal claims', 'Includes a pool', 'Has no easements'], correctIndex: 1 },
+    { id: 'seed-trivia-04', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'Who typically pays for the lender\'s title insurance policy?', optionsJson: ['The seller', 'The real estate agent', 'The buyer', 'The city'], correctIndex: 2 },
+    { id: 'seed-trivia-05', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is an "easement"?', optionsJson: ['A type of mortgage', 'A right to use another\'s land for specific purposes', 'A property tax reduction', 'A building permit'], correctIndex: 1 },
+    { id: 'seed-trivia-06', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is a "lien" on a property?', optionsJson: ['A boundary marker', 'A legal claim by a creditor', 'A type of deed', 'A zoning category'], correctIndex: 1 },
+    { id: 'seed-trivia-07', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does "escrow" mean in real estate?', optionsJson: ['A type of fence', 'A holding account for funds during a transaction', 'A property appraisal', 'A title search'], correctIndex: 1 },
+    { id: 'seed-trivia-08', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is a "quitclaim deed"?', optionsJson: ['A deed that guarantees title', 'A deed transferring whatever interest the grantor has', 'A deed for commercial property', 'A deed from a court'], correctIndex: 1 },
+    { id: 'seed-trivia-09', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does "closing" refer to in real estate?', optionsJson: ['Listing a property for sale', 'The final step where ownership is transferred', 'A property inspection', 'An open house event'], correctIndex: 1 },
+    { id: 'seed-trivia-10', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is "remittance" in the title industry?', optionsJson: ['A form of title insurance', 'Payment sent to an underwriter after closing', 'A property survey', 'A notary fee'], correctIndex: 1 },
+    { id: 'seed-trivia-11', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is a "title search"?', optionsJson: ['An online property listing search', 'Reviewing public records to confirm legal ownership', 'A home inspection', 'An MLS database query'], correctIndex: 1 },
+    { id: 'seed-trivia-12', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is "wire fraud" in real estate?', optionsJson: ['Problems with electrical wiring', 'Scam redirecting closing funds to fraudulent accounts', 'Illegal recording of conversations', 'A mortgage fraud scheme'], correctIndex: 1 },
+    { id: 'seed-trivia-13', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does a title commitment document show?', optionsJson: ['Property market value', 'Conditions under which title insurance will be issued', 'Home inspection results', 'Mortgage interest rates'], correctIndex: 1 },
+    { id: 'seed-trivia-14', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is the difference between ALTA and CLTA policies?', optionsJson: ['Coverage amount', 'Geographic scope and coverage breadth', 'Who the insurer is', 'Policy duration'], correctIndex: 1 },
+    { id: 'seed-trivia-15', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is an "abstract of title"?', optionsJson: ['A summary of ownership history and legal claims', 'An architectural drawing', 'A property tax record', 'A mortgage statement'], correctIndex: 0 },
+    { id: 'seed-trivia-16', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does WFG stand for?', optionsJson: ['Western Federal Group', 'Williston Financial Group', 'World Finance Group', 'Western Financial Guarantee'], correctIndex: 1 },
+    { id: 'seed-trivia-17', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'Which document transfers property ownership?', optionsJson: ['Mortgage note', 'Deed', 'Title commitment', 'Survey map'], correctIndex: 1 },
+    { id: 'seed-trivia-18', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is "marketable title"?', optionsJson: ['A title that can be sold quickly', 'A title free from reasonable doubts that a buyer would accept', 'A highly valued property', 'A titled property near markets'], correctIndex: 1 },
+    { id: 'seed-trivia-19', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What is a "lis pendens"?', optionsJson: ['A type of deed', 'Notice of pending litigation affecting a property', 'A tax lien', 'A construction permit'], correctIndex: 1 },
+    { id: 'seed-trivia-20', category: 'Title & Real Estate', difficulty: 'easy', questionText: 'What does "pro-ration" mean at closing?', optionsJson: ['Property renovation costs', 'Dividing ongoing costs like taxes between buyer and seller', 'Agent commission calculation', 'Appraisal fee splitting'], correctIndex: 1 },
   ]
-  for (const q of triviaQuestions) {
-    await prisma.triviaQuestion.upsert({
-      where: { id: q.id },
-      update: {},
-      create: { ...q, isActive: true },
-    })
-  }
+  const triviaIds = triviaQuestions.map((q) => q.id)
+  await prisma.triviaQuestion.deleteMany({ where: { id: { notIn: triviaIds } } })
+  await prisma.triviaQuestion.createMany({
+    data: triviaQuestions.map((q) => ({ ...q, isActive: true })),
+    skipDuplicates: true,
+  })
   console.log(`Seeded ${triviaQuestions.length} trivia questions`)
 
-  // Prompt Challenge questions (5 questions, one per category)
+  // Prompt Challenge questions (5 questions from demo — v7 HTML)
   const pcQuestions = [
     {
       id: 'seed-pc-01',
-      category: 'Client Communication',
-      scenarioText: 'A buyer calls you 2 hours before closing saying they cannot reach their lender and are worried the loan won\'t fund. What is the best prompt to get AI assistance here?',
+      category: 'Underwriting',
+      scenarioText: 'A title agent needs to quickly understand a complex easement issue on a property. What\'s the best AI prompt?',
       optionsJson: [
-        '"Tell me something about mortgage loans."',
-        '"Draft an urgent escalation email to a mortgage lender\'s closing department requesting immediate confirmation of wire transfer status for a closing in 2 hours."',
-        '"What is a mortgage?"',
-        '"Write a casual message asking about the loan."',
+        '"Tell me about easements."',
+        '"Explain the legal implications of a utility easement on a residential property at 123 Main St where a garage encroaches on the easement area, and outline the steps to resolve it before closing."',
+        '"What is a utility easement?"',
+        '"Help me with a title issue."',
       ],
       correctIndex: 1,
-      explanation: 'Effective AI prompts are specific, include the context (urgency, timeline, goal), and request a concrete output. Vague prompts produce generic, unhelpful responses.',
+      explanation: 'Provides full context — property type, specific issue, location details, and a clear goal. The more context you give, the better the AI response.',
       displayOrder: 1,
     },
     {
       id: 'seed-pc-02',
-      category: 'Compliance',
-      scenarioText: 'Your manager asks you to use AI to help review a settlement statement for RESPA compliance issues. Which prompt is most effective?',
+      category: 'Client Communication',
+      scenarioText: 'A first-time homebuyer is confused about title insurance. How would you prompt an AI to help explain it?',
       optionsJson: [
-        '"Check this document."',
-        '"Review this HUD-1 settlement statement and flag any line items that may violate RESPA Section 8 prohibitions on kickbacks or unearned fees, explaining each concern."',
-        '"Is this legal?"',
-        '"Summarize the document."',
+        '"Explain title insurance simply."',
+        '"Write me a title insurance explainer."',
+        '"Write a friendly 3-paragraph explanation of title insurance for a first-time homebuyer who\'s nervous about closing costs, using simple language and a reassuring tone."',
+        '"What does title insurance cover?"',
       ],
-      correctIndex: 1,
-      explanation: 'A good compliance prompt names the specific regulation (RESPA Section 8), the document type (HUD-1), and the desired output (flagged items with explanations).',
+      correctIndex: 2,
+      explanation: 'Specifies the audience (first-time buyer), emotional context (nervous), format (3 paragraphs), and tone (friendly, reassuring).',
       displayOrder: 2,
     },
     {
       id: 'seed-pc-03',
-      category: 'Risk Management',
-      scenarioText: 'You need AI to help identify potential title risks from a preliminary report with an unusual recorded easement. What is the best prompt?',
+      category: 'Fraud Detection',
+      scenarioText: 'You\'ve noticed a suspicious pattern in wire instructions. How do you prompt AI to help you investigate?',
       optionsJson: [
-        '"What is an easement?"',
-        '"Analyze this preliminary title report easement language and identify risks to the buyer\'s intended use of the property as a single-family residence, noting any rights that could limit development or access."',
-        '"Is this easement bad?"',
-        '"Summarize the easement."',
+        '"Check if this wire is fraud."',
+        '"Here are the wire instructions I received. Analyze them for red flags: last-minute change requested by email, different bank than original, urgent language used. What fraud patterns do these match and what should I do?"',
+        '"What is wire fraud?"',
+        '"I think someone is committing fraud. Help me."',
       ],
       correctIndex: 1,
-      explanation: 'Risk-focused prompts specify the intended use of the property, the document to analyze, and the type of risks to look for — giving AI the context to produce actionable analysis.',
+      explanation: 'Shares the specific facts, asks for pattern matching against known fraud types, and requests actionable next steps.',
       displayOrder: 3,
     },
     {
       id: 'seed-pc-04',
-      category: 'Technology',
-      scenarioText: 'You want AI to help you write a follow-up email sequence for leads generated at an open house. Which prompt will produce the best results?',
+      category: 'Operational Efficiency',
+      scenarioText: 'You want to build a checklist for closing day. How do you prompt AI most effectively?',
       optionsJson: [
-        '"Write emails for my leads."',
-        '"Create a 3-email nurture sequence for open house leads in the title insurance industry: email 1 (same day, thank you + value of owner\'s title insurance), email 2 (day 3, educational content on the closing process), email 3 (day 7, call-to-action to discuss their home purchase timeline)."',
-        '"What should I say to leads?"',
-        '"Make some email templates."',
+        '"Give me a closing checklist."',
+        '"What do title agents do at closing?"',
+        '"Create a closing checklist."',
+        '"Create a detailed closing day checklist for a residential real estate transaction in California. Include pre-closing, day-of, and post-closing steps. Format it as a checklist I can share with my team."',
       ],
-      correctIndex: 1,
-      explanation: 'Multi-step content prompts need a clear structure (number of pieces, timing, purpose of each), audience context, and topic guidance so each output serves a distinct goal.',
+      correctIndex: 3,
+      explanation: 'Specifies transaction type, jurisdiction, time phases, and a shareable format. Specificity always produces better results.',
       displayOrder: 4,
     },
     {
       id: 'seed-pc-05',
-      category: 'Ethics',
-      scenarioText: 'A client asks you to use AI to generate online reviews for your agency. What is the most ethical and professionally responsible response?',
+      category: 'Business Development',
+      scenarioText: 'You want to write a LinkedIn post about your title services to attract realtor referrals. Which prompt produces the best result?',
       optionsJson: [
-        'Use AI to generate several 5-star reviews with different names',
-        'Decline and explain that fake reviews violate FTC guidelines and professional ethics; instead use AI to draft a follow-up email asking satisfied clients to leave honest reviews',
-        'Use AI to write one review and post it anonymously',
-        'Ask a colleague to post the AI-generated review',
+        '"Write a LinkedIn post about my title company."',
+        '"Write a compelling LinkedIn post for a WFG title agent targeting real estate agents. Highlight fast closing timelines, proactive communication, and local expertise. Keep it under 200 words with a strong call to action."',
+        '"Help me market my services."',
+        '"Write about title insurance on LinkedIn."',
       ],
       correctIndex: 1,
-      explanation: 'Generating fake reviews violates FTC regulations on endorsements and deceptive advertising, and most professional codes of conduct. Ethical AI use means using it to facilitate genuine feedback, not fabricate it.',
+      explanation: 'Specifies platform, audience, key value props, length, and CTA. These constraints produce a focused, usable post instead of generic content.',
       displayOrder: 5,
     },
   ]
-  for (const q of pcQuestions) {
-    await prisma.promptChallengeQuestion.upsert({ where: { id: q.id }, update: {}, create: q })
-  }
+  const pcIds = pcQuestions.map((q) => q.id)
+  await prisma.promptChallengeQuestion.deleteMany({ where: { id: { notIn: pcIds } } })
+  await prisma.promptChallengeQuestion.createMany({ data: pcQuestions, skipDuplicates: true })
   console.log(`Seeded ${pcQuestions.length} prompt challenge questions`)
 
   // Touchpoints (4 locations with HMAC-signed QR tokens)

@@ -89,10 +89,10 @@ export async function promptChallengeRoutes(fastify: FastifyInstance) {
     if (!activity || !activity.isOpen) throw badRequest('Activity is closed')
 
     const isCorrect = selectedIndex === question.correctIndex
-    const configJson = activity.configJson as { pointsPerQuestion?: number } | null
-    const pointsPerQuestion =
-      configJson?.pointsPerQuestion ?? Math.floor(activity.maxPoints / Math.max(totalQuestionCount, 1))
-    const pointsAwarded = isCorrect ? pointsPerQuestion : 0
+    const configJson = activity.configJson as { pointsCorrect?: number; pointsWrong?: number } | null
+    const pointsCorrect = configJson?.pointsCorrect ?? Math.floor(activity.maxPoints / Math.max(totalQuestionCount, 1))
+    const pointsWrong = configJson?.pointsWrong ?? 0
+    const pointsAwarded = isCorrect ? pointsCorrect : pointsWrong
 
     const responsePayload = {
       isCorrect,
@@ -114,7 +114,7 @@ export async function promptChallengeRoutes(fastify: FastifyInstance) {
           clientDedupeKey: dedupeKey,
         },
       })
-      if (isCorrect) {
+      if (pointsAwarded > 0) {
         await tx.userScore.upsert({
           where: { userId },
           update: { totalPoints: { increment: pointsAwarded } },
