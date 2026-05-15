@@ -38,7 +38,7 @@ const ACTIVITIES = [
     ),
   },
   {
-    id: 'prompt',
+    id: 'prompt_challenge',
     name: 'Prompt Challenge',
     pts: 100,
     iconBg: '#cef5f8',
@@ -53,7 +53,7 @@ const ACTIVITIES = [
     ),
   },
   {
-    id: 'golden',
+    id: 'golden_points',
     name: 'Golden Points',
     pts: 100,
     iconBg: '#faecc8',
@@ -67,7 +67,7 @@ const ACTIVITIES = [
     ),
   },
   {
-    id: 'touch',
+    id: 'touchpoint',
     name: 'Touchpoints',
     pts: 150,
     iconBg: '#d5f5e3',
@@ -112,8 +112,8 @@ export default function ActivitiesPage() {
   const doneById: Record<string, boolean> = {};
   if (apiActivities) {
     for (const a of apiActivities) {
-      earnedById[a.type] = a.points_earned ?? 0;
-      doneById[a.type] = a.completed ?? false;
+      earnedById[a.type] = a.pointsEarned ?? 0;
+      doneById[a.type] = a.isCompleted ?? false;
     }
   }
 

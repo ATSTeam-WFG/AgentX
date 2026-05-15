@@ -3,12 +3,12 @@ import Dexie, { type Table } from 'dexie';
 export interface CachedAgendaEvent {
   id: string;
   day: number;
-  starts_at: string;
-  ends_at: string;
+  startsAt: string;
+  endsAt: string;
   name: string;
   description?: string;
   location?: string;
-  speaker?: string;
+  speakerName?: string;
   version: number;
 }
 
@@ -16,21 +16,21 @@ export interface CachedActivity {
   id: string;
   type: string;
   name: string;
-  max_points: number;
-  is_open: boolean;
-  completed?: boolean;
-  points_earned?: number;
+  maxPoints: number;
+  isOpen: boolean;
+  isCompleted?: boolean;
+  pointsEarned?: number;
 }
 
 export interface CachedProfile {
   id: string;
   name: string;
   email: string;
-  attendee_type: string;
-  pending_admin_approval: boolean;
-  avatar_url?: string;
-  onboarding_interests?: string[];
-  total_points?: number;
+  attendeeType: string;
+  pendingAdminApproval: boolean;
+  avatarUrl?: string;
+  onboardingInterests?: string[];
+  totalPoints?: number;
   rank?: number;
 }
 
@@ -38,8 +38,8 @@ export interface CachedAnnouncement {
   id: string;
   title: string;
   body: string;
-  published_at: string;
-  expires_at?: string;
+  publishedAt: string;
+  expiresAt?: string;
 }
 
 export interface OutboxEntry {
@@ -68,6 +68,13 @@ class AgentXDb extends Dexie {
       outbox:        'id, createdAt, attempts',
       profile:       'id',
       announcements: 'id, published_at',
+    });
+    this.version(2).stores({
+      agenda:        'id, day, startsAt',
+      activities:    'id, type',
+      outbox:        'id, createdAt, attempts',
+      profile:       'id',
+      announcements: 'id, publishedAt',
     });
   }
 }

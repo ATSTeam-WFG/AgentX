@@ -2,7 +2,7 @@
 
 Tracks implementation status across each phase defined in [`backend.md`](./backend.md).
 
-**Last updated:** 2026-05-14
+**Last updated:** 2026-05-15
 **Current phase:** Phase 3 — Not started
 
 ---
@@ -116,7 +116,8 @@ Pre-event readiness. Must complete before event day.
 
 | Date | Decision | Rationale |
 |---|---|---|
-| — | — | — |
+| 2026-05-15 | Backend port changed `3000` → `3001`; CORS origin updated from `http://localhost:5173` → `http://localhost:3000` | Next.js dev server occupies port 3000; old CORS config was a leftover from the Vite prototype |
+| 2026-05-15 | Frontend API types, request bodies, and response consumers fully rewritten from snake_case to camelCase to match backend conventions; Dexie schema bumped to version 2 | Backend returns camelCase throughout; systematic mismatch caused all API calls to silently fail — see `docs/connection.md` for full scope |
 
 ---
 

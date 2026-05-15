@@ -122,9 +122,9 @@ export default function SessionDetailPage({ params }: { params: { eventId: strin
             <>
               <h1 className="session-title">{event.name}</h1>
               <div className="meta-row">
-                <span className="meta-chip">🕐 {formatTime(event.starts_at)} – {formatTime(event.ends_at)}</span>
+                <span className="meta-chip">🕐 {formatTime(event.startsAt)} – {formatTime(event.endsAt)}</span>
                 {event.location && <span className="meta-chip">📍 {event.location}</span>}
-                {event.speaker && <span className="meta-chip">👤 {event.speaker}</span>}
+                {event.speakerName && <span className="meta-chip">👤 {event.speakerName}</span>}
                 <span className="meta-chip">📅 Day {event.day}</span>
               </div>
 

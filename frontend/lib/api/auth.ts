@@ -4,10 +4,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  attendee_type: 'invited' | 'walk_in';
-  pending_admin_approval: boolean;
-  avatar_url?: string;
-  onboarding_interests?: string[];
+  attendeeType: 'invited' | 'walk_in';
+  pendingAdminApproval: boolean;
+  avatarUrl?: string;
+  onboardingInterests?: string[];
 }
 
 export interface AuthResponse {

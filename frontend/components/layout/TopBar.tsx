@@ -13,7 +13,7 @@ export default function TopBar() {
     retry: false,
   });
 
-  const pts = profile?.total_points ?? null;
+  const pts = profile?.totalPoints ?? null;
 
   return (
     <>

@@ -1,6 +1,6 @@
 # AgentX Frontend — Documentation
 
-**Status:** v1 (aligned with backend.md v1, design prototype AgentX_v7.html)
+**Status:** v1 (aligned with backend.md v1, design prototype AgentX_v7.html — backend connection completed 2026-05-15)
 **Audience:** Frontend engineering, design handoff, QA
 **Scope:** Next.js 15 PWA for attendees + `/admin` console. Everything that calls the Fastify `/v1` API.
 
@@ -328,6 +328,14 @@ class AgentXDb extends Dexie {
       profile:       'id',
       announcements: 'id, published_at',
     });
+    // v2: renamed indexed fields to camelCase to match backend response shape
+    this.version(2).stores({
+      agenda:        'id, day, startsAt',
+      activities:    'id, type',
+      outbox:        'id, createdAt, attempts',
+      profile:       'id',
+      announcements: 'id, publishedAt',
+    });
   }
 }
 
@@ -619,8 +627,9 @@ Golden paths:
 This frontend doc is intentionally paired with `docs/backend.md`. Critical contract points:
 
 - **Auth:** `POST /v1/auth/signup` and `/v1/auth/login` accept `{ name, email }` — **no password**
-- **dedupeKey:** every write endpoint expects `dedupeKey` (camelCase, not `dedupe_key`) — confirm with backend team before implementation
+- **dedupeKey:** every write endpoint expects `dedupeKey` (camelCase) — confirmed and implemented
 - **Agenda versioning:** `GET /v1/agenda?since=<version>` returns delta or full payload. Frontend must persist last-seen version in Dexie.
 - **Walk-in flow:** status `pending_approval` means user can browse but not earn points. Frontend must gate activity submission with a clear "Approval pending" state.
 - **WebSocket is optional:** every feature must degrade gracefully to polling. `useWebSocket` failing silently is correct behavior.
 - **Admin endpoints** use a separate JWT audience claim — the same `apiFetch` function reads from `agentx_admin_token` for `/v1/admin/*` paths.
+- **camelCase contract (2026-05-15):** All backend responses use camelCase. All frontend types (`User`, `AgendaEvent`, `Activity`, `TriviaQuestion`, `PromptQuestion`, `LeaderboardEntry`), request bodies, and response consumers have been updated to match. `GET /v1/me` returns `{ user, score }` — frontend flattens this in `getMe()`. `GET /v1/activities` returns `{ activities: [] }` — frontend unwraps in `getActivities()`. See `docs/connection.md` for the full field mapping.

@@ -4,51 +4,56 @@ export interface Activity {
   id: string;
   type: 'trivia' | 'avatar' | 'prompt_challenge' | 'golden_points' | 'touchpoint';
   name: string;
-  max_points: number;
-  is_open: boolean;
-  is_one_shot: boolean;
-  completed: boolean;
-  points_earned: number;
+  maxPoints: number;
+  isOpen: boolean;
+  isOneShot: boolean;
+  isCompleted: boolean;
+  pointsEarned: number;
 }
 
 export interface TriviaQuestion {
   id: string;
-  question_text: string;
-  options_json: string[];
+  questionText: string;
+  optionsJson: string[];
 }
 
 export interface PromptQuestion {
   id: string;
   category: string;
-  scenario_text: string;
-  options_json: string[];
-  user_answer?: { selected_index: number; is_correct: boolean };
+  scenarioText: string;
+  optionsJson: string[];
+  correctIndex?: number | null;
+  explanation?: string | null;
+  userAnswer?: { selectedIndex: number; isCorrect: boolean; pointsAwarded: number } | null;
 }
 
-export const getActivities = () => apiFetch<Activity[]>('/v1/activities');
+export const getActivities = () =>
+  apiFetch<{ activities: Activity[] }>('/v1/activities').then((r) => r.activities);
 
 export const startTrivia = () =>
-  apiFetch<{ attempt_id: string; questions: TriviaQuestion[] }>(
+  apiFetch<{ attemptId: string; questions: TriviaQuestion[] }>(
     '/v1/activities/trivia/start', { method: 'POST' }
   );
 
 export const completeTrivia = (
-  attempt_id: string,
-  answers: { question_id: string; selected_index: number }[],
+  attemptId: string,
+  answers: { questionId: string; selectedIndex: number }[],
   dedupeKey: string,
 ) =>
-  apiFetch<{ points_awarded: number; correct: number; total: number }>(
+  apiFetch<{ pointsAwarded: number; correctCount: number; totalQuestions: number }>(
     '/v1/activities/trivia/complete',
-    { method: 'POST', body: JSON.stringify({ attempt_id, answers, dedupeKey }) }
+    { method: 'POST', body: JSON.stringify({ attemptId, answers, dedupeKey }) }
   );
 
 export const getPromptQuestions = () =>
-  apiFetch<PromptQuestion[]>('/v1/activities/prompt-challenge/questions');
+  apiFetch<{ questions: PromptQuestion[]; totalPoints: number }>(
+    '/v1/activities/prompt-challenge/questions'
+  ).then((r) => r.questions);
 
-export const answerPrompt = (question_id: string, selected_index: number, dedupeKey: string) =>
-  apiFetch<{ is_correct: boolean; points_awarded: number }>(
+export const answerPrompt = (questionId: string, selectedIndex: number, dedupeKey: string) =>
+  apiFetch<{ isCorrect: boolean; pointsAwarded: number; explanation: string; correctIndex: number }>(
     '/v1/activities/prompt-challenge/answer',
-    { method: 'POST', body: JSON.stringify({ question_id, selected_index, dedupeKey }) }
+    { method: 'POST', body: JSON.stringify({ questionId, selectedIndex, dedupeKey }) }
   );
 
 export const submitGoldenPoints = (text: string, dedupeKey: string) =>
@@ -58,12 +63,12 @@ export const submitGoldenPoints = (text: string, dedupeKey: string) =>
   });
 
 export const getGoldenPointsStatus = (id: string) =>
-  apiFetch<{ status: string; ai_score?: number; points_awarded?: number }>(
+  apiFetch<{ status: string; aiScore?: number; pointsAwarded?: number }>(
     `/v1/activities/golden-points/${id}`
   );
 
-export const scanTouchpoint = (qr_token: string, dedupeKey: string) =>
-  apiFetch<{ points_awarded: number; touchpoint: { name: string; location_description: string } }>(
+export const scanTouchpoint = (qrToken: string, dedupeKey: string) =>
+  apiFetch<{ pointsAwarded: number; touchpoint: { name: string; locationDescription: string } }>(
     '/v1/touchpoints/scan',
-    { method: 'POST', body: JSON.stringify({ qr_token, dedupeKey }) }
+    { method: 'POST', body: JSON.stringify({ qrToken, dedupeKey }) }
   );

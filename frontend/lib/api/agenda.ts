@@ -6,9 +6,9 @@ export interface AgendaEvent {
   name: string;
   description?: string;
   location?: string;
-  speaker?: string;
-  starts_at: string;
-  ends_at: string;
+  speakerName?: string;
+  startsAt: string;
+  endsAt: string;
   version: number;
 }
 

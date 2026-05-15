@@ -31,7 +31,7 @@ export default function InterestsPage() {
     try {
       await apiFetch('/v1/me', {
         method: 'PATCH',
-        body: JSON.stringify({ onboarding_interests: Array.from(selected) }),
+        body: JSON.stringify({ onboardingInterests: Array.from(selected) }),
       });
     } catch {
       // Non-blocking — proceed regardless

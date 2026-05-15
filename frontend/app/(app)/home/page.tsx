@@ -16,8 +16,8 @@ function getDayGreeting() {
 function getActiveSession(events: AgendaEvent[]): AgendaEvent | undefined {
   const now = Date.now();
   return events.find((e) => {
-    const start = new Date(e.starts_at).getTime();
-    const end   = new Date(e.ends_at).getTime();
+    const start = new Date(e.startsAt).getTime();
+    const end   = new Date(e.endsAt).getTime();
     return now >= start && now <= end;
   });
 }
@@ -25,8 +25,8 @@ function getActiveSession(events: AgendaEvent[]): AgendaEvent | undefined {
 function getNextSession(events: AgendaEvent[]): AgendaEvent | undefined {
   const now = Date.now();
   return events
-    .filter((e) => new Date(e.starts_at).getTime() > now)
-    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())[0];
+    .filter((e) => new Date(e.startsAt).getTime() > now)
+    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())[0];
 }
 
 function formatTime(iso: string) {
@@ -35,8 +35,8 @@ function formatTime(iso: string) {
 
 function SessionProgress({ event }: { event: AgendaEvent }) {
   const now = Date.now();
-  const start = new Date(event.starts_at).getTime();
-  const end   = new Date(event.ends_at).getTime();
+  const start = new Date(event.startsAt).getTime();
+  const end   = new Date(event.endsAt).getTime();
   const pct   = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
   return (
     <div style={{ height: 4, background: 'rgba(29,77,217,.12)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
@@ -363,10 +363,10 @@ export default function HomePage() {
               </div>
               <div className="wn-title">{featured.name}</div>
               <div className="wn-meta">
-                {featured.speaker && (
+                {featured.speakerName && (
                   <span className="wn-meta-item">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
-                    {featured.speaker}
+                    {featured.speakerName}
                   </span>
                 )}
                 {featured.location && (
@@ -377,7 +377,7 @@ export default function HomePage() {
                 )}
                 <span className="wn-meta-item">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  {formatTime(featured.starts_at)} – {formatTime(featured.ends_at)}
+                  {formatTime(featured.startsAt)} – {formatTime(featured.endsAt)}
                 </span>
               </div>
               {current && <SessionProgress event={featured} />}

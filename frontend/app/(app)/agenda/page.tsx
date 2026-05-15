@@ -16,28 +16,28 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-function getStatus(starts_at: string, ends_at: string): 'past' | 'live' | 'upcoming' {
+function getStatus(startsAt: string, endsAt: string): 'past' | 'live' | 'upcoming' {
   const now = Date.now();
-  const s = new Date(starts_at).getTime();
-  const e = new Date(ends_at).getTime();
+  const s = new Date(startsAt).getTime();
+  const e = new Date(endsAt).getTime();
   if (now > e) return 'past';
   if (now >= s && now <= e) return 'live';
   return 'upcoming';
 }
 
 function SessionCard({ event }: { event: AgendaEvent }) {
-  const status = getStatus(event.starts_at, event.ends_at);
+  const status = getStatus(event.startsAt, event.endsAt);
   return (
     <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none' }}>
       <div className={`session-card ${status}`}>
         <div className="session-time-col">
-          <span className="session-time">{formatTime(event.starts_at)}</span>
+          <span className="session-time">{formatTime(event.startsAt)}</span>
           {status === 'live' && <span className="live-pip" />}
           {status === 'past' && <span className="past-dot">✓</span>}
         </div>
         <div className="session-info">
           <div className="session-name">{event.name}</div>
-          {event.speaker && <div className="session-meta">👤 {event.speaker}</div>}
+          {event.speakerName && <div className="session-meta">👤 {event.speakerName}</div>}
           {event.location && <div className="session-meta">📍 {event.location}</div>}
         </div>
         {status === 'live' && <span className="live-badge">Live</span>}

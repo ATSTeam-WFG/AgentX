@@ -2,7 +2,10 @@
 
 Authoritative guide for wiring the Next.js PWA to the Fastify API.  
 Read alongside [`backend.md`](./backend.md) (API spec) and [`frontend.md`](./frontend.md) (screen designs).  
-Phases 1–2 are fully implemented. Phases 3–4 entries are skeletons — path + purpose only.
+Phases 1–2 are fully implemented and the frontend is aligned to this spec. Phases 3–4 entries are skeletons — path + purpose only.
+
+**Frontend alignment completed:** 2026-05-15  
+All frontend API types, request bodies, and response consumers updated to match the backend's camelCase conventions. Environment is configured for local development.
 
 ---
 
@@ -711,7 +714,7 @@ Global: 300 requests/minute per IP or JWT subject. On `429`: back off 60 seconds
 ## 9. Environment Variables
 
 ```bash
-# Frontend (.env.local)
+# Frontend (frontend/.env.local) — in place
 NEXT_PUBLIC_API_URL=http://localhost:3001
 NEXT_PUBLIC_WS_URL=ws://localhost:3001
 NEXT_PUBLIC_APP_ENV=development
@@ -720,6 +723,12 @@ NEXT_PUBLIC_APP_ENV=development
 NEXT_PUBLIC_API_URL=https://api.agentx.wfg.app
 NEXT_PUBLIC_WS_URL=wss://api.agentx.wfg.app
 NEXT_PUBLIC_APP_ENV=production
+
+# Backend (backend/.env) — dev values in place
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
 ```
 
 No secrets belong in the frontend. JWT signing, AI inference, and QR HMAC generation all happen in the Fastify backend.
+
+> **Local dev ports:** Backend runs on `3001`, Next.js dev server on `3000`. Both must be running simultaneously.
