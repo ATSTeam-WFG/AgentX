@@ -1,26 +1,8 @@
 'use client';
 
-import type { Metadata } from "next";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import "@/styles/globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const metadata: Metadata = {
-  title: "AgentX — WFG Executive Summit",
-  description: "Your companion app for the WFG Executive Summit 2026",
-  manifest: "/manifest.json",
-  themeColor: "#06090f",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-};
 
 export default function RootLayout({
   children,
@@ -32,15 +14,29 @@ export default function RootLayout({
   }));
 
   return (
-    <html lang="en" className={cn("dark font-sans", geist.variable)}>
+    <html lang="en">
       <head>
+        <title>AgentX — WFG Executive Summit</title>
+        <meta name="description" content="Your companion app for the WFG Executive Summit 2026" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="theme-color" content="#d8e0ec" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="manifest" href="/manifest.json" />
+        {/* Google Fonts: DM Sans, DM Serif Display, Sora */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Sora:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <div id="app">
+            {children}
+          </div>
         </QueryClientProvider>
       </body>
     </html>

@@ -1,13 +1,19 @@
 'use client';
+import TopBar from '@/components/layout/TopBar';
 import TabBar from '@/components/layout/TabBar';
 import OwlFab from '@/components/layout/OwlFab';
+import AgentXSheet from '@/components/AgentXSheet';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100dvh', paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
-      {children}
-      <OwlFab />
+    <>
+      <TopBar />
+      <main style={{ flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+        {children}
+      </main>
       <TabBar />
-    </div>
+      <OwlFab />
+      <AgentXSheet />
+    </>
   );
 }
