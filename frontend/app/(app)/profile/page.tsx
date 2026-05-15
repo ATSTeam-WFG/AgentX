@@ -25,20 +25,18 @@ function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boole
   return (
     <div className={`lb-row-v7${highlight ? ' me' : ''}`}>
       <MedalCell rank={entry.rank} />
-      <div className="lb-name-v7">
-        {entry.name}{entry.is_current_user ? ' · You' : ''}
-      </div>
-      <div className="lb-pts-v7">{entry.total_points.toLocaleString()} pts</div>
+      <div className="lb-name-v7">{entry.name}</div>
+      <div className="lb-pts-v7">{entry.totalPoints.toLocaleString()} pts</div>
     </div>
   );
 }
 
 const STATIC_LB: LeaderboardEntry[] = [
-  { rank: 1, name: 'Sarah M.',     total_points: 820, is_current_user: false },
-  { rank: 2, name: 'James R.',     total_points: 740, is_current_user: false },
-  { rank: 3, name: 'Linda K.',     total_points: 680, is_current_user: false },
-  { rank: 4, name: 'Carlos B.',    total_points: 610, is_current_user: false },
-  { rank: 5, name: 'You',          total_points: 340, is_current_user: true  },
+  { rank: 1, name: 'Sarah M.',  totalPoints: 820 },
+  { rank: 2, name: 'James R.',  totalPoints: 740 },
+  { rank: 3, name: 'Linda K.',  totalPoints: 680 },
+  { rank: 4, name: 'Carlos B.', totalPoints: 610 },
+  { rank: 5, name: 'You',       totalPoints: 340 },
 ];
 
 export default function ProfilePage() {
@@ -60,12 +58,12 @@ export default function ProfilePage() {
 
   const name       = profile?.name ?? user?.name ?? 'Summit Guest';
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
-  const points     = profile?.total_points ?? 0;
-  const activities = profile?.activities_completed ?? 0;
-  const touchpts   = (profile as { touchpoints_completed?: number } | null)?.touchpoints_completed ?? 0;
+  const points     = profile?.totalPoints ?? 0;
+  const activities = profile?.activitiesCompleted ?? 0;
+  const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
   const rank       = profile?.rank ?? '–';
 
-  const leaderboard = lb?.top ?? STATIC_LB;
+  const leaderboard = lb?.leaderboard ?? STATIC_LB;
 
   return (
     <>
@@ -311,10 +309,10 @@ export default function ProfilePage() {
             </div>
 
             {leaderboard.map((entry) => (
-              <LbRow key={entry.rank} entry={entry} highlight={entry.is_current_user} />
+              <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
             ))}
-            {lb?.current_user && !leaderboard.some((e) => e.is_current_user) && (
-              <LbRow entry={lb.current_user} highlight />
+            {lb?.currentUser && !leaderboard.some((e) => e.rank === lb.currentUser?.rank) && (
+              <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
             )}
           </div>
 

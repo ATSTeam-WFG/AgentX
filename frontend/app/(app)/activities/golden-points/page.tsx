@@ -26,8 +26,8 @@ export default function GoldenPointsPage() {
     const interval = setInterval(async () => {
       try {
         const res = await getGoldenPointsStatus(submissionId);
-        if (res.status === 'scored' && res.points_awarded != null) {
-          setPoints(res.points_awarded);
+        if (res.status === 'scored' && res.pointsAwarded != null) {
+          setPoints(res.pointsAwarded);
           setStatus('done');
           clearInterval(interval);
         }

@@ -3,13 +3,13 @@ import { apiFetch } from '../api';
 export interface LeaderboardEntry {
   rank: number;
   name: string;
-  total_points: number;
-  is_current_user: boolean;
+  totalPoints: number;
+  avatarUrl?: string | null;
 }
 
 export interface LeaderboardResponse {
-  top: LeaderboardEntry[];
-  current_user: LeaderboardEntry;
+  leaderboard: LeaderboardEntry[];
+  currentUser: { rank: number; totalPoints: number } | null;
 }
 
 export const getLeaderboard = (limit = 5) =>

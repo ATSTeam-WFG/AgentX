@@ -43,18 +43,18 @@ export default function TriviaPage() {
   const [attemptId, setAttemptId]   = useState('');
   const [questions, setQuestions]   = useState<TriviaQuestion[]>([]);
   const [qIdx, setQIdx]             = useState(0);
-  const [answers, setAnswers]       = useState<{ question_id: string; selected_index: number }[]>([]);
+  const [answers, setAnswers]       = useState<{ questionId: string; selectedIndex: number }[]>([]);
   const [selected, setSelected]     = useState<number | null>(null);
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
-  const [result, setResult]         = useState<{ points_awarded: number; correct: number; total: number } | null>(null);
+  const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
 
   const current = questions[qIdx];
 
   const advanceQuestion = useCallback((idx: number, sel: number | null) => {
     const ans = sel !== null
-      ? [...answers, { question_id: questions[idx].id, selected_index: sel }]
-      : [...answers, { question_id: questions[idx].id, selected_index: -1 }];
+      ? [...answers, { questionId: questions[idx].id, selectedIndex: sel }]
+      : [...answers, { questionId: questions[idx].id, selectedIndex: -1 }];
     setAnswers(ans);
     setSelected(null);
     setTimer(TIMER_SECS);
@@ -65,7 +65,7 @@ export default function TriviaPage() {
       // Submit
       completeTrivia(attemptId, ans, crypto.randomUUID())
         .then((r) => { setResult(r); setPhase('result'); })
-        .catch(() => { setResult({ points_awarded: 0, correct: 0, total: questions.length }); setPhase('result'); });
+        .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
     }
   }, [answers, attemptId, questions]);
 
@@ -88,7 +88,7 @@ export default function TriviaPage() {
     setLoading(true);
     try {
       const res = await startTrivia();
-      setAttemptId(res.attempt_id);
+      setAttemptId(res.attemptId);
       setQuestions(res.questions);
       setQIdx(0);
       setAnswers([]);
@@ -387,9 +387,9 @@ export default function TriviaPage() {
             <div className="q-progress-track">
               <div className="q-progress-fill" style={{ width: `${(qIdx / questions.length) * 100}%` }} />
             </div>
-            <div className="tv-q-card">{current.question_text}</div>
+            <div className="tv-q-card">{current.questionText}</div>
             <div className="tv-opts">
-              {current.options_json.map((opt, i) => (
+              {current.optionsJson.map((opt, i) => (
                 <button key={i} className={optionClass(i)} onClick={() => handleSelect(i)}>
                   {opt}
                 </button>
@@ -408,31 +408,31 @@ export default function TriviaPage() {
                   cx="80" cy="80" r="68" fill="none"
                   stroke="var(--blue)"
                   strokeWidth="10"
-                  strokeDasharray={`${2 * Math.PI * 68 * (result.correct / result.total)} ${2 * Math.PI * 68}`}
+                  strokeDasharray={`${2 * Math.PI * 68 * (result.correctCount / result.totalQuestions)} ${2 * Math.PI * 68}`}
                   strokeLinecap="round"
                   style={{ transition: 'stroke-dasharray 1s ease' }}
                 />
               </svg>
               <div className="score-number">
-                <span className="score-val">{result.correct}/{result.total}</span>
-                <span className="score-pts">+{result.points_awarded} pts</span>
+                <span className="score-val">{result.correctCount}/{result.totalQuestions}</span>
+                <span className="score-pts">+{result.pointsAwarded} pts</span>
               </div>
             </div>
             <div className="result-title">
-              {result.correct >= result.total * 0.8 ? '🎉 Excellent!' : result.correct >= result.total * 0.5 ? '👍 Good job!' : '💪 Keep learning!'}
+              {result.correctCount >= result.totalQuestions * 0.8 ? '🎉 Excellent!' : result.correctCount >= result.totalQuestions * 0.5 ? '👍 Good job!' : '💪 Keep learning!'}
             </div>
-            <div className="result-sub">You got {result.correct} out of {result.total} correct.</div>
+            <div className="result-sub">You got {result.correctCount} out of {result.totalQuestions} correct.</div>
             <div className="result-stats">
               <div className="result-stat">
-                <div className="rs-val">{result.correct}</div>
+                <div className="rs-val">{result.correctCount}</div>
                 <div className="rs-lbl">Correct</div>
               </div>
               <div className="result-stat">
-                <div className="rs-val">{result.total - result.correct}</div>
+                <div className="rs-val">{result.totalQuestions - result.correctCount}</div>
                 <div className="rs-lbl">Missed</div>
               </div>
               <div className="result-stat">
-                <div className="rs-val" style={{ color: 'var(--gold-rich)' }}>+{result.points_awarded}</div>
+                <div className="rs-val" style={{ color: 'var(--gold-rich)' }}>+{result.pointsAwarded}</div>
                 <div className="rs-lbl">Points</div>
               </div>
             </div>

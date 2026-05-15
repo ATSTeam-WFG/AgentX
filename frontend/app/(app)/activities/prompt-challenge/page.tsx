@@ -11,7 +11,7 @@ export default function PromptChallengePage() {
   const router = useRouter();
   const [view, setView]     = useState<ViewState>('list');
   const [selected, setSel]  = useState<number | null>(null);
-  const [answered, setAns]  = useState<Map<string, { is_correct: boolean; points_awarded: number }>>(new Map());
+  const [answered, setAns]  = useState<Map<string, { isCorrect: boolean; pointsAwarded: number }>>(new Map());
   const [submitting, setSub] = useState(false);
 
   const { data: questions = [] } = useQuery({
@@ -29,7 +29,7 @@ export default function PromptChallengePage() {
       setAns((prev) => new Map(prev).set(q.id, res));
     } catch {
       // Show as answered anyway
-      setAns((prev) => new Map(prev).set(q.id, { is_correct: false, points_awarded: 0 }));
+      setAns((prev) => new Map(prev).set(q.id, { isCorrect: false, pointsAwarded: 0 }));
     } finally {
       setSub(false);
     }
@@ -96,14 +96,14 @@ export default function PromptChallengePage() {
             <button className="back-btn" onClick={() => { setView('list'); setSel(null); }}>‹ All Prompts</button>
             <div className="q-category">{q.category}</div>
             <div className="q-card">
-              <div className="q-text">{q.scenario_text}</div>
+              <div className="q-text">{q.scenarioText}</div>
             </div>
             <div className="opts">
-              {q.options_json.map((opt, i) => {
+              {q.optionsJson.map((opt, i) => {
                 let cls = 'opt-btn';
                 if (ans) {
-                  if (i === selected && ans.is_correct)  cls += ' correct';
-                  if (i === selected && !ans.is_correct) cls += ' wrong';
+                  if (i === selected && ans.isCorrect)  cls += ' correct';
+                  if (i === selected && !ans.isCorrect) cls += ' wrong';
                   if (i !== selected)                    cls += ' dim';
                 } else if (selected === i) {
                   cls += ' dim';
@@ -117,8 +117,8 @@ export default function PromptChallengePage() {
             </div>
             {ans && (
               <>
-                <div className={`result-badge ${ans.is_correct ? 'win' : 'lose'}`}>
-                  {ans.is_correct ? `✓ Correct! +${ans.points_awarded} pts` : '✕ Not quite — best prompt selected!'}
+                <div className={`result-badge ${ans.isCorrect ? 'win' : 'lose'}`}>
+                  {ans.isCorrect ? `✓ Correct! +${ans.pointsAwarded} pts` : '✕ Not quite — best prompt selected!'}
                 </div>
                 <button className="btn-back-list" onClick={() => { setView('list'); setSel(null); }}>
                   ← See all prompts
@@ -176,8 +176,8 @@ export default function PromptChallengePage() {
               <div key={q.id} className={`pc-card${ans ? ' done' : ''}`} onClick={() => { setView({ question: q }); setSel(null); }}>
                 <div className="pc-card-text">
                   <div className="pc-cat-chip">{q.category}</div>
-                  <div className="pc-card-title" style={{ marginTop: 6 }}>{q.scenario_text.slice(0, 80)}{q.scenario_text.length > 80 ? '…' : ''}</div>
-                  {ans && <div className="pc-card-sub">{ans.is_correct ? `+${ans.points_awarded} pts earned` : 'Answered'}</div>}
+                  <div className="pc-card-title" style={{ marginTop: 6 }}>{q.scenarioText.slice(0, 80)}{q.scenarioText.length > 80 ? '…' : ''}</div>
+                  {ans && <div className="pc-card-sub">{ans.isCorrect ? `+${ans.pointsAwarded} pts earned` : 'Answered'}</div>}
                 </div>
                 {ans ? <span className="pc-check">✓</span> : <span style={{ color: 'var(--t4)', fontSize: 20 }}>›</span>}
               </div>
