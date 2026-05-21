@@ -20,7 +20,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   const { skipAuth, useAdminToken, ...init } = options;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...(init.headers as Record<string, string>),
   };
 

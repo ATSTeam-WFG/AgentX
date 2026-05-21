@@ -10,7 +10,7 @@ const ACTIVITIES = [
     name: 'Title Trivia',
     pts: 500,
     iconBg: '#dde9ff',
-    iconColor: '#1a3d9e',
+    iconColor: '#1b4fc4',
     desc: '50 questions. 60 seconds. Answer as many title-industry questions as you can.',
     href: '/activities/trivia',
     icon: (
@@ -27,8 +27,8 @@ const ACTIVITIES = [
     pts: 150,
     iconBg: '#ead9ed',
     iconColor: '#7c2d9e',
-    desc: 'Upload a photo (+50 pts) and print your branded summit avatar (+100 pts).',
-    href: '/activities/avatar',
+    desc: 'Upload a photo (+50 pts) and print your branded summit avatar at the kiosk (+100 pts).',
+    href: '/activities/avatar-studio',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
         <circle cx="11" cy="8" r="3.6" stroke="currentColor" strokeWidth="1.6"/>
@@ -56,8 +56,8 @@ const ACTIVITIES = [
     id: 'golden_points',
     name: 'Golden Points',
     pts: 100,
-    iconBg: '#faecc8',
-    iconColor: '#a67710',
+    iconBg: '#fff8e0',
+    iconColor: '#b07a00',
     desc: 'Share a real business pain point from the title industry for ATS review.',
     href: '/activities/golden-points',
     icon: (
@@ -70,31 +70,14 @@ const ACTIVITIES = [
     id: 'touchpoint',
     name: 'Touchpoints',
     pts: 150,
-    iconBg: '#d5f5e3',
-    iconColor: '#146636',
-    desc: 'Scan QR codes at 5 summit locations to earn points and explore the event.',
+    iconBg: '#e3f7ed',
+    iconColor: '#157a40',
+    desc: 'Share your experience at 5 summit locations and earn points.',
     href: '/activities/touchpoints',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
-        <path d="M9 8V5a2 2 0 014 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-        <path d="M7 10V8.5a2 2 0 014 0V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <path d="M7 10v5c0 2 1.8 3 4 3s4-1 4-3v-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M13 10v-1.5a2 2 0 014 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'feedback',
-    name: 'Summit Feedback',
-    pts: 50,
-    iconBg: '#fde8cc',
-    iconColor: '#c2671c',
-    desc: "Share your overall experience to help us shape next year's Executive Summit.",
-    href: '/profile/feedback',
-    icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
-        <path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V6a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
-        <path d="M8 8.5l1.5 1.5L13 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M11 2C7.69 2 5 4.69 5 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.31-2.69-6-6-6z" stroke="currentColor" strokeWidth="1.6"/>
+        <circle cx="11" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.5"/>
       </svg>
     ),
   },
@@ -144,9 +127,7 @@ export default function ActivitiesPage() {
           color: var(--t); letter-spacing: -.025em;
           margin: 0; line-height: 1;
         }
-        .acts-pts-total {
-          text-align: right;
-        }
+        .acts-pts-total { text-align: right; }
         .acts-pts-num {
           font-family: 'Sora', sans-serif;
           font-size: 28px; font-weight: 800;
@@ -158,16 +139,15 @@ export default function ActivitiesPage() {
           color: var(--t3); margin-top: 2px;
         }
         .acts-progress-wrap {
-          height: 6px; background: rgba(255,255,255,.10);
+          height: 6px; background: var(--bg3);
           border-radius: 4px; overflow: hidden;
           margin-bottom: 18px;
         }
         .acts-progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, var(--amber-rich), var(--gold-rich), #e8c840);
+          background: linear-gradient(90deg, var(--amber-rich), var(--gold-rich), #c99010);
           border-radius: 4px;
           transition: width .5s ease;
-          box-shadow: 0 0 10px rgba(212,160,23,.35);
         }
         .acts-scroll {
           flex: 1; overflow-y: auto;
@@ -177,8 +157,8 @@ export default function ActivitiesPage() {
         }
         /* Activity card */
         .v7-act-card {
-          background: var(--metallic);
-          border: 1.5px solid rgba(255,255,255,.28);
+          background: var(--surface);
+          border: 1px solid var(--border-metal);
           border-radius: var(--r);
           padding: 20px;
           margin-bottom: 14px;
@@ -187,6 +167,7 @@ export default function ActivitiesPage() {
           text-decoration: none;
           display: block;
           color: inherit;
+          transition: box-shadow var(--tr);
         }
         .v7-act-card:active { opacity: .88; }
         .v7-act-header {
@@ -199,54 +180,54 @@ export default function ActivitiesPage() {
           display: flex; align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,.55);
-          box-shadow: 0 1px 4px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.55);
+          border: 1px solid rgba(0,0,0,.06);
+          box-shadow: 0 1px 4px rgba(8,24,64,.08);
         }
         .v7-act-name {
           font-family: 'Sora', sans-serif;
           font-size: 20px; font-weight: 700;
-          letter-spacing: -.02em; color: #0d1e38;
+          letter-spacing: -.02em; color: var(--t);
           flex: 1; min-width: 0;
         }
         .v7-act-pts {
-          background: linear-gradient(135deg, #fdf3dc, #faecc8);
-          color: #a67710;
+          background: var(--gold-lt);
+          color: var(--gold);
           border-radius: 10px;
           padding: 6px 12px;
           font-family: 'Sora', sans-serif;
           font-size: 14px; font-weight: 800;
           flex-shrink: 0;
-          border: 1px solid rgba(166,119,16,.28);
-          box-shadow: 0 1px 3px rgba(0,0,0,.08);
+          border: 1px solid rgba(176,122,0,.20);
+          box-shadow: 0 1px 3px rgba(8,24,64,.06);
         }
         .v7-act-desc {
-          font-size: 16px; color: #4a6080;
+          font-size: 15px; color: var(--t3);
           line-height: 1.6; margin-bottom: 16px;
         }
         .v7-act-done {
           display: flex; align-items: center;
           gap: 10px;
-          background: linear-gradient(135deg, #d5f5e3, #c8efd9);
-          color: #146636;
+          background: var(--green-lt);
+          color: var(--green);
           border-radius: 12px;
           padding: 14px 18px;
           font-size: 15px; font-weight: 700;
           width: 100%; justify-content: center;
-          border: 1px solid rgba(20,102,54,.22);
-          box-shadow: 0 1px 4px rgba(0,0,0,.10);
+          border: 1px solid rgba(21,122,64,.20);
+          box-shadow: 0 1px 4px rgba(8,24,64,.06);
           min-height: 52px;
         }
         .v7-act-btn {
           display: flex; align-items: center;
           justify-content: center; gap: 8px;
-          background: linear-gradient(180deg, #e8b824 0%, #d4a017 60%, #c08c12 100%);
-          color: #0a1840;
+          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
+          color: #fff;
           border: none; border-radius: 12px;
           padding: 12px 18px; font-size: 15px;
           font-weight: 700; font-family: inherit;
           width: 100%; min-height: 50px;
           cursor: pointer;
-          box-shadow: var(--shadow-gold);
+          box-shadow: var(--shadow-blue);
           transition: opacity .15s;
         }
         .v7-act-btn:active { opacity: .88; }
@@ -270,14 +251,14 @@ export default function ActivitiesPage() {
           {ACTIVITIES.map((act) => {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;
-            return (
-              <Link key={act.id} href={act.href} className="v7-act-card">
+            const cardInner = (
+              <>
                 <div className="v7-act-header">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
                     {act.icon}
                   </div>
                   <div className="v7-act-name">{act.name}</div>
-                  <div className="v7-act-pts">{act.pts} pts</div>
+                  <div className="v7-act-pts">{done ? `${earned} pts` : `${act.pts} pts`}</div>
                 </div>
                 <div className="v7-act-desc">{act.desc}</div>
                 {done ? (
@@ -295,6 +276,15 @@ export default function ActivitiesPage() {
                     </svg>
                   </div>
                 )}
+              </>
+            );
+            return done ? (
+              <div key={act.id} className="v7-act-card" style={{ cursor: 'default' }}>
+                {cardInner}
+              </div>
+            ) : (
+              <Link key={act.id} href={act.href} className="v7-act-card">
+                {cardInner}
               </Link>
             );
           })}

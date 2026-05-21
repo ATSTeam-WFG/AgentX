@@ -21,36 +21,17 @@ export default function TopBar() {
         .top-bar {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 4px;
           padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 10px;
-          background: rgba(18,28,46,.92);
-          backdrop-filter: blur(22px) saturate(180%);
-          -webkit-backdrop-filter: blur(22px) saturate(180%);
-          border-bottom: 1px solid rgba(255,255,255,.06);
+          background: var(--surface-glass);
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
+          border-bottom: 1px solid var(--border-metal);
           flex-shrink: 0;
           position: relative;
           z-index: 100;
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.05),
-            0 4px 24px rgba(0,0,0,.35);
+          box-shadow: 0 2px 12px rgba(8,24,64,.06);
         }
-
-        /* Gold hairline at bottom */
-        .top-bar::after {
-          content: '';
-          position: absolute;
-          left: 0; right: 0; bottom: -1px;
-          height: 1px;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(212,160,23,.40) 25%,
-            rgba(212,160,23,.55) 50%,
-            rgba(212,160,23,.40) 75%,
-            transparent 100%
-          );
-        }
-
         .tb-brand-row {
           display: flex;
           align-items: center;
@@ -58,7 +39,6 @@ export default function TopBar() {
           gap: 10px;
           min-height: 42px;
         }
-
         /* ES26 left */
         .tb-es26 {
           display: inline-flex;
@@ -68,11 +48,8 @@ export default function TopBar() {
         }
         .tb-es26-img {
           border-radius: 10px;
-          box-shadow:
-            0 2px 8px rgba(0,0,0,.40),
-            inset 0 1px 0 rgba(255,255,255,.12);
+          box-shadow: 0 2px 8px rgba(8,24,64,.14);
         }
-
         /* Center — points pill */
         .tb-center {
           flex: 1;
@@ -84,41 +61,31 @@ export default function TopBar() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: linear-gradient(
-            135deg,
-            rgba(212,160,23,.22) 0%,
-            rgba(194,103,28,.14) 100%
-          );
-          color: var(--gold-rich);
+          background: var(--gold-lt);
+          color: var(--gold);
           border-radius: 22px;
           padding: 7px 14px;
           font-size: 13px;
           font-weight: 700;
           font-family: 'Sora', sans-serif;
           text-decoration: none;
-          border: 1px solid rgba(212,160,23,.32);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.08),
-            0 2px 8px rgba(212,160,23,.18);
+          border: 1px solid rgba(176,122,0,.22);
+          box-shadow: 0 1px 4px rgba(176,122,0,.12);
           min-height: 34px;
           transition: box-shadow var(--tr), transform var(--tr);
           white-space: nowrap;
         }
         .tb-pts-pill:active { transform: scale(.96); }
-
-        /* WFG right */
         .tb-wfg {
           display: inline-flex;
           align-items: center;
-          gap: 9px;
           flex-shrink: 0;
         }
         .tb-wfg-logo {
-          height: 34px;
+          height: 28px;
           width: auto;
           object-fit: contain;
         }
-
         /* Attribution microline */
         .tb-microline {
           display: flex;
@@ -126,17 +93,17 @@ export default function TopBar() {
           gap: 6px;
           font-size: 10px;
           font-weight: 600;
-          color: rgba(180,200,220,.42);
+          color: var(--t4);
           letter-spacing: .07em;
           text-transform: uppercase;
           line-height: 1;
           padding-left: 2px;
         }
-        .tb-microline strong { color: rgba(200,215,230,.60); font-weight: 700; }
+        .tb-microline strong { color: var(--t3); font-weight: 700; }
         .tb-ml-dot {
           width: 3px; height: 3px;
           border-radius: 50%;
-          background: rgba(180,200,220,.25);
+          background: var(--border-metal);
           flex-shrink: 0;
         }
       `}</style>
@@ -172,10 +139,10 @@ export default function TopBar() {
           {/* WFG right */}
           <div className="tb-wfg">
             <Image
-              src="/WFG NTIC Logo white.png"
+              src="/WFG NTIC Logo.png"
               alt="WFG National Title Insurance Company"
-              width={80}
-              height={34}
+              width={90}
+              height={28}
               className="tb-wfg-logo"
               style={{ objectFit: 'contain' }}
               priority

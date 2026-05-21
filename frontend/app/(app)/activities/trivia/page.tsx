@@ -1,12 +1,36 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { startTrivia, completeTrivia, type TriviaQuestion } from '@/lib/api/activities';
 
 type Phase = 'hub' | 'play' | 'result';
 
 const TIMER_SECS = 60;
+const PROGRESS_KEY = 'agentx_trivia_progress';
+
+interface TriviaProgress {
+  attemptId: string;
+  startedAt: number;
+  questions: TriviaQuestion[];
+  answers: { questionId: string; selectedIndex: number }[];
+  qIdx: number;
+}
+
+function saveProgress(p: TriviaProgress) {
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch {}
+}
+
+function clearProgress() {
+  try { localStorage.removeItem(PROGRESS_KEY); } catch {}
+}
+
+function loadProgress(): TriviaProgress | null {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? (JSON.parse(raw) as TriviaProgress) : null;
+  } catch { return null; }
+}
 
 function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
   const r = 22;
@@ -47,56 +71,120 @@ export default function TriviaPage() {
   const [selected, setSelected]     = useState<number | null>(null);
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
+  const [startError, setStartError] = useState('');
   const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
+
+  // Refs so the global timer callback can read latest values without re-triggering the effect
+  const answersRef     = useRef<{ questionId: string; selectedIndex: number }[]>([]);
+  const qIdxRef        = useRef(0);
+  const submittingRef  = useRef(false);
+  const startedAtRef   = useRef(0);
+
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { qIdxRef.current = qIdx; }, [qIdx]);
+
+  // On mount: restore in-progress quiz from localStorage (wall-clock resume)
+  useEffect(() => {
+    const saved = loadProgress();
+    if (!saved) return;
+    const elapsed = Math.floor((Date.now() - saved.startedAt) / 1000);
+    const remaining = TIMER_SECS - elapsed;
+    if (remaining <= 0) {
+      // Time already expired while app was closed — submit what was answered
+      clearProgress();
+      const allAnswers = [...saved.answers];
+      for (let i = saved.qIdx; i < saved.questions.length; i++) {
+        allAnswers.push({ questionId: saved.questions[i].id, selectedIndex: -1 });
+      }
+      submittingRef.current = true;
+      completeTrivia(saved.attemptId, allAnswers, crypto.randomUUID())
+        .then((r) => { setResult(r); setPhase('result'); })
+        .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: saved.questions.length }); setPhase('result'); });
+    } else {
+      // Resume with remaining seconds
+      startedAtRef.current = saved.startedAt;
+      submittingRef.current = false;
+      setAttemptId(saved.attemptId);
+      setQuestions(saved.questions);
+      setQIdx(saved.qIdx);
+      setAnswers(saved.answers);
+      setSelected(null);
+      setTimer(remaining);
+      setPhase('play');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = questions[qIdx];
 
   const advanceQuestion = useCallback((idx: number, sel: number | null) => {
+    if (submittingRef.current) return; // guard: timer may have already submitted
     const ans = sel !== null
       ? [...answers, { questionId: questions[idx].id, selectedIndex: sel }]
       : [...answers, { questionId: questions[idx].id, selectedIndex: -1 }];
     setAnswers(ans);
     setSelected(null);
-    setTimer(TIMER_SECS);
 
     if (idx + 1 < questions.length) {
       setQIdx(idx + 1);
+      // Save progress after each answer so resume is up to date
+      saveProgress({ attemptId, startedAt: startedAtRef.current, questions, answers: ans, qIdx: idx + 1 });
     } else {
-      // Submit
+      submittingRef.current = true;
+      clearProgress();
       completeTrivia(attemptId, ans, crypto.randomUUID())
         .then((r) => { setResult(r); setPhase('result'); })
         .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
     }
   }, [answers, attemptId, questions]);
 
+  // Global quiz timer — starts once when play begins, never resets between questions
   useEffect(() => {
     if (phase !== 'play') return;
     const t = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(t);
-          advanceQuestion(qIdx, null);
-          return TIMER_SECS;
+          if (!submittingRef.current) {
+            submittingRef.current = true;
+            clearProgress();
+            const currentAnswers = answersRef.current;
+            const currentQIdx = qIdxRef.current;
+            // Fill all unanswered questions with -1
+            const allAnswers = [...currentAnswers];
+            for (let i = currentQIdx; i < questions.length; i++) {
+              allAnswers.push({ questionId: questions[i].id, selectedIndex: -1 });
+            }
+            completeTrivia(attemptId, allAnswers, crypto.randomUUID())
+              .then((r) => { setResult(r); setPhase('result'); })
+              .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
+          }
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [phase, qIdx, advanceQuestion]);
+  }, [phase, questions, attemptId]);
 
   async function handleStart() {
     setLoading(true);
+    setStartError('');
     try {
       const res = await startTrivia();
+      startedAtRef.current = Date.now();
+      saveProgress({ attemptId: res.attemptId, startedAt: startedAtRef.current, questions: res.questions, answers: [], qIdx: 0 });
       setAttemptId(res.attemptId);
       setQuestions(res.questions);
       setQIdx(0);
       setAnswers([]);
       setSelected(null);
       setTimer(TIMER_SECS);
+      submittingRef.current = false;
       setPhase('play');
-    } catch {
-      alert('Could not start trivia. Please try again.');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setStartError(msg);
+      console.error('[trivia/start]', e);
     } finally {
       setLoading(false);
     }
@@ -365,15 +453,20 @@ export default function TriviaPage() {
             <div className="rules-card">
               <div className="rules-title">How it works</div>
               <ul className="rules-list">
-                <li>Answer 10 multiple-choice questions</li>
-                <li>You have 60 seconds per question</li>
-                <li>Earn up to 200 points total</li>
+                <li>Answer 50 multiple-choice questions</li>
+                <li>You have 60 seconds for the entire quiz</li>
+                <li>Earn up to 500 points total</li>
                 <li>Can only be played once</li>
               </ul>
             </div>
             <button className="btn-start" onClick={handleStart} disabled={loading}>
               {loading ? 'Loading…' : 'Start Quiz →'}
             </button>
+            {startError && (
+              <p style={{ color: 'var(--rose)', fontSize: 14, marginTop: 12, textAlign: 'center' }}>
+                {startError}
+              </p>
+            )}
           </div>
         )}
 

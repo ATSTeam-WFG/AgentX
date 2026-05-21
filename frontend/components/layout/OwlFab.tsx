@@ -62,6 +62,7 @@ export default function OwlFab() {
         }
       `}</style>
       <button
+        id="owl-fab"
         className="owl-fab-wrap"
         aria-label="Open Agent X assistant"
         onClick={openSheet}

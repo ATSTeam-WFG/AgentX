@@ -7,6 +7,16 @@ import { submitGoldenPoints, getGoldenPointsStatus } from '@/lib/api/activities'
 type Status = 'idle' | 'submitting' | 'scoring' | 'done' | 'error';
 const MIN_WORDS = 50;
 
+const CUE_CHIPS = [
+  'Reducing closing delays',
+  'Wire fraud prevention',
+  'Client communication gaps',
+  'Escrow reconciliation issues',
+  'Remote notarization workflows',
+  'Title search automation',
+  'Agent onboarding friction',
+];
+
 function wordCount(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -52,6 +62,13 @@ export default function GoldenPointsPage() {
     }
   }
 
+  function appendChip(chip: string) {
+    setText((prev) => {
+      const trimmed = prev.trimEnd();
+      return trimmed ? `${trimmed} ${chip} ` : `${chip} `;
+    });
+  }
+
   return (
     <>
       <style>{`
@@ -61,9 +78,7 @@ export default function GoldenPointsPage() {
           overflow: hidden;
         }
         .gp-scroll {
-          flex: 1;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
+          flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
           padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
@@ -74,64 +89,73 @@ export default function GoldenPointsPage() {
         }
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700; color: var(--navy); letter-spacing: -.025em;
-          margin: 0 0 8px;
+          font-size: 28px; font-weight: 700; color: var(--t);
+          letter-spacing: -.025em; margin: 0 0 8px;
         }
         .page-sub { font-size: 15px; color: var(--t3); margin: 0 0 24px; }
         .prompt-card {
           background: var(--surface);
-          border: 1.5px solid var(--border);
+          border: 1px solid var(--border-metal);
           border-radius: var(--r-lg);
-          padding: 18px;
-          margin-bottom: 16px;
-          box-shadow: var(--shadow-sm);
+          padding: 18px; margin-bottom: 16px;
+          box-shadow: var(--shadow-card);
         }
         .prompt-label {
-          font-size: 13px; font-weight: 700; color: var(--steel);
-          letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px;
+          font-size: 11px; font-weight: 800; letter-spacing: .08em;
+          text-transform: uppercase; color: var(--t3); margin-bottom: 8px;
         }
         .prompt-text {
           font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.35;
+          font-size: 17px; font-weight: 700; color: var(--t); line-height: 1.35;
         }
+        .cue-section-label {
+          font-size: 12px; font-weight: 700; letter-spacing: .06em;
+          text-transform: uppercase; color: var(--t3); margin-bottom: 10px;
+        }
+        .gp-cue-chips {
+          display: flex; gap: 8px; overflow-x: auto;
+          -webkit-overflow-scrolling: touch; scrollbar-width: none;
+          padding-bottom: 4px; margin-bottom: 14px;
+        }
+        .gp-cue-chips::-webkit-scrollbar { display: none; }
+        .gp-cue-chip {
+          white-space: nowrap; font-size: 13px; font-weight: 600;
+          color: var(--blue); background: var(--blue-lt);
+          border: 1px solid rgba(27,79,196,.22);
+          border-radius: 20px; padding: 7px 14px;
+          cursor: pointer; flex-shrink: 0;
+          font-family: inherit; transition: all var(--tr);
+        }
+        .gp-cue-chip:active { background: var(--blue-lt2); }
         .textarea-wrap { position: relative; margin-bottom: 10px; }
         .gp-textarea {
-          width: 100%;
-          min-height: 180px;
+          width: 100%; min-height: 180px;
           background: var(--surface);
           border: 1.5px solid var(--border-metal);
-          border-radius: var(--r);
-          padding: 14px 16px;
-          font-size: 16px;
-          color: var(--t);
+          border-radius: var(--r); padding: 14px 16px;
+          font-size: 16px; color: var(--t);
           font-family: 'DM Sans', sans-serif;
-          line-height: 1.55;
-          resize: none;
-          outline: none;
+          line-height: 1.55; resize: none; outline: none;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
         .gp-textarea:focus {
-          border-color: var(--cyan);
-          box-shadow: 0 0 0 3px var(--cyan-s);
+          border-color: var(--blue);
+          box-shadow: 0 0 0 3px rgba(27,79,196,.08);
         }
         .word-count {
-          text-align: right;
-          font-size: 13px;
-          color: var(--t4);
-          margin-bottom: 18px;
+          text-align: right; font-size: 13px;
+          color: var(--t4); margin-bottom: 18px;
         }
         .word-count.ok { color: var(--green); font-weight: 600; }
         .btn-submit {
-          width: 100%;
-          height: 54px; border-radius: 14px;
-          background: var(--blue); color: #fff;
-          font-size: 17px; font-weight: 700;
+          width: 100%; height: 54px; border-radius: 14px;
+          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
+          color: #fff; font-size: 17px; font-weight: 700;
           font-family: 'Sora', sans-serif;
           border: none; cursor: pointer;
-          box-shadow: var(--shadow-blue);
-          transition: opacity var(--tr);
+          box-shadow: var(--shadow-blue); transition: opacity var(--tr);
         }
-        .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-submit:disabled { opacity: .45; cursor: not-allowed; }
         .scoring-wrap {
           display: flex; flex-direction: column; align-items: center;
           padding: 60px 24px; gap: 16px;
@@ -146,7 +170,7 @@ export default function GoldenPointsPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .scoring-label {
           font-family: 'Sora', sans-serif;
-          font-size: 18px; font-weight: 700; color: var(--navy);
+          font-size: 18px; font-weight: 700; color: var(--t);
         }
         .scoring-sub { font-size: 14px; color: var(--t3); text-align: center; }
         .done-wrap {
@@ -156,20 +180,20 @@ export default function GoldenPointsPage() {
         .done-icon { font-size: 56px; }
         .done-title {
           font-family: 'Sora', sans-serif;
-          font-size: 26px; font-weight: 800; color: var(--navy);
+          font-size: 26px; font-weight: 800; color: var(--t);
         }
         .done-pts {
           font-family: 'Sora', sans-serif;
-          font-size: 48px; font-weight: 800; color: var(--gold-rich);
-          line-height: 1;
+          font-size: 48px; font-weight: 800; color: var(--gold-rich); line-height: 1;
         }
         .done-sub { font-size: 15px; color: var(--t3); text-align: center; margin-bottom: 20px; }
         .btn-back {
           width: 100%; height: 54px; border-radius: 14px;
-          background: var(--surface2); color: var(--navy);
+          background: var(--surface); color: var(--t);
           font-size: 16px; font-weight: 700;
           font-family: 'Sora', sans-serif;
           border: 1.5px solid var(--border-metal); cursor: pointer;
+          box-shadow: var(--shadow-card);
         }
         .error-msg { font-size: 14px; color: var(--rose); margin-top: 8px; text-align: center; }
       `}</style>
@@ -193,13 +217,22 @@ export default function GoldenPointsPage() {
           <div className="gp-scroll">
             <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
             <h1 className="page-title">Golden Points</h1>
-            <p className="page-sub">Write a thoughtful response to earn up to 300 points</p>
+            <p className="page-sub">Write a thoughtful response to earn up to 100 points</p>
 
             <div className="prompt-card">
               <div className="prompt-label">Your Prompt</div>
               <div className="prompt-text">
                 How is AI transforming the title &amp; escrow industry, and what excites you most about WFG&#39;s use of technology at this summit?
               </div>
+            </div>
+
+            <div className="cue-section-label">Quick suggestions</div>
+            <div className="gp-cue-chips">
+              {CUE_CHIPS.map((chip) => (
+                <button key={chip} className="gp-cue-chip" onClick={() => appendChip(chip)} type="button">
+                  {chip}
+                </button>
+              ))}
             </div>
 
             <div className="textarea-wrap">

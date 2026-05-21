@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
+import TourOverlay from '@/components/TourOverlay';
 
 function getDayGreeting() {
   const h = new Date().getHours();
@@ -39,7 +40,7 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
   const end   = new Date(event.endsAt).getTime();
   const pct   = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
   return (
-    <div style={{ height: 4, background: 'rgba(29,77,217,.12)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
+    <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
       <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, var(--blue), var(--cyan))', borderRadius: 2, transition: 'width 1s linear' }} />
     </div>
   );
@@ -73,8 +74,8 @@ export default function HomePage() {
           flex-shrink: 0;
         }
         .home-greeting {
-          font-size: 16px;
-          color: rgba(200,215,230,.55);
+          font-size: 15px;
+          color: var(--t3);
           font-weight: 500;
           margin-bottom: 2px;
         }
@@ -82,7 +83,7 @@ export default function HomePage() {
           font-family: 'Sora', sans-serif;
           font-size: 30px;
           font-weight: 800;
-          color: var(--silver);
+          color: var(--t);
           letter-spacing: -.03em;
           line-height: 1.1;
         }
@@ -94,15 +95,15 @@ export default function HomePage() {
           font-weight: 700;
           padding: 4px 12px;
           border-radius: 20px;
-          background: linear-gradient(135deg, rgba(212,160,23,.18), rgba(194,103,28,.10));
-          color: var(--gold-rich);
-          border: 1px solid rgba(212,160,23,.28);
+          background: var(--blue-lt);
+          color: var(--blue);
+          border: 1px solid rgba(27,79,196,.20);
           margin-bottom: 3px;
         }
         .home-date {
           display: block;
           font-size: 13px;
-          color: rgba(200,215,230,.45);
+          color: var(--t3);
           text-align: right;
         }
         .home-scroll {
@@ -117,27 +118,20 @@ export default function HomePage() {
           font-weight: 800;
           letter-spacing: .08em;
           text-transform: uppercase;
-          color: var(--steel);
+          color: var(--t3);
           margin-bottom: 10px;
           margin-top: 6px;
         }
+        /* What's Next card — v7 style */
         .whats-next-card {
           background: var(--surface);
-          border: 1.5px solid var(--border);
+          border: 1px solid var(--border-metal);
           border-radius: var(--r-lg);
-          border-top: 3px solid var(--blue);
           padding: 16px;
-          box-shadow: var(--shadow);
+          box-shadow: var(--shadow-card);
           margin-bottom: 16px;
           position: relative;
           overflow: hidden;
-        }
-        .whats-next-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: linear-gradient(135deg, rgba(29,77,217,.04) 0%, transparent 60%);
-          pointer-events: none;
         }
         .wn-eyebrow {
           display: flex;
@@ -154,8 +148,9 @@ export default function HomePage() {
           width: 7px; height: 7px;
           border-radius: 50%;
           background: var(--green);
-          box-shadow: 0 0 6px rgba(20,102,54,.6);
+          box-shadow: 0 0 6px rgba(21,122,64,.5);
           animation: pulse 2s ease-in-out infinite;
+          flex-shrink: 0;
         }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -165,7 +160,7 @@ export default function HomePage() {
           font-family: 'Sora', sans-serif;
           font-size: 18px;
           font-weight: 700;
-          color: var(--navy);
+          color: var(--t);
           margin-bottom: 6px;
           line-height: 1.3;
         }
@@ -181,78 +176,13 @@ export default function HomePage() {
           align-items: center;
           gap: 4px;
         }
-        .card-progress {
-          background: var(--surface);
-          border: 1.5px solid var(--border);
-          border-radius: var(--r-lg);
-          padding: 18px;
-          box-shadow: var(--shadow);
-          margin-bottom: 16px;
-        }
-        .cp-eyebrow {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .06em;
-          text-transform: uppercase;
-          color: var(--steel);
-          margin-bottom: 4px;
-        }
-        .cp-head-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 12px;
-        }
-        .cp-heading {
-          font-family: 'Sora', sans-serif;
-          font-size: 17px;
-          font-weight: 700;
-          color: var(--navy);
-          line-height: 1.25;
-          flex: 1;
-          padding-right: 12px;
-        }
-        .cp-points {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px;
-          font-weight: 800;
-          color: var(--gold-rich);
-          line-height: 1;
-          flex-shrink: 0;
-        }
-        .cp-pts-label {
-          font-size: 12px;
-          color: var(--t4);
-          font-weight: 500;
-          text-align: right;
-          margin-top: 2px;
-        }
-        .progress-track {
-          height: 8px;
-          background: var(--surface2);
-          border-radius: 4px;
-          overflow: hidden;
-          margin-bottom: 10px;
-        }
-        .progress-fill {
-          height: 100%;
-          border-radius: 4px;
-          background: linear-gradient(90deg, var(--blue), var(--cyan), var(--gold-rich));
-          box-shadow: 0 0 12px rgba(6,182,212,.35);
-          transition: width .8s ease;
-        }
-        .cp-link {
-          font-size: 14px;
-          font-weight: 700;
-          color: var(--blue);
-          text-decoration: none;
-        }
+        /* Sponsor card */
         .sponsor-card {
-          background: linear-gradient(135deg, var(--amber-lt), #fff8ed);
-          border: 1.5px solid var(--amber-s);
+          background: var(--surface);
+          border: 1px solid var(--border-metal);
           border-radius: var(--r-lg);
           padding: 18px;
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-card);
           display: flex;
           align-items: center;
           gap: 14px;
@@ -261,8 +191,7 @@ export default function HomePage() {
         .sponsor-logo-sq {
           width: 52px; height: 52px;
           border-radius: 12px;
-          background: #fff;
-          border: 1.5px solid var(--border-metal);
+          background: var(--navy);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -281,14 +210,14 @@ export default function HomePage() {
           font-family: 'Sora', sans-serif;
           font-size: 16px;
           font-weight: 700;
-          color: var(--navy);
+          color: var(--t);
         }
         .sponsor-tagline {
           font-size: 13px;
           color: var(--t3);
           margin-top: 2px;
         }
-        /* ── Summit banner ── */
+        /* Summit banner */
         .summit-banner {
           display: flex;
           align-items: center;
@@ -303,18 +232,10 @@ export default function HomePage() {
           content: '';
           flex: 1;
           height: 1px;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(212,160,23,.35)
-          );
+          background: linear-gradient(90deg, transparent, var(--border-metal));
         }
         .summit-banner::after {
-          background: linear-gradient(
-            90deg,
-            rgba(212,160,23,.35),
-            transparent
-          );
+          background: linear-gradient(90deg, var(--border-metal), transparent);
         }
         .summit-banner-text {
           font-family: 'Sora', sans-serif;
@@ -322,7 +243,7 @@ export default function HomePage() {
           font-weight: 800;
           letter-spacing: .22em;
           text-transform: uppercase;
-          color: var(--gold);
+          color: var(--t3);
           white-space: nowrap;
         }
         .no-session {
@@ -331,6 +252,37 @@ export default function HomePage() {
           color: var(--t3);
           font-size: 15px;
         }
+        /* Resort map card */
+        .resort-map-card {
+          background: linear-gradient(135deg, var(--blue-lt), #eef4ff);
+          border: 1px solid rgba(27,79,196,.16);
+          border-radius: var(--r-lg);
+          padding: 16px 18px;
+          box-shadow: var(--shadow-card);
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 16px;
+          cursor: pointer;
+          text-decoration: none;
+          transition: opacity var(--tr);
+        }
+        .resort-map-card:active { opacity: .85; }
+        .resort-map-icon {
+          width: 46px; height: 46px;
+          border-radius: 12px;
+          background: var(--blue);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(27,79,196,.25);
+        }
+        .resort-map-title {
+          font-family: 'Sora', sans-serif;
+          font-size: 16px; font-weight: 700;
+          color: var(--t);
+        }
+        .resort-map-sub { font-size: 13px; color: var(--t3); margin-top: 2px; }
+        .resort-map-chev { margin-left: auto; color: var(--blue); flex-shrink: 0; }
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0 }}>
@@ -353,8 +305,8 @@ export default function HomePage() {
 
         {/* Scrollable content */}
         <div className="home-scroll">
-          {/* Happening Now */}
-          <div className="sec-label">Happening Now</div>
+          {/* What's Next */}
+          <div className="sec-label">What&apos;s Next</div>
 
           {featured ? (
             <div className="whats-next-card">
@@ -388,7 +340,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Sponsor banner */}
+          {/* Summit Sponsor */}
           <div className="sec-label">Summit Sponsor</div>
           <div className="sponsor-card">
             <div className="sponsor-logo-sq">🏢</div>
@@ -398,8 +350,25 @@ export default function HomePage() {
               <div className="sponsor-tagline">Your trusted partner for every closing</div>
             </div>
           </div>
+
+          {/* Resort Map */}
+          <a className="resort-map-card" href="#" aria-label="View resort map">
+            <div className="resort-map-icon">
+              <svg viewBox="0 0 24 24" fill="none" width="24" height="24" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/>
+                <path d="M9 4v13M15 7v13"/>
+              </svg>
+            </div>
+            <div>
+              <div className="resort-map-title">Resort Map</div>
+              <div className="resort-map-sub">Venues, session rooms &amp; amenities</div>
+            </div>
+            <span className="resort-map-chev">›</span>
+          </a>
         </div>
       </div>
+
+      <TourOverlay />
     </>
   );
 }

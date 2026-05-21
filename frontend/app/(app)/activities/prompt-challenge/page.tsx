@@ -7,11 +7,30 @@ import { getPromptQuestions, answerPrompt, type PromptQuestion } from '@/lib/api
 
 type ViewState = 'list' | { question: PromptQuestion };
 
+const PC_PROGRESS_KEY = 'agentx_pc_progress';
+type AnswerResult = { isCorrect: boolean; pointsAwarded: number };
+
+function savePCProgress(answered: Map<string, AnswerResult>) {
+  try {
+    const obj: Record<string, AnswerResult> = {};
+    answered.forEach((v, k) => { obj[k] = v; });
+    localStorage.setItem(PC_PROGRESS_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
+function loadPCProgress(): Map<string, AnswerResult> {
+  try {
+    const raw = localStorage.getItem(PC_PROGRESS_KEY);
+    if (!raw) return new Map();
+    return new Map(Object.entries(JSON.parse(raw) as Record<string, AnswerResult>));
+  } catch { return new Map(); }
+}
+
 export default function PromptChallengePage() {
   const router = useRouter();
   const [view, setView]     = useState<ViewState>('list');
   const [selected, setSel]  = useState<number | null>(null);
-  const [answered, setAns]  = useState<Map<string, { isCorrect: boolean; pointsAwarded: number }>>(new Map());
+  const [answered, setAns]  = useState<Map<string, AnswerResult>>(loadPCProgress);
   const [submitting, setSub] = useState(false);
 
   const { data: questions = [] } = useQuery({
@@ -26,10 +45,17 @@ export default function PromptChallengePage() {
     setSub(true);
     try {
       const res = await answerPrompt(q.id, idx, crypto.randomUUID());
-      setAns((prev) => new Map(prev).set(q.id, res));
+      setAns((prev) => {
+        const next = new Map(prev).set(q.id, res);
+        savePCProgress(next);
+        return next;
+      });
     } catch {
-      // Show as answered anyway
-      setAns((prev) => new Map(prev).set(q.id, { isCorrect: false, pointsAwarded: 0 }));
+      setAns((prev) => {
+        const next = new Map(prev).set(q.id, { isCorrect: false, pointsAwarded: 0 });
+        savePCProgress(next);
+        return next;
+      });
     } finally {
       setSub(false);
     }
