@@ -14,7 +14,7 @@ const ACTIVITIES = [
     desc: '50 questions. 60 seconds. Answer as many title-industry questions as you can.',
     href: '/activities/trivia',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <path d="M11 2a9 9 0 100 18A9 9 0 0011 2z" stroke="currentColor" strokeWidth="1.6"/>
         <path d="M8.5 8.5a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
         <circle cx="11" cy="15.5" r=".9" fill="currentColor"/>
@@ -30,7 +30,7 @@ const ACTIVITIES = [
     desc: 'Upload a photo (+50 pts) and print your branded summit avatar (+100 pts).',
     href: '/activities/avatar',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <circle cx="11" cy="8" r="3.6" stroke="currentColor" strokeWidth="1.6"/>
         <path d="M3 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
         <path d="M16 3l2.5 2.5-4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -46,7 +46,7 @@ const ACTIVITIES = [
     desc: '5 real title scenarios. Pick the best AI prompt. Every answer earns points.',
     href: '/activities/prompt-challenge',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <path d="M4 6h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V7a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
         <path d="M8 10h6M8 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
@@ -61,7 +61,7 @@ const ACTIVITIES = [
     desc: 'Share a real business pain point from the title industry for ATS review.',
     href: '/activities/golden-points',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <path d="M11 2l2.5 5h5.5l-4.5 3.5 1.5 5.5L11 13.5 6 16l1.5-5.5L3 7h5.5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
       </svg>
     ),
@@ -75,7 +75,7 @@ const ACTIVITIES = [
     desc: 'Scan QR codes at 5 summit locations to earn points and explore the event.',
     href: '/activities/touchpoints',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <path d="M9 8V5a2 2 0 014 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
         <path d="M7 10V8.5a2 2 0 014 0V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <path d="M7 10v5c0 2 1.8 3 4 3s4-1 4-3v-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -92,7 +92,7 @@ const ACTIVITIES = [
     desc: "Share your overall experience to help us shape next year's Executive Summit.",
     href: '/profile/feedback',
     icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="26" height="26">
+      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
         <path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V6a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
         <path d="M8 8.5l1.5 1.5L13 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
@@ -140,8 +140,9 @@ export default function ActivitiesPage() {
         }
         .acts-title {
           font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700;
-          color: var(--t); letter-spacing: -.025em;
+          font-size: 32px; font-weight: 800;
+          color: var(--t); letter-spacing: .02em;
+          text-transform: uppercase;
           margin: 0; line-height: 1;
         }
         .acts-pts-total {
@@ -154,7 +155,7 @@ export default function ActivitiesPage() {
           line-height: 1;
         }
         .acts-pts-of {
-          font-size: 12px; font-weight: 600;
+          font-size: 14px; font-weight: 600;
           color: var(--t3); margin-top: 2px;
         }
         .acts-progress-wrap {
@@ -175,13 +176,13 @@ export default function ActivitiesPage() {
           padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
-        /* Activity card */
+        /* Activity card — 20% smaller than before */
         .v7-act-card {
           background: var(--metallic);
-          border: 1.5px solid rgba(255,255,255,.28);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
-          padding: 20px;
-          margin-bottom: 14px;
+          padding: 14px 16px;
+          margin-bottom: 12px;
           box-shadow: var(--shadow-card);
           cursor: pointer;
           text-decoration: none;
@@ -191,71 +192,78 @@ export default function ActivitiesPage() {
         .v7-act-card:active { opacity: .88; }
         .v7-act-header {
           display: flex; align-items: center;
-          gap: 14px; margin-bottom: 14px;
+          gap: 12px; margin-bottom: 10px;
         }
         .v7-act-icon {
-          width: 58px; height: 58px;
-          border-radius: 16px;
+          width: 46px; height: 46px;
+          border-radius: 12px;
           display: flex; align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,.55);
-          box-shadow: 0 1px 4px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.55);
+          border: 1px solid rgba(255,255,255,.50);
+          box-shadow: 0 1px 4px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.50);
         }
         .v7-act-name {
           font-family: 'Sora', sans-serif;
-          font-size: 20px; font-weight: 700;
-          letter-spacing: -.02em; color: #0d1e38;
+          font-size: 17px; font-weight: 700;
+          letter-spacing: -.01em; color: #1C283C;
           flex: 1; min-width: 0;
         }
+        .v7-act-pts-wrap { text-align: right; flex-shrink: 0; }
         .v7-act-pts {
-          background: linear-gradient(135deg, #fdf3dc, #faecc8);
-          color: #a67710;
-          border-radius: 10px;
-          padding: 6px 12px;
           font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 800;
-          flex-shrink: 0;
-          border: 1px solid rgba(166,119,16,.28);
-          box-shadow: 0 1px 3px rgba(0,0,0,.08);
+          font-size: 20px; font-weight: 700; letter-spacing: -.03em;
+          color: #8B6914; line-height: 1;
+        }
+        .v7-act-pts-label {
+          font-family: 'Sora', sans-serif;
+          font-size: 9px; font-weight: 700; letter-spacing: .10em;
+          text-transform: uppercase; color: rgba(139,105,20,.55);
+          text-align: right; margin-top: 2px;
         }
         .v7-act-desc {
-          font-size: 16px; color: #4a6080;
-          line-height: 1.6; margin-bottom: 16px;
+          font-size: 15px; color: #4a6080;
+          line-height: 1.55; margin-bottom: 12px;
         }
         .v7-act-done {
           display: flex; align-items: center;
-          gap: 10px;
+          gap: 8px;
           background: linear-gradient(135deg, #d5f5e3, #c8efd9);
           color: #146636;
           border-radius: 12px;
-          padding: 14px 18px;
-          font-size: 15px; font-weight: 700;
+          padding: 10px 16px;
+          font-size: 14px; font-weight: 700;
           width: 100%; justify-content: center;
           border: 1px solid rgba(20,102,54,.22);
-          box-shadow: 0 1px 4px rgba(0,0,0,.10);
-          min-height: 52px;
+          min-height: 44px;
         }
         .v7-act-btn {
           display: flex; align-items: center;
-          justify-content: center; gap: 8px;
-          background: linear-gradient(180deg, #e8b824 0%, #d4a017 60%, #c08c12 100%);
-          color: #0a1840;
-          border: none; border-radius: 12px;
-          padding: 12px 18px; font-size: 15px;
-          font-weight: 700; font-family: inherit;
-          width: 100%; min-height: 50px;
+          justify-content: center; gap: 9px;
+          background: #1C283C;
+          color: #E39548;
+          border: 1px solid rgba(227,149,72,.18);
+          border-radius: 14px;
+          padding: 11px 18px; font-size: 14px;
+          font-weight: 700; letter-spacing: .02em;
+          font-family: inherit;
+          width: 100%; min-height: 44px;
           cursor: pointer;
-          box-shadow: var(--shadow-gold);
-          transition: opacity .15s;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: transform .18s cubic-bezier(.4,0,.2,1), box-shadow .18s, background .15s;
         }
-        .v7-act-btn:active { opacity: .88; }
+        .v7-act-btn:hover { background: #243352; }
+        .v7-act-btn:active {
+          transform: scale(.97);
+          box-shadow: 0 1px 6px rgba(0,0,0,.16);
+        }
       `}</style>
 
       <div className="acts-page">
         <div className="acts-header">
           <div className="acts-title-row">
             <h1 className="acts-title">Activities</h1>
+
             <div className="acts-pts-total">
               <div className="acts-pts-num">{totalPts}</div>
               <div className="acts-pts-of">/ {maxPts.toLocaleString()} pts</div>
@@ -277,7 +285,10 @@ export default function ActivitiesPage() {
                     {act.icon}
                   </div>
                   <div className="v7-act-name">{act.name}</div>
-                  <div className="v7-act-pts">{act.pts} pts</div>
+                  <div className="v7-act-pts-wrap">
+                    <div className="v7-act-pts">{act.pts}</div>
+                    <div className="v7-act-pts-label">pts</div>
+                  </div>
                 </div>
                 <div className="v7-act-desc">{act.desc}</div>
                 {done ? (
@@ -291,7 +302,7 @@ export default function ActivitiesPage() {
                   <div className="v7-act-btn">
                     Start Activity
                     <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-                      <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 3l5 5-5 5" stroke="#E39548" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 )}

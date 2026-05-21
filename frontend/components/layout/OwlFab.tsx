@@ -46,20 +46,21 @@ export default function OwlFab() {
           transform: scale(0.94);
         }
         .owl-fab-label {
-          margin-top: 4px;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: .14em;
-          text-transform: uppercase;
-          color: var(--blue-deep);
-          background: var(--surface-glass-2);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(6,182,212,.3);
-          border-radius: 20px;
-          padding: 2px 8px;
+          margin-top: 6px;
+          display: flex; align-items: center; gap: 5px;
+          font-size: 10px; font-weight: 800;
+          letter-spacing: .14em; text-transform: uppercase;
+          color: #CCDEE7;
           white-space: nowrap;
         }
+        .owl-fab-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #22c55e;
+          box-shadow: 0 0 6px rgba(34,197,94,.70);
+          flex-shrink: 0;
+          animation: fabDotPulse 2.4s ease-in-out infinite;
+        }
+        @keyframes fabDotPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
       `}</style>
       <button
         className="owl-fab-wrap"
@@ -74,7 +75,10 @@ export default function OwlFab() {
           className="owl-fab-img"
           priority
         />
-        <span className="owl-fab-label">Agent X</span>
+        <div className="owl-fab-label">
+          <span className="owl-fab-dot" />
+          AGENT X
+        </div>
       </button>
     </>
   );

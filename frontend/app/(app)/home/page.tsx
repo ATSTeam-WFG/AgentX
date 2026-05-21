@@ -39,8 +39,8 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
   const end   = new Date(event.endsAt).getTime();
   const pct   = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
   return (
-    <div style={{ height: 4, background: 'rgba(29,77,217,.12)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
-      <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, var(--blue), var(--cyan))', borderRadius: 2, transition: 'width 1s linear' }} />
+    <div style={{ height: 4, background: 'rgba(0,0,0,.12)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #F0A55A, #E39548)', borderRadius: 2, transition: 'width 1s linear' }} />
     </div>
   );
 }
@@ -73,37 +73,37 @@ export default function HomePage() {
           flex-shrink: 0;
         }
         .home-greeting {
-          font-size: 16px;
+          font-size: 17px;
           color: rgba(200,215,230,.55);
           font-weight: 500;
           margin-bottom: 2px;
         }
         .home-name {
           font-family: 'Sora', sans-serif;
-          font-size: 30px;
+          font-size: 34px;
           font-weight: 800;
-          color: var(--silver);
+          color: var(--t);
           letter-spacing: -.03em;
           line-height: 1.1;
         }
         .home-day-wrap { text-align: right; }
-        .home-day-chip {
-          display: inline-block;
+        .home-day-label {
           font-family: 'Sora', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          padding: 4px 12px;
-          border-radius: 20px;
-          background: linear-gradient(135deg, rgba(212,160,23,.18), rgba(194,103,28,.10));
-          color: var(--gold-rich);
-          border: 1px solid rgba(212,160,23,.28);
-          margin-bottom: 3px;
+          font-size: 10px; font-weight: 700; letter-spacing: .14em;
+          text-transform: uppercase; color: rgba(204,222,231,.40);
+          text-align: right;
+        }
+        .home-day-num {
+          font-family: 'Sora', sans-serif;
+          font-size: 36px; font-weight: 800; letter-spacing: -.05em;
+          color: var(--t); line-height: 1; text-align: right;
         }
         .home-date {
           display: block;
-          font-size: 13px;
-          color: rgba(200,215,230,.45);
+          font-size: 12px;
+          color: rgba(200,215,230,.38);
           text-align: right;
+          margin-top: 2px;
         }
         .home-scroll {
           flex: 1;
@@ -113,7 +113,7 @@ export default function HomePage() {
           overscroll-behavior: contain;
         }
         .sec-label {
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 800;
           letter-spacing: .08em;
           text-transform: uppercase;
@@ -122,12 +122,12 @@ export default function HomePage() {
           margin-top: 6px;
         }
         .whats-next-card {
-          background: var(--surface);
-          border: 1.5px solid var(--border);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
-          border-top: 3px solid var(--blue);
+          border-top: 3px solid var(--amber);
           padding: 16px;
-          box-shadow: var(--shadow);
+          box-shadow: var(--shadow-card);
           margin-bottom: 16px;
           position: relative;
           overflow: hidden;
@@ -136,7 +136,7 @@ export default function HomePage() {
           content: '';
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
-          background: linear-gradient(135deg, rgba(29,77,217,.04) 0%, transparent 60%);
+          background: linear-gradient(135deg, rgba(227,149,72,.05) 0%, transparent 60%);
           pointer-events: none;
         }
         .wn-eyebrow {
@@ -147,7 +147,7 @@ export default function HomePage() {
           font-weight: 700;
           letter-spacing: .06em;
           text-transform: uppercase;
-          color: var(--blue);
+          color: var(--amber);
           margin-bottom: 8px;
         }
         .live-dot {
@@ -163,9 +163,9 @@ export default function HomePage() {
         }
         .wn-title {
           font-family: 'Sora', sans-serif;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 700;
-          color: var(--navy);
+          color: var(--t);
           margin-bottom: 6px;
           line-height: 1.3;
         }
@@ -173,7 +173,7 @@ export default function HomePage() {
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
-          font-size: 13px;
+          font-size: 15px;
           color: var(--t3);
         }
         .wn-meta-item {
@@ -182,11 +182,11 @@ export default function HomePage() {
           gap: 4px;
         }
         .card-progress {
-          background: var(--surface);
-          border: 1.5px solid var(--border);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
           padding: 18px;
-          box-shadow: var(--shadow);
+          box-shadow: var(--shadow-card);
           margin-bottom: 16px;
         }
         .cp-eyebrow {
@@ -194,7 +194,7 @@ export default function HomePage() {
           font-weight: 700;
           letter-spacing: .06em;
           text-transform: uppercase;
-          color: var(--steel);
+          color: var(--t3);
           margin-bottom: 4px;
         }
         .cp-head-row {
@@ -205,9 +205,9 @@ export default function HomePage() {
         }
         .cp-heading {
           font-family: 'Sora', sans-serif;
-          font-size: 17px;
+          font-size: 19px;
           font-weight: 700;
-          color: var(--navy);
+          color: var(--t);
           line-height: 1.25;
           flex: 1;
           padding-right: 12px;
@@ -229,7 +229,7 @@ export default function HomePage() {
         }
         .progress-track {
           height: 8px;
-          background: var(--surface2);
+          background: rgba(0,0,0,.12);
           border-radius: 4px;
           overflow: hidden;
           margin-bottom: 10px;
@@ -237,22 +237,22 @@ export default function HomePage() {
         .progress-fill {
           height: 100%;
           border-radius: 4px;
-          background: linear-gradient(90deg, var(--blue), var(--cyan), var(--gold-rich));
-          box-shadow: 0 0 12px rgba(6,182,212,.35);
+          background: linear-gradient(90deg, #F0A55A, #E39548, #D07B38);
+          box-shadow: 0 0 12px rgba(227,149,72,.35);
           transition: width .8s ease;
         }
         .cp-link {
           font-size: 14px;
           font-weight: 700;
-          color: var(--blue);
+          color: var(--amber);
           text-decoration: none;
         }
         .sponsor-card {
-          background: linear-gradient(135deg, var(--amber-lt), #fff8ed);
-          border: 1.5px solid var(--amber-s);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
           padding: 18px;
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-card);
           display: flex;
           align-items: center;
           gap: 14px;
@@ -261,13 +261,13 @@ export default function HomePage() {
         .sponsor-logo-sq {
           width: 52px; height: 52px;
           border-radius: 12px;
-          background: #fff;
-          border: 1.5px solid var(--border-metal);
+          background: rgba(255,255,255,.55);
+          border: 1.5px solid rgba(255,255,255,.40);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          font-size: 22px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
         }
         .sponsor-eyebrow {
           font-size: 11px;
@@ -279,12 +279,12 @@ export default function HomePage() {
         }
         .sponsor-name {
           font-family: 'Sora', sans-serif;
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 700;
-          color: var(--navy);
+          color: var(--t);
         }
         .sponsor-tagline {
-          font-size: 13px;
+          font-size: 15px;
           color: var(--t3);
           margin-top: 2px;
         }
@@ -306,13 +306,13 @@ export default function HomePage() {
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(212,160,23,.35)
+            rgba(204,222,231,.20)
           );
         }
         .summit-banner::after {
           background: linear-gradient(
             90deg,
-            rgba(212,160,23,.35),
+            rgba(204,222,231,.20),
             transparent
           );
         }
@@ -322,7 +322,7 @@ export default function HomePage() {
           font-weight: 800;
           letter-spacing: .22em;
           text-transform: uppercase;
-          color: var(--gold);
+          color: rgba(204,222,231,.60);
           white-space: nowrap;
         }
         .no-session {
@@ -346,7 +346,8 @@ export default function HomePage() {
             <div className="home-name">{firstName}</div>
           </div>
           <div className="home-day-wrap">
-            <span className="home-day-chip">Day 1</span>
+            <div className="home-day-label">Day</div>
+            <div className="home-day-num">1</div>
             <span className="home-date">{today}</span>
           </div>
         </div>
@@ -391,7 +392,13 @@ export default function HomePage() {
           {/* Sponsor banner */}
           <div className="sec-label">Summit Sponsor</div>
           <div className="sponsor-card">
-            <div className="sponsor-logo-sq">🏢</div>
+            <div className="sponsor-logo-sq">
+              <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
+                <rect x="3" y="10" width="18" height="11" rx="1.5" stroke="#a67710" strokeWidth="1.6"/>
+                <path d="M8 21V14h4v7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 10l10-7 10 7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
             <div>
               <div className="sponsor-eyebrow">Official Summit Sponsor</div>
               <div className="sponsor-name">WFG Title &amp; Escrow</div>

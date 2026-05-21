@@ -21,7 +21,6 @@ export default function TopBar() {
         .top-bar {
           display: flex;
           flex-direction: column;
-          gap: 5px;
           padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 10px;
           background: rgba(18,28,46,.92);
           backdrop-filter: blur(22px) saturate(180%);
@@ -35,7 +34,6 @@ export default function TopBar() {
             0 4px 24px rgba(0,0,0,.35);
         }
 
-        /* Gold hairline at bottom */
         .top-bar::after {
           content: '';
           position: absolute;
@@ -44,9 +42,9 @@ export default function TopBar() {
           background: linear-gradient(
             90deg,
             transparent 0%,
-            rgba(212,160,23,.40) 25%,
-            rgba(212,160,23,.55) 50%,
-            rgba(212,160,23,.40) 75%,
+            rgba(227,149,72,.30) 25%,
+            rgba(227,149,72,.45) 50%,
+            rgba(227,149,72,.30) 75%,
             transparent 100%
           );
         }
@@ -119,26 +117,6 @@ export default function TopBar() {
           object-fit: contain;
         }
 
-        /* Attribution microline */
-        .tb-microline {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 10px;
-          font-weight: 600;
-          color: rgba(180,200,220,.42);
-          letter-spacing: .07em;
-          text-transform: uppercase;
-          line-height: 1;
-          padding-left: 2px;
-        }
-        .tb-microline strong { color: rgba(200,215,230,.60); font-weight: 700; }
-        .tb-ml-dot {
-          width: 3px; height: 3px;
-          border-radius: 50%;
-          background: rgba(180,200,220,.25);
-          flex-shrink: 0;
-        }
       `}</style>
 
       <header className="top-bar" role="banner">
@@ -184,11 +162,6 @@ export default function TopBar() {
 
         </div>
 
-        <div className="tb-microline">
-          <span>An <strong>Agent 3.0 · Agency Advantage</strong> initiative</span>
-          <span className="tb-ml-dot" />
-          <span>Powered by <strong>ATS</strong></span>
-        </div>
       </header>
     </>
   );

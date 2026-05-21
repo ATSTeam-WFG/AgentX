@@ -99,19 +99,22 @@ export default function ExplorePage() {
         }
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700;
-          color: var(--navy); letter-spacing: -.025em; margin: 0;
+          font-size: 32px; font-weight: 800;
+          color: var(--t); letter-spacing: .02em;
+          text-transform: uppercase; margin: 0;
         }
         .ai-chat-btn {
           display: flex; align-items: center; gap: 7px;
-          background: linear-gradient(135deg, var(--blue-s), rgba(6,182,212,.08));
-          border: 1.5px solid rgba(29,77,217,.25);
+          background: rgba(227,149,72,.14);
+          border: 1.5px solid rgba(227,149,72,.38);
           border-radius: 22px; padding: 8px 14px;
-          font-size: 14px; font-weight: 700; color: var(--blue);
+          font-size: 14px; font-weight: 700; color: var(--amber);
           cursor: pointer; white-space: nowrap; font-family: inherit;
+          transition: background var(--tr);
         }
+        .ai-chat-btn:active { background: rgba(227,149,72,.22); }
         .explore-subtitle {
-          font-size: 16px; color: var(--t3); margin: 6px 0 14px;
+          font-size: 17px; color: var(--t3); margin: 6px 0 14px;
           line-height: 1.6;
         }
         .explore-scroll {
@@ -120,33 +123,32 @@ export default function ExplorePage() {
           overscroll-behavior: contain;
         }
         .sec-label {
-          font-size: 11px; font-weight: 800; letter-spacing: .08em;
+          font-size: 12px; font-weight: 800; letter-spacing: .08em;
           text-transform: uppercase; color: var(--steel); margin-bottom: 12px;
         }
 
         /* ── Initiative cards ───────────────── */
         .init-card {
-          background: var(--surface);
-          border: 1.5px solid var(--border-metal);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
           margin-bottom: 14px;
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-card);
           overflow: hidden;
           transition: box-shadow .2s, border-color .2s;
         }
         .init-card.open {
-          box-shadow: var(--shadow);
-          border-color: rgba(29,77,217,.22);
+          box-shadow: var(--shadow-card), 0 0 0 1px rgba(227,149,72,.20);
+          border-color: rgba(227,149,72,.40);
         }
         .init-header {
           display: flex; align-items: center; gap: 16px;
           padding: 18px;
           cursor: pointer;
-          transition: background .15s;
-          background: linear-gradient(180deg, var(--bg2), var(--surface));
+          transition: opacity .15s;
           min-height: 80px;
         }
-        .init-header:active { background: var(--bg3); }
+        .init-header:active { opacity: .88; }
         .init-icon {
           width: 54px; height: 54px; border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
@@ -160,7 +162,7 @@ export default function ExplorePage() {
           letter-spacing: -.015em; color: var(--t);
         }
         .init-team {
-          font-size: 13px; font-weight: 700;
+          font-size: 14px; font-weight: 700;
           color: var(--t3);
           letter-spacing: .04em; text-transform: uppercase;
           margin-top: 4px;
@@ -172,11 +174,11 @@ export default function ExplorePage() {
         }
         .init-chevron {
           margin-left: auto; flex-shrink: 0;
-          color: var(--t4); transition: transform .25s;
+          color: var(--t4); transition: transform .25s, color .25s;
         }
         .init-card.open .init-chevron {
           transform: rotate(180deg);
-          color: var(--blue);
+          color: var(--amber);
         }
         .init-expand {
           max-height: 0; overflow: hidden;
@@ -185,8 +187,8 @@ export default function ExplorePage() {
         .init-card.open .init-expand { max-height: 900px; }
         .init-expand-body {
           padding: 16px 18px 18px;
-          border-top: 1px solid var(--border-metal);
-          background: linear-gradient(180deg, var(--bg2), var(--surface));
+          border-top: 1px solid rgba(0,0,0,.10);
+          background: rgba(0,0,0,.04);
         }
         .init-detail-row { margin-bottom: 14px; }
         .init-detail-label {
@@ -196,7 +198,7 @@ export default function ExplorePage() {
           color: var(--steel);
           margin-bottom: 6px;
         }
-        .init-detail-val { font-size: 16px; color: var(--t2); line-height: 1.65; }
+        .init-detail-val { font-size: 17px; color: var(--t2); line-height: 1.65; }
         .init-video-holder {
           background:
             radial-gradient(ellipse 60% 45% at 70% 30%, rgba(6,182,212,.25), transparent 60%),
@@ -212,27 +214,27 @@ export default function ExplorePage() {
         }
         .init-splash-btn {
           display: flex; align-items: center; justify-content: center; gap: 10px;
-          background: linear-gradient(135deg, var(--blue-lt), var(--blue-lt2));
-          color: var(--blue-deep);
-          border: 1.5px solid rgba(29,77,217,.30);
+          background: linear-gradient(135deg, rgba(227,149,72,.20), rgba(227,149,72,.12));
+          color: var(--amber);
+          border: 1.5px solid rgba(227,149,72,.38);
           border-radius: 12px;
           padding: 14px 18px;
-          font-family: inherit; font-size: 15px; font-weight: 600;
+          font-family: inherit; font-size: 15px; font-weight: 700;
           cursor: pointer;
           transition: all .15s;
           width: 100%; margin-top: 12px;
           min-height: 50px;
-          box-shadow: 0 1px 2px rgba(10,24,64,.06);
+          box-shadow: 0 1px 4px rgba(227,149,72,.15);
         }
-        .init-splash-btn:active { background: var(--blue); color: #fff; }
+        .init-splash-btn:active { opacity: .88; }
 
         /* ── Notes section ───────────────── */
         .init-notes {
           margin-top: 14px;
           padding: 16px 18px;
           border-radius: 14px;
-          background: linear-gradient(160deg, var(--bg2), var(--surface));
-          border: 1px solid var(--border-metal);
+          background: rgba(0,0,0,.07);
+          border: 1px solid rgba(0,0,0,.10);
         }
         .init-notes-head {
           display: flex; align-items: center; justify-content: space-between;
@@ -255,12 +257,12 @@ export default function ExplorePage() {
         }
         .init-notes-textarea {
           width: 100%;
-          background: var(--bg-frost);
-          border: 1.5px solid var(--border-metal);
+          background: rgba(255,255,255,.62);
+          border: 1.5px solid rgba(0,0,0,.14);
           border-radius: 12px;
           font-family: inherit;
           font-size: 16px;
-          color: var(--t);
+          color: #0d1e38;
           padding: 14px 16px;
           resize: none;
           line-height: 1.55;
@@ -268,25 +270,27 @@ export default function ExplorePage() {
           min-height: 80px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
+        .init-notes-textarea::placeholder { color: #7a8eae; }
         .init-notes-textarea:focus {
-          border-color: var(--blue);
-          background: var(--surface);
-          box-shadow: 0 0 0 4px rgba(29,77,217,.10);
+          border-color: var(--amber);
+          background: rgba(255,255,255,.80);
+          box-shadow: 0 0 0 4px rgba(227,149,72,.12);
         }
         .init-notes-row {
           display: flex; justify-content: space-between; align-items: center;
           margin-top: 10px; gap: 10px;
         }
-        .init-notes-hint { font-size: 13px; color: var(--t3); flex: 1; }
+        .init-notes-hint { font-size: 15px; color: var(--t3); flex: 1; }
         .init-notes-submit {
           padding: 10px 18px;
           border-radius: 10px;
-          background: linear-gradient(180deg, var(--blue-mid), var(--blue));
-          color: #fff; border: none; cursor: pointer;
+          background: linear-gradient(180deg, #F0A55A, #E39548, #D07B38);
+          color: #1C283C; border: none; cursor: pointer;
           font-family: inherit; font-size: 14px; font-weight: 700;
           min-height: 42px;
-          box-shadow: 0 2px 6px rgba(29,77,217,.25);
+          box-shadow: 0 4px 14px rgba(227,149,72,.40);
         }
+        .init-notes-submit:active { opacity: .88; }
         .init-notes-saved {
           display: flex; align-items: center; gap: 8px;
           background: linear-gradient(135deg, var(--green-lt), #c8efd9);
@@ -305,32 +309,32 @@ export default function ExplorePage() {
 
         /* ── Also in the works card ───────── */
         .also-card {
-          background: var(--surface);
-          border: 1.5px solid var(--border-metal);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
           padding: 18px;
           margin-top: 6px; margin-bottom: 10px;
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-card);
         }
         .also-item {
           display: flex; align-items: center; gap: 12px;
           padding: 10px 0;
-          border-bottom: 1px solid var(--border-metal);
+          border-bottom: 1px solid rgba(0,0,0,.09);
         }
         .also-item:last-child { border-bottom: none; }
         .also-dot {
           width: 9px; height: 9px; border-radius: 50%;
-          background: var(--blue); flex-shrink: 0;
-          box-shadow: 0 0 8px rgba(29,77,217,.3);
+          background: var(--gold); flex-shrink: 0;
+          box-shadow: 0 0 8px rgba(212,160,23,.4);
         }
-        .also-text { font-size: 16px; font-weight: 600; color: var(--t2); }
+        .also-text { font-size: 17px; font-weight: 600; color: var(--t2); }
         .explore-gap { height: 28px; }
       `}</style>
 
       <div className="explore-page">
         <div className="explore-header">
           <div className="explore-title-row">
-            <h1 className="page-title">Explore AI</h1>
+            <h1 className="page-title">Explore</h1>
             <button className="ai-chat-btn" onClick={openSheet}>
               <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
                 <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.6"/>
