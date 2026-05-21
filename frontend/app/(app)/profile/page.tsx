@@ -7,17 +7,9 @@ import { getLeaderboard, type LeaderboardEntry } from '@/lib/api/leaderboard';
 import { useAuthStore } from '@/store/auth';
 
 function MedalCell({ rank }: { rank: number }) {
-  if (rank === 1) {
-    return (
-      <div className="lb-medal gold">{rank}</div>
-    );
-  }
-  if (rank === 2) {
-    return <div className="lb-medal silver">{rank}</div>;
-  }
-  if (rank === 3) {
-    return <div className="lb-medal bronze">{rank}</div>;
-  }
+  if (rank === 1) return <div className="lb-medal gold">{rank}</div>;
+  if (rank === 2) return <div className="lb-medal silver">{rank}</div>;
+  if (rank === 3) return <div className="lb-medal bronze">{rank}</div>;
   return <div className="lb-rank-num">#{rank}</div>;
 }
 
@@ -56,7 +48,7 @@ export default function ProfilePage() {
     retry: false,
   });
 
-  const name       = profile?.name ?? user?.name ?? 'Summit Guest';
+  const name       = profile?.name ?? user?.name ?? 'Gene Rebadow';
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
@@ -64,6 +56,10 @@ export default function ProfilePage() {
   const rank       = profile?.rank ?? '–';
 
   const leaderboard = lb?.leaderboard ?? STATIC_LB;
+
+  const nameParts = name.trim().split(' ');
+  const firstName = nameParts[0];
+  const lastName  = nameParts.slice(1).join(' ');
 
   return (
     <>
@@ -79,91 +75,147 @@ export default function ProfilePage() {
           padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
-        .profile-page-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700;
-          color: var(--t); letter-spacing: -.025em;
-          margin: 0 0 18px;
-        }
 
-        /* ── Hero card (dark, keeps white text) ── */
+        /* ── Hero card — full-bleed photo with seamless dark blend ── */
         .profile-hero-v7 {
-          background: linear-gradient(160deg, #1a2d50 0%, #0e1f3a 55%, #0a1830 100%);
           border-radius: var(--r-xl);
-          padding: 24px 20px;
+          overflow: hidden;
           margin-bottom: 18px;
-          box-shadow: 0 16px 50px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.07);
-          position: relative; overflow: hidden;
-          border: 1px solid rgba(255,255,255,.07);
-        }
-        .profile-hero-v7::before {
-          content: '';
-          position: absolute; top: -40%; right: -15%;
-          width: 280px; height: 280px;
-          background: radial-gradient(circle, rgba(212,160,23,.10), transparent 70%);
-          border-radius: 50%; pointer-events: none;
-        }
-        .hero-top-row {
-          display: flex; align-items: center;
-          gap: 18px; margin-bottom: 20px;
-          position: relative; z-index: 1;
-        }
-        .hero-avatar {
-          width: 56px; height: 56px;
-          background: rgba(255,255,255,.10);
-          border-radius: 16px;
-          display: flex; align-items: center; justify-content: center;
-          border: 1.5px solid rgba(255,255,255,.18);
-          flex-shrink: 0;
-        }
-        .hero-name {
-          font-family: 'Sora', sans-serif;
-          font-size: 22px; font-weight: 800;
-          letter-spacing: -.02em; color: #fff;
-          line-height: 1.1;
-        }
-        .hero-role {
-          font-size: 14px; color: rgba(255,255,255,.65);
-          margin-top: 3px; font-weight: 500;
-        }
-        .hero-rank-chip {
-          display: inline-flex; align-items: center;
-          margin-top: 10px;
-          background: rgba(212,160,23,.18);
-          border: 1px solid rgba(212,160,23,.35);
-          border-radius: 10px; padding: 5px 12px;
-          font-size: 12px; font-weight: 700;
-          color: #e8c840; letter-spacing: .02em;
-          font-family: 'Sora', sans-serif;
-        }
-        .hero-stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 14px;
-          position: relative; z-index: 1;
-        }
-        .hero-stat-cell { text-align: center; }
-        .hero-stat-cell:nth-child(2) {
-          border-left: 1px solid rgba(255,255,255,.14);
-          border-right: 1px solid rgba(255,255,255,.14);
-        }
-        .hero-pts {
-          font-family: 'Sora', sans-serif;
-          font-size: 36px; font-weight: 800;
-          letter-spacing: -.04em; color: #fff;
-          line-height: 1;
-        }
-        .hero-pts-label {
-          font-size: 13px; color: rgba(255,255,255,.60);
-          font-weight: 600; letter-spacing: .03em;
-          margin-top: 3px; text-transform: uppercase;
-          font-size: 11px;
+          position: relative;
+          background: #1F2D45;
+          border: 1px solid rgba(255,255,255,.10);
+          box-shadow: 0 24px 64px rgba(0,0,0,.60),
+                      inset 0 1px 0 rgba(255,255,255,.06);
+          min-height: 300px;
         }
 
-        /* ── Collapse card (leaderboard) ── */
+        /* Photo container — right side, absolute */
+        .hero-photo-wrap {
+          position: absolute;
+          right: 0; top: 0; bottom: 0;
+          width: 62%;
+          pointer-events: none;
+        }
+        .hero-photo {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          object-position: 65% 20%;
+          display: block;
+        }
+        /* Left-side fade — tight 32% blend into hero background */
+        .hero-photo-wrap::before {
+          content: '';
+          position: absolute; inset: 0; z-index: 1;
+          background: linear-gradient(
+            to right,
+            #1F2D45 0%,
+            rgba(31,45,69,.90) 8%,
+            rgba(31,45,69,.50) 16%,
+            rgba(31,45,69,.12) 24%,
+            transparent 32%
+          );
+        }
+        /* Bottom fade — image dissolves into strip */
+        .hero-photo-wrap::after {
+          content: '';
+          position: absolute; left: 0; right: 0; bottom: 0;
+          height: 50%; z-index: 1;
+          background: linear-gradient(
+            to top,
+            #1F2D45 0%,
+            rgba(31,45,69,.75) 40%,
+            transparent 100%
+          );
+        }
+
+        /* Text content — above image layers */
+        .hero-content {
+          position: relative; z-index: 2;
+          padding: 28px 24px 20px;
+          max-width: 64%;
+        }
+
+        .hero-first {
+          font-family: 'Sora', sans-serif;
+          font-size: 38px; font-weight: 800;
+          letter-spacing: -.04em; line-height: .92;
+          color: #CCDEE7;
+        }
+        .hero-last {
+          font-family: 'Sora', sans-serif;
+          font-size: 24px; font-weight: 700;
+          letter-spacing: -.02em; line-height: 1.1;
+          color: #E39548;
+        }
+        .hero-role-tag {
+          font-size: 10px; font-weight: 700;
+          color: rgba(204,222,231,.38);
+          letter-spacing: .12em; text-transform: uppercase;
+          margin: 10px 0 22px;
+        }
+
+        .hero-pts-row {
+          display: flex; align-items: baseline; gap: 7px;
+          margin-bottom: 8px;
+        }
+        .hero-pts-big {
+          font-family: 'Sora', sans-serif;
+          font-size: 48px; font-weight: 800; letter-spacing: -.05em;
+          color: #fff; line-height: 1;
+          text-shadow: 0 2px 20px rgba(0,0,0,.40);
+        }
+        .hero-pts-unit {
+          font-family: 'Sora', sans-serif;
+          font-size: 12px; font-weight: 700; letter-spacing: .10em;
+          color: rgba(204,222,231,.45); text-transform: uppercase;
+        }
+
+        .hero-rank-row {
+          display: flex; align-items: center; gap: 5px;
+        }
+        .hero-rank-badge {
+          font-family: 'Sora', sans-serif;
+          font-size: 19px; font-weight: 800; letter-spacing: -.02em;
+          color: var(--amber);
+        }
+        .hero-rank-label {
+          font-size: 11px; font-weight: 700;
+          color: rgba(204,222,231,.38);
+          letter-spacing: .08em; text-transform: uppercase;
+        }
+
+        /* Bottom stats strip */
+        .hero-strip {
+          position: relative; z-index: 2;
+          display: flex;
+          background: rgba(14,22,38,.80);
+          border-top: 1px solid rgba(255,255,255,.07);
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+        }
+        .hero-strip-stat {
+          flex: 1; text-align: center;
+          padding: 14px 8px;
+        }
+        .hero-strip-stat + .hero-strip-stat {
+          border-left: 1px solid rgba(255,255,255,.07);
+        }
+        .hero-strip-val {
+          font-family: 'Sora', sans-serif;
+          font-size: 20px; font-weight: 800; letter-spacing: -.03em;
+          color: #CCDEE7; line-height: 1;
+          display: block;
+        }
+        .hero-strip-label {
+          font-size: 10px; font-weight: 700; letter-spacing: .09em;
+          text-transform: uppercase; color: rgba(204,222,231,.40);
+          display: block; margin-top: 5px;
+        }
+
+        /* ── Section cards ── */
         .prof-section {
           background: var(--metallic);
-          border: 1.5px solid rgba(255,255,255,.28);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
           box-shadow: var(--shadow-card);
           overflow: hidden;
@@ -172,122 +224,154 @@ export default function ProfilePage() {
         .prof-section-hd {
           display: flex; align-items: center;
           justify-content: space-between;
-          padding: 16px 18px;
+          padding: 15px 18px;
           border-bottom: 1px solid rgba(0,0,0,.08);
-          cursor: pointer;
         }
         .prof-section-hd-left {
           display: flex; align-items: center; gap: 12px;
         }
         .prof-section-icon {
-          width: 38px; height: 38px;
-          border-radius: 11px;
+          width: 36px; height: 36px;
+          border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
         }
         .prof-section-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px; font-weight: 700;
-          color: #0d1e38; letter-spacing: -.01em;
+          font-size: 13px; font-weight: 800;
+          color: #1C283C;
+          letter-spacing: .08em; text-transform: uppercase;
         }
 
         /* ── Leaderboard rows ── */
         .lb-row-v7 {
           display: flex; align-items: center;
-          gap: 12px; padding: 14px 18px;
-          border-bottom: 1px solid rgba(0,0,0,.07);
+          gap: 12px; padding: 13px 18px;
+          border-bottom: 1px solid rgba(0,0,0,.06);
         }
         .lb-row-v7:last-child { border-bottom: none; }
         .lb-row-v7.me {
-          background: linear-gradient(90deg, rgba(212,160,23,.12), transparent);
+          background: linear-gradient(90deg, rgba(227,149,72,.08), transparent);
         }
         .lb-medal {
-          width: 32px; height: 32px;
+          width: 28px; height: 28px;
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 800;
-          letter-spacing: -.02em; flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 1px 3px rgba(0,0,0,.18);
+          font-size: 11px; font-weight: 700;
+          letter-spacing: -.01em; flex-shrink: 0;
         }
         .lb-medal.gold {
-          background: linear-gradient(135deg, #f8d77a 0%, #d4a017 50%, #a67710 100%);
-          color: #4a3308; border: 1px solid rgba(166,119,16,.40);
+          background: linear-gradient(145deg,
+            #F0E08A 0%, #C8A020 28%,
+            #9A7800 52%, #B89018 72%,
+            #EAD278 100%
+          );
+          color: #3A2C00;
+          border: 0.5px solid rgba(192,156,24,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.60),
+                      inset 0 -1px 0 rgba(0,0,0,.28),
+                      0 2px 8px rgba(172,128,0,.30);
         }
         .lb-medal.silver {
-          background: linear-gradient(135deg, #e6ecf6 0%, #b8c4d8 50%, #94a3b8 100%);
-          color: #3a4858; border: 1px solid rgba(120,140,180,.45);
+          background: linear-gradient(145deg,
+            #EEF1F8 0%, #BCC6DA 28%,
+            #8E9CB2 52%, #A8B6CA 72%,
+            #E4E8F4 100%
+          );
+          color: #28364A;
+          border: 0.5px solid rgba(148,164,196,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.70),
+                      inset 0 -1px 0 rgba(0,0,0,.18),
+                      0 2px 6px rgba(100,120,160,.22);
         }
         .lb-medal.bronze {
-          background: linear-gradient(135deg, #e8b78a 0%, #c2671c 60%, #8a4a14 100%);
-          color: #3a1f0a; border: 1px solid rgba(140,80,30,.42);
+          background: linear-gradient(145deg,
+            #E0C098 0%, #B87840 28%,
+            #8A481A 52%, #A66830 72%,
+            #DCA870 100%
+          );
+          color: #2C1200;
+          border: 0.5px solid rgba(152,96,36,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.48),
+                      inset 0 -1px 0 rgba(0,0,0,.28),
+                      0 2px 6px rgba(136,72,20,.28);
         }
         .lb-rank-num {
-          width: 32px; height: 32px;
+          width: 30px; height: 30px;
           display: flex; align-items: center; justify-content: center;
           font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 700;
+          font-size: 12px; font-weight: 700;
           color: #4a6080; flex-shrink: 0;
         }
         .lb-name-v7 {
-          flex: 1; font-size: 15px; font-weight: 600; color: #0d1e38;
+          flex: 1; font-size: 16px; font-weight: 600; color: #1C283C;
         }
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 800; color: #a67710;
+          font-size: 14px; font-weight: 800; font-style: italic;
+          color: #E39548; letter-spacing: -.02em;
         }
 
-        /* ── Feedback link row ── */
-        .feedback-link {
+        /* ── Feedback / Sponsor link rows ── */
+        .section-link-row {
           display: flex; align-items: center;
           justify-content: space-between;
-          padding: 16px 18px; text-decoration: none;
+          padding: 14px 18px; text-decoration: none;
+          color: inherit;
         }
-        .feedback-link-left {
-          display: flex; align-items: center; gap: 12px;
+        .section-link-left {
+          display: flex; align-items: center; gap: 0;
+          flex: 1;
         }
-        .feedback-link-label {
-          font-size: 16px; font-weight: 600; color: #0d1e38;
+        .section-link-body { flex: 1; }
+        .section-link-sub {
+          font-size: 14px; color: var(--t3); margin-top: 2px;
         }
-        .feedback-link-sub {
-          font-size: 13px; color: #4a6080; margin-top: 2px;
+        .section-static-row {
+          display: flex; align-items: center;
+          padding: 14px 18px;
+          gap: 0;
         }
-        .prof-chevron {
-          color: #7a8eae; flex-shrink: 0;
+        .section-static-body { flex: 1; }
+        .section-name {
+          font-size: 16px; font-weight: 600; color: #1C283C;
+          margin-top: 2px;
         }
+        .prof-chevron { color: rgba(28,40,60,.35); flex-shrink: 0; }
       `}</style>
 
       <div className="profile-page">
         <div className="profile-scroll">
-          <h1 className="profile-page-title">Profile</h1>
 
-          {/* ── Hero ── */}
+          {/* ── F1-style hero ── */}
           <div className="profile-hero-v7">
-            <div className="hero-top-row">
-              <div className="hero-avatar">
-                <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
-                  <circle cx="12" cy="8" r="4" stroke="rgba(255,255,255,.80)" strokeWidth="1.6"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="rgba(255,255,255,.80)" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
+            <div className="hero-photo-wrap">
+              <img src="/Gene_Avatar.png" alt="" className="hero-photo" />
+            </div>
+            <div className="hero-content">
+              <div className="hero-first">{firstName}</div>
+              {lastName && <div className="hero-last">{lastName}</div>}
+              <div className="hero-role-tag">{role}</div>
+
+              <div className="hero-pts-row">
+                <span className="hero-pts-big">{points.toLocaleString()}</span>
+                <span className="hero-pts-unit">pts</span>
               </div>
-              <div style={{ flex: 1 }}>
-                <div className="hero-name">{name}</div>
-                <div className="hero-role">{role}</div>
-                <div className="hero-rank-chip">#{rank} of summit</div>
+              <div className="hero-rank-row">
+                <span className="hero-rank-badge">#{rank}</span>
+                <span className="hero-rank-label">Summit Rank</span>
               </div>
             </div>
-            <div className="hero-stats">
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{points.toLocaleString()}</div>
-                <div className="hero-pts-label">Points</div>
+
+            <div className="hero-strip">
+              <div className="hero-strip-stat">
+                <span className="hero-strip-val">{activities}/5</span>
+                <span className="hero-strip-label">Activities</span>
               </div>
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{activities}/{5}</div>
-                <div className="hero-pts-label">Activities</div>
-              </div>
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{touchpts}/5</div>
-                <div className="hero-pts-label">Touchpoints</div>
+              <div className="hero-strip-stat">
+                <span className="hero-strip-val">{touchpts}/5</span>
+                <span className="hero-strip-label">Touchpoints</span>
               </div>
             </div>
           </div>
@@ -296,14 +380,14 @@ export default function ProfilePage() {
           <div className="prof-section">
             <div className="prof-section-hd">
               <div className="prof-section-hd-left">
-                <div className="prof-section-icon" style={{ background: 'linear-gradient(135deg, #fdf3dc, #faecc8)', border: '1px solid rgba(166,119,16,.22)' }}>
-                  <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                <div className="prof-section-icon" style={{ background: 'rgba(212,160,23,.10)', border: '1px solid rgba(166,119,16,.18)' }}>
+                  <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
                     <path d="M5 10H3a1 1 0 00-1 1v6a1 1 0 001 1h14a1 1 0 001-1v-6a1 1 0 00-1-1h-2M10 2v12M7 5l3-3 3 3" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
                 <span className="prof-section-title">Leaderboard</span>
               </div>
-              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="18" height="18">
+              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
                 <path d="M2.5 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
@@ -318,23 +402,50 @@ export default function ProfilePage() {
 
           {/* ── Feedback ── */}
           <div className="prof-section">
-            <Link href="/profile/feedback" className="feedback-link">
-              <div className="feedback-link-left">
-                <div className="prof-section-icon" style={{ background: 'linear-gradient(135deg, #fde8cc, #fbd9ad)', border: '1px solid rgba(194,103,28,.22)' }}>
-                  <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
-                    <path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V5a1 1 0 011-1z" stroke="#c2671c" strokeWidth="1.5" strokeLinejoin="round"/>
-                    <path d="M7 8l2 2 4-4" stroke="#c2671c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="prof-section-hd">
+              <div className="prof-section-hd-left">
+                <div className="prof-section-icon" style={{ background: 'rgba(28,40,60,.07)', border: '1px solid rgba(28,40,60,.10)' }}>
+                  <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                    <path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V5a1 1 0 011-1z" stroke="#1C283C" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M7 8l2 2 4-4" stroke="#1C283C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <div>
-                  <div className="feedback-link-label">Summit Feedback</div>
-                  <div className="feedback-link-sub">Share your experience</div>
+                <span className="prof-section-title">Feedback</span>
+              </div>
+            </div>
+            <Link href="/profile/feedback" className="section-link-row">
+              <div className="section-link-left">
+                <div className="section-link-body">
+                  <div className="section-name">Share Your Summit Experience</div>
+                  <div className="section-link-sub">A few minutes helps us shape next year</div>
                 </div>
               </div>
-              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="18" height="18">
+              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
                 <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
+          </div>
+
+          {/* ── Sponsors ── */}
+          <div className="prof-section">
+            <div className="prof-section-hd">
+              <div className="prof-section-hd-left">
+                <div className="prof-section-icon" style={{ background: 'rgba(227,149,72,.10)', border: '1px solid rgba(227,149,72,.20)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                    <rect x="3" y="10" width="18" height="11" rx="1.5" stroke="#D07B38" strokeWidth="1.6"/>
+                    <path d="M8 21V14h4v7" stroke="#D07B38" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 10l10-7 10 7" stroke="#D07B38" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="prof-section-title">Our Sponsors</span>
+              </div>
+            </div>
+            <div className="section-static-row">
+              <div className="section-static-body">
+                <div className="section-name">WFG Title &amp; Escrow</div>
+                <div className="section-link-sub">Your trusted partner for every closing</div>
+              </div>
+            </div>
           </div>
 
           <div style={{ height: 28 }} />

@@ -117,7 +117,7 @@ export default function TabBar() {
           -webkit-tap-highlight-color: transparent;
         }
         .nb.cur {
-          color: var(--gold-rich);
+          color: var(--amber);
         }
         .nb-inner {
           width: 44px;
@@ -131,16 +131,16 @@ export default function TabBar() {
         .nb.cur .nb-inner {
           background: linear-gradient(
             145deg,
-            rgba(212,160,23,.22) 0%,
-            rgba(194,103,28,.12) 100%
+            rgba(227,149,72,.24) 0%,
+            rgba(227,149,72,.12) 100%
           );
           box-shadow:
             inset 0 1px 0 rgba(255,255,255,.12),
-            0 2px 10px rgba(212,160,23,.25);
+            0 2px 10px rgba(227,149,72,.28);
           transform: translateY(-1px);
         }
         .nb-label {
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 700;
           letter-spacing: .04em;
           text-transform: uppercase;

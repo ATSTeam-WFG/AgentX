@@ -33,15 +33,37 @@ function SessionCard({ event }: { event: AgendaEvent }) {
         <div className="session-time-col">
           <span className="session-time">{formatTime(event.startsAt)}</span>
           {status === 'live' && <span className="live-pip" />}
-          {status === 'past' && <span className="past-dot">✓</span>}
+          {status === 'past' && (
+            <span className="past-dot">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          )}
         </div>
         <div className="session-info">
           <div className="session-name">{event.name}</div>
-          {event.speakerName && <div className="session-meta">👤 {event.speakerName}</div>}
-          {event.location && <div className="session-meta">📍 {event.location}</div>}
+          {event.speakerName && (
+            <div className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
+              {event.speakerName}
+            </div>
+          )}
+          {event.location && (
+            <div className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {event.location}
+            </div>
+          )}
         </div>
         {status === 'live' && <span className="live-badge">Live</span>}
-        {status !== 'live' && <span className="session-chev">›</span>}
+        {status !== 'live' && (
+          <span className="session-chev">
+            <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
+              <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        )}
       </div>
     </Link>
   );
@@ -70,15 +92,14 @@ export default function AgendaPage() {
 
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700; color: var(--navy);
-          letter-spacing: -.025em; margin: 0 0 4px;
-          display: flex; align-items: center; gap: 10px;
+          font-size: 32px; font-weight: 800; color: var(--t);
+          letter-spacing: .02em; text-transform: uppercase; margin: 0;
         }
-        .agenda-date-badge {
-          font-size: 13px; font-weight: 700;
-          background: var(--blue-lt); color: var(--blue);
-          border: 1px solid rgba(29,77,217,.2);
-          border-radius: 20px; padding: 3px 12px;
+        .agenda-dates {
+          font-family: 'Sora', sans-serif;
+          font-size: 13px; font-weight: 600; letter-spacing: .05em;
+          color: rgba(204,222,231,.45);
+          margin: 2px 0 14px;
         }
 
         .day-tabs {
@@ -91,29 +112,31 @@ export default function AgendaPage() {
           flex-shrink: 0;
           height: 36px; border-radius: 10px;
           padding: 0 14px;
-          font-size: 13px; font-weight: 700;
-          border: 1.5px solid var(--border-metal);
+          font-size: 14px; font-weight: 700;
+          border: 1.5px solid rgba(255,255,255,.14);
           cursor: pointer; transition: all var(--tr);
-          background: var(--surface); color: var(--t3);
+          background: rgba(255,255,255,.08); color: rgba(200,215,230,.55);
           font-family: 'Sora', sans-serif;
           white-space: nowrap;
         }
         .day-tab.active {
-          background: var(--blue); color: #fff;
-          border-color: var(--blue); box-shadow: var(--shadow-blue);
+          background: linear-gradient(180deg, #F0A55A, #E39548, #D07B38);
+          color: #1C283C;
+          border-color: rgba(227,149,72,.50);
+          box-shadow: 0 4px 14px rgba(227,149,72,.40), 0 2px 6px rgba(227,149,72,.26);
         }
 
         .day-header {
           padding: 12px 18px 14px;
           flex-shrink: 0;
-          border-bottom: 1px solid var(--border);
+          border-bottom: 1px solid rgba(255,255,255,.08);
         }
         .day-header-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px; font-weight: 700; color: var(--navy);
+          font-size: 17px; font-weight: 700; color: var(--t);
         }
         .day-header-summary {
-          font-size: 13px; color: var(--t3); margin-top: 2px;
+          font-size: 15px; color: var(--t3); margin-top: 2px;
         }
 
         .agenda-scroll {
@@ -123,17 +146,17 @@ export default function AgendaPage() {
         }
 
         .session-card {
-          background: var(--surface); border: 1.5px solid var(--border);
+          background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg); padding: 14px 16px;
-          margin-bottom: 10px; box-shadow: var(--shadow-xs);
+          margin-bottom: 10px; box-shadow: var(--shadow-card);
           display: flex; align-items: flex-start; gap: 12px;
           transition: box-shadow var(--tr), transform var(--tr);
         }
-        .session-card:active { transform: scale(.98); box-shadow: none; }
-        .session-card.past { opacity: .58; }
+        .session-card:active { transform: scale(.98); opacity: .88; }
+        .session-card.past { opacity: .52; }
         .session-card.live {
-          border-color: var(--blue);
-          box-shadow: var(--shadow), 0 0 0 3px rgba(29,77,217,.08);
+          border-color: rgba(212,160,23,.55);
+          box-shadow: var(--shadow-card), 0 0 0 3px rgba(212,160,23,.15);
         }
 
         .session-time-col {
@@ -143,7 +166,7 @@ export default function AgendaPage() {
         }
         .session-time {
           font-family: 'Sora', sans-serif;
-          font-size: 12px; font-weight: 700; color: var(--blue);
+          font-size: 14px; font-weight: 700; color: #1C283C;
           white-space: nowrap; text-align: center;
         }
         .session-card.past .session-time { color: var(--t4); }
@@ -154,19 +177,17 @@ export default function AgendaPage() {
           animation: pipPulse 2s ease-in-out infinite;
         }
         @keyframes pipPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        .past-dot {
-          font-size: 11px; font-weight: 800; color: var(--green);
-        }
+        .past-dot { color: var(--green); }
 
         .session-info { flex: 1; min-width: 0; }
         .session-name {
-          font-size: 15px; font-weight: 700; color: var(--navy);
+          font-size: 17px; font-weight: 700; color: var(--t);
           line-height: 1.3; margin-bottom: 5px;
         }
         .session-card.past .session-name { color: var(--t3); }
-        .session-meta { font-size: 13px; color: var(--t3); margin-top: 3px; }
+        .session-meta { font-size: 15px; color: var(--t3); margin-top: 3px; }
 
-        .session-chev { color: var(--t4); font-size: 22px; margin-top: 2px; flex-shrink: 0; }
+        .session-chev { color: var(--t4); flex-shrink: 0; margin-top: 2px; }
         .live-badge {
           flex-shrink: 0; align-self: flex-start;
           font-size: 11px; font-weight: 800; letter-spacing: .06em;
@@ -183,10 +204,8 @@ export default function AgendaPage() {
 
       <div className="agenda-page">
         <div className="agenda-header">
-          <h1 className="page-title">
-            Agenda
-            <span className="agenda-date-badge">June 3–5</span>
-          </h1>
+          <h1 className="page-title">Agenda</h1>
+          <div className="agenda-dates">June 3 – 5 · 2026</div>
           <div className="day-tabs">
             {DAY_TABS.map(({ day, label }) => (
               <button

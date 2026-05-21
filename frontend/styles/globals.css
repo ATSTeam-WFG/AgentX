@@ -7,41 +7,41 @@
 @layer base {
   :root {
     /* ── Backgrounds ── */
-    --bg:         #2e3c57;
-    --bg2:        #253450;
-    --bg3:        #1c2840;
-    --bg-frost:   #354868;
+    --bg:         #1C283C;
+    --bg2:        #162133;
+    --bg3:        #101829;
+    --bg-frost:   #1F2F47;
 
-    /* ── Metallic silver surfaces ── */
-    --surface:         #bfc7ca;
-    --surface2:        #cdd5d8;
-    --surface-soft:    #adb5b7;
+    /* ── Card surfaces (#CCDEE7-based) ── */
+    --surface:         #CCDEE7;
+    --surface2:        #D8E8F0;
+    --surface-soft:    #B8CDD8;
     --surface-glass:   rgba(20,32,52,.88);
     --surface-glass-2: rgba(32,46,68,.76);
 
-    /* Gradient stored as custom property — apply with background: var(--metallic) */
+    /* Subtle metallic gradient centered on #CCDEE7 */
     --metallic: linear-gradient(
       145deg,
-      #d4dce0 0%,
-      #c6ced2 14%,
-      #b8c0c3 30%,
-      #adb5b7 50%,
-      #a2aaad 65%,
-      #969ea1 80%,
-      #a2aaad 100%
+      #DAE9F2 0%,
+      #D2E4EE 14%,
+      #C8DCE9 30%,
+      #CCDEE7 50%,
+      #C0D6E2 65%,
+      #B8CEDD 80%,
+      #C0D6E2 100%
     );
 
     /* ── Borders ── */
     --border:         rgba(255,255,255,.09);
     --border-strong:  rgba(255,255,255,.18);
-    --border-metal:   rgba(198,208,212,.52);
-    --border-metal-2: rgba(168,180,186,.38);
+    --border-metal:   rgba(255,255,255,.45);
+    --border-metal-2: rgba(255,255,255,.28);
     --border-dark:    rgba(255,255,255,.12);
 
     /* ── Text — LIGHT by default (dark bg context) ── */
-    --t:  #eef3f8;
-    --t2: #c4d3e0;
-    --t3: #8aa0b8;
+    --t:  #CCDEE7;
+    --t2: #A8BECB;
+    --t3: #7A96A8;
     --t4: #5c7590;
     --t5: #3d5570;
 
@@ -65,15 +65,15 @@
     --cyan-s:   rgba(6,182,212,.12);
 
     /* ── Silver / metallic ── */
-    --silver:     #adb5b7;
-    --silver-lt:  #cdd5d8;
-    --silver-mid: #b8c0c3;
+    --silver:     #CCDEE7;
+    --silver-lt:  #D8E8F0;
+    --silver-mid: #B8CDD8;
 
-    /* ── Amber (warm accent) ── */
-    --amber:      #c2671c;
-    --amber-rich: #d47b2a;
-    --amber-lt:   rgba(194,103,28,.20);
-    --amber-s:    rgba(194,103,28,.12);
+    /* ── Amber — TERTIARY ACCENT (CTAs, active states) ── */
+    --amber:      #E39548;
+    --amber-rich: #F0A55A;
+    --amber-lt:   rgba(227,149,72,.20);
+    --amber-s:    rgba(227,149,72,.12);
 
     /* ── Gold — PRIMARY ACCENT ── */
     --gold:      #d4a017;
@@ -107,29 +107,29 @@
     --shadow-gold:    0 6px 22px rgba(212,160,23,.40), 0 2px 8px rgba(212,160,23,.26);
     --glow-gold:      0 0 24px rgba(212,160,23,.44), 0 0 56px rgba(212,160,23,.18);
     --shadow-inset-up: inset 0 1px 0 rgba(255,255,255,.52);
-    --shadow-card:    inset 0 1px 0 rgba(255,255,255,.52),
-                      inset 0 -1px 0 rgba(0,0,0,.10),
-                      0 4px 18px rgba(0,0,0,.30),
-                      0 1px 4px rgba(0,0,0,.18);
+    --shadow-card:    inset 0 1px 0 rgba(255,255,255,.55),
+                      inset 0 -1px 0 rgba(0,0,0,.08),
+                      0 4px 18px rgba(0,0,0,.38),
+                      0 1px 4px rgba(0,0,0,.20);
 
     /* ── shadcn compatibility ── */
-    --background:          #2e3c57;
-    --foreground:          #eef3f8;
-    --card:                #bfc7ca;
-    --card-foreground:     #0d1e38;
-    --popover:             #bfc7ca;
-    --popover-foreground:  #0d1e38;
-    --primary:             #d4a017;
-    --primary-foreground:  #0a1840;
-    --secondary:           #253450;
-    --secondary-foreground: #c4d3e0;
-    --muted:               #1c2840;
-    --muted-foreground:    #8aa0b8;
-    --accent:              rgba(212,160,23,.18);
-    --accent-foreground:   #d4a017;
+    --background:          #1C283C;
+    --foreground:          #CCDEE7;
+    --card:                #CCDEE7;
+    --card-foreground:     #1C283C;
+    --popover:             #CCDEE7;
+    --popover-foreground:  #1C283C;
+    --primary:             #E39548;
+    --primary-foreground:  #1C283C;
+    --secondary:           #162133;
+    --secondary-foreground: #A8BECB;
+    --muted:               #101829;
+    --muted-foreground:    #7A96A8;
+    --accent:              rgba(227,149,72,.18);
+    --accent-foreground:   #E39548;
     --destructive:         #ba1818;
-    --input:               rgba(198,208,212,.52);
-    --ring:                #d4a017;
+    --input:               rgba(255,255,255,.45);
+    --ring:                #E39548;
     --radius:              1rem;
   }
 
@@ -140,6 +140,7 @@
   .card-elevated,
   .card-frost,
   .init-card,
+  .v7-act-card,
   .activity-card,
   .collapse-header,
   .collapse-body,
@@ -152,9 +153,13 @@
   .session-card,
   .tv-q-card,
   .tv-opt,
-  .admin-stat {
-    --t:     #0d1e38;
-    --t2:    #1f3558;
+  .admin-stat,
+  .also-card,
+  .whats-next-card,
+  .card-progress,
+  .sponsor-card {
+    --t:     #1C283C;
+    --t2:    #2A3C52;
     --t3:    #4a6080;
     --t4:    #7a8eae;
     --t5:    #9caec8;
@@ -246,7 +251,7 @@
   background:
     radial-gradient(ellipse 70% 50% at 50% -8%, rgba(212,160,23,.07), transparent 55%),
     radial-gradient(ellipse 55% 40% at 92% 28%, rgba(6,182,212,.04), transparent 55%),
-    linear-gradient(180deg, #374a6a 0%, #2e3c57 22%, #293752 58%, #233050 100%);
+    linear-gradient(180deg, #243045 0%, #1C283C 22%, #192438 58%, #141F31 100%);
   overflow: hidden;
 }
 /* Subtle texture grid */
@@ -284,7 +289,7 @@
 
 /* ── Section label ── */
 .sec-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -297,7 +302,7 @@
 .card {
   background: var(--metallic);
   border-radius: var(--r);
-  border: 1px solid rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.45);
   box-shadow: var(--shadow-card);
   padding: 20px;
   color: var(--t);
@@ -334,9 +339,9 @@
   cursor: pointer;
   transition: all var(--tr);
   border: none;
-  background: linear-gradient(180deg, #e8b824 0%, #d4a017 60%, #c08c12 100%);
-  color: #0a1840;
-  box-shadow: var(--shadow-gold);
+  background: linear-gradient(180deg, #F0A55A 0%, #E39548 60%, #D07B38 100%);
+  color: #1C283C;
+  box-shadow: 0 6px 22px rgba(227,149,72,.40), 0 2px 8px rgba(227,149,72,.26);
   width: 100%;
 }
 .btn:active { transform: scale(.97); opacity: .92; }
@@ -472,9 +477,9 @@
 }
 .page-title {
   font-family: 'Sora', sans-serif;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
   color: var(--t);
 }
 .back-btn {
@@ -532,7 +537,7 @@
   padding: 14px 16px;
   border-radius: var(--r);
   background: var(--metallic);
-  border: 1px solid rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.45);
   box-shadow: var(--shadow-card);
   transition: opacity var(--tr);
   user-select: none;
@@ -550,7 +555,7 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height .3s ease;
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
   border-top: none;
   border-radius: 0 0 var(--r) var(--r);
   background: var(--metallic);
@@ -561,7 +566,7 @@
 /* ── Activity cards ── */
 .activity-card {
   background: var(--metallic);
-  border: 1px solid rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.45);
   border-radius: var(--r);
   padding: 18px;
   display: flex;
