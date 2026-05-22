@@ -76,13 +76,30 @@ export default function TabBar() {
           position: fixed;
           bottom: 0; left: 0; right: 0;
           display: flex;
-          background: var(--surface);
+          background: rgba(18,28,46,.92);
           backdrop-filter: blur(20px) saturate(180%);
           -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-top: 1px solid var(--border-metal);
-          box-shadow: 0 -4px 24px rgba(8,24,64,.06);
+          border-top: 1px solid rgba(255,255,255,.08);
+          box-shadow:
+            0 -8px 32px rgba(0,0,0,.40),
+            0 -1px 0 rgba(212,160,23,.15);
           padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
           z-index: 200;
+        }
+        /* Gold hairline at top */
+        .tab-nav::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(212,160,23,.40) 25%,
+            rgba(212,160,23,.55) 50%,
+            rgba(212,160,23,.40) 75%,
+            transparent 100%
+          );
         }
         .nb {
           flex: 1;
@@ -92,7 +109,7 @@ export default function TabBar() {
           justify-content: flex-start;
           padding-top: 10px;
           gap: 4px;
-          color: var(--t4);
+          color: rgba(200,215,230,.45);
           font-size: 13px;
           font-weight: 500;
           text-decoration: none;
@@ -100,7 +117,7 @@ export default function TabBar() {
           -webkit-tap-highlight-color: transparent;
         }
         .nb.cur {
-          color: var(--blue);
+          color: var(--amber);
         }
         .nb-inner {
           width: 44px;
@@ -112,11 +129,18 @@ export default function TabBar() {
           transition: background var(--tr), box-shadow var(--tr), transform var(--tr);
         }
         .nb.cur .nb-inner {
-          background: var(--blue-lt);
+          background: linear-gradient(
+            145deg,
+            rgba(227,149,72,.24) 0%,
+            rgba(227,149,72,.12) 100%
+          );
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.12),
+            0 2px 10px rgba(227,149,72,.28);
           transform: translateY(-1px);
         }
         .nb-label {
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 700;
           letter-spacing: .04em;
           text-transform: uppercase;

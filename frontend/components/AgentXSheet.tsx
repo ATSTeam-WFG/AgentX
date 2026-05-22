@@ -63,10 +63,13 @@ export default function AgentXSheet() {
         .ax-sheet {
           width: 100%;
           max-height: 84vh;
-          background: var(--surface);
+          background: #CCDEE7;
           border-radius: 28px 28px 0 0;
-          border-top: 1px solid var(--border-metal);
-          box-shadow: 0 -8px 40px rgba(8,24,64,.12);
+          border-top: 2px solid var(--gold);
+          box-shadow:
+            0 -16px 60px rgba(0,0,0,.55),
+            0 -1px 0 rgba(212,160,23,.30),
+            inset 0 1px 0 rgba(255,255,255,.40);
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -74,7 +77,7 @@ export default function AgentXSheet() {
         }
         .ax-handle {
           width: 40px; height: 4px;
-          background: var(--border-metal);
+          background: rgba(204,222,231,.20);
           border-radius: 2px;
           margin: 10px auto 0;
           flex-shrink: 0;
@@ -85,7 +88,8 @@ export default function AgentXSheet() {
           align-items: center;
           gap: 12px;
           padding: 14px 18px 12px;
-          border-bottom: 1px solid var(--border-metal);
+          background: #1C283C;
+          border-bottom: 1px solid rgba(204,222,231,.12);
           flex-shrink: 0;
           position: relative;
           z-index: 1;
@@ -94,36 +98,38 @@ export default function AgentXSheet() {
           width: 64px; height: 64px;
           border-radius: 50%;
           object-fit: cover;
-          border: 2px solid var(--blue-lt);
-          box-shadow: 0 4px 12px rgba(8,24,64,.12);
+          border: 2px solid rgba(212,160,23,.45);
+          box-shadow:
+            0 0 0 3px rgba(212,160,23,.12),
+            0 4px 12px rgba(0,0,0,.25);
         }
         .ax-header-info { flex: 1; }
         .ax-name {
           font-family: 'Sora', sans-serif;
           font-size: 18px;
           font-weight: 700;
-          color: var(--t);
+          color: #CCDEE7;
         }
         .ax-status {
           display: flex;
           align-items: center;
           gap: 5px;
           font-size: 13px;
-          color: var(--t3);
+          color: rgba(204,222,231,.70);
           margin-top: 1px;
         }
         .ax-dot {
           width: 7px; height: 7px;
           border-radius: 50%;
-          background: var(--green);
-          box-shadow: 0 0 6px rgba(21,122,64,.40);
+          background: #146636;
+          box-shadow: 0 0 6px rgba(20,102,54,.55);
         }
         .ax-close {
           width: 34px; height: 34px;
           border-radius: 50%;
-          background: var(--bg2);
-          border: 1px solid var(--border-metal);
-          color: var(--t3);
+          background: rgba(255,255,255,.10);
+          border: 1px solid rgba(204,222,231,.20);
+          color: rgba(204,222,231,.70);
           display: flex; align-items: center; justify-content: center;
           font-size: 16px;
           cursor: pointer;
@@ -131,7 +137,7 @@ export default function AgentXSheet() {
           font-family: inherit;
           transition: background .15s;
         }
-        .ax-close:active { background: var(--bg3); }
+        .ax-close:active { background: rgba(255,255,255,.18); }
         .ax-msgs {
           flex: 1;
           overflow-y: auto;
@@ -143,30 +149,32 @@ export default function AgentXSheet() {
           position: relative; z-index: 1;
         }
         .ax-msgs::-webkit-scrollbar { display: none; }
+        /* AI bubble: dark navy on light card */
         .owl-bubble.ai {
           max-width: 84%;
           padding: 11px 15px;
           border-radius: 18px;
           font-size: 15px;
           line-height: 1.45;
-          background: var(--blue-lt);
-          color: var(--t);
-          border: 1px solid var(--border-metal);
+          background: rgba(28,40,60,.10);
+          color: #1C283C;
+          border: 1px solid rgba(28,40,60,.12);
           border-bottom-left-radius: 4px;
           align-self: flex-start;
-          box-shadow: var(--shadow-card);
+          box-shadow: 0 1px 4px rgba(0,0,0,.12);
         }
+        /* User bubble: amber gradient */
         .owl-bubble.user {
           max-width: 84%;
           padding: 11px 15px;
           border-radius: 18px;
           font-size: 15px;
           line-height: 1.45;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff;
+          background: linear-gradient(135deg, #F0A55A, #E39548);
+          color: #1C283C;
           border-bottom-right-radius: 4px;
           align-self: flex-end;
-          box-shadow: var(--shadow-blue);
+          box-shadow: 0 2px 10px rgba(227,149,72,.30);
           font-weight: 500;
         }
         .ax-qbtns {
@@ -184,52 +192,54 @@ export default function AgentXSheet() {
           white-space: nowrap;
           font-size: 13px;
           font-weight: 600;
-          color: var(--blue);
-          background: var(--blue-lt);
-          border: 1px solid rgba(27,79,196,.18);
+          color: #1C283C;
+          background: linear-gradient(135deg, rgba(227,149,72,.22), rgba(227,149,72,.12));
+          border: 1px solid rgba(227,149,72,.35);
           border-radius: 20px;
           padding: 7px 14px;
           cursor: pointer;
           transition: background var(--tr);
           flex-shrink: 0;
           font-family: inherit;
+          box-shadow: 0 1px 4px rgba(227,149,72,.14);
         }
-        .owl-qbtn:active { background: #c6d8ff; }
+        .owl-qbtn:active { background: linear-gradient(135deg, rgba(227,149,72,.35), rgba(227,149,72,.22)); }
         .ax-input-row {
           display: flex;
           align-items: center;
           gap: 10px;
           padding: 10px 18px calc(10px + env(safe-area-inset-bottom, 0px));
-          border-top: 1px solid var(--border-metal);
-          background: var(--surface);
+          border-top: 1px solid rgba(28,40,60,.12);
+          background: rgba(28,40,60,.06);
           flex-shrink: 0;
           position: relative; z-index: 1;
         }
         .owl-input {
           flex: 1;
-          background: var(--bg);
-          border: 1.5px solid var(--border-metal);
+          background: rgba(255,255,255,.55);
+          border: 1.5px solid rgba(28,40,60,.18);
           border-radius: 22px;
           padding: 10px 16px;
           font-size: 15px;
-          color: var(--t);
+          color: #1C283C;
           outline: none;
           font-family: 'DM Sans', sans-serif;
+          box-shadow: inset 0 1px 3px rgba(0,0,0,.08);
         }
-        .owl-input::placeholder { color: var(--t4); }
+        .owl-input::placeholder { color: #7A96A8; }
         .owl-input:focus {
-          border-color: var(--blue);
-          box-shadow: 0 0 0 3px rgba(27,79,196,.08);
+          border-color: var(--amber);
+          box-shadow: inset 0 1px 3px rgba(0,0,0,.08), 0 0 0 3px rgba(227,149,72,.15);
         }
         .ax-send {
           width: 44px; height: 44px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff;
+          background: linear-gradient(135deg, #F0A55A, #E39548);
+          color: #1C283C;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer;
           border: none;
-          box-shadow: var(--shadow-blue);
+          box-shadow: 0 4px 14px rgba(227,149,72,.40);
           flex-shrink: 0;
           transition: transform .12s;
           font-family: inherit;

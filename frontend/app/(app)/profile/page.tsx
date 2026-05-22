@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getMe } from '@/lib/api/profile';
@@ -32,163 +31,191 @@ const STATIC_LB: LeaderboardEntry[] = [
   { rank: 5, name: 'You',       totalPoints: 340 },
 ];
 
-const SPONSORS = [
-  { name: 'WFG Title & Escrow', role: 'Title Partner', icon: '🏢' },
-  { name: 'Stewart Title',       role: 'Underwriting Partner', icon: '🏛' },
-  { name: 'First American',      role: 'Technology Partner', icon: '⭐' },
-];
-
-const FEEDBACK_QUESTIONS = [
-  'Overall summit experience',
-  'Content quality & relevance',
-  'Networking opportunities',
-  'Venue & logistics',
-];
-
-function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="star-row">
-      {[1,2,3,4,5].map((s) => (
-        <button key={s} className={`star-btn${value >= s ? ' active' : ''}`} onClick={() => onChange(s)} type="button">
-          {value >= s ? '★' : '☆'}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function CollapseSection({
-  icon, iconBg, title, defaultOpen, children
-}: {
-  icon: React.ReactNode; iconBg: string; title: string; defaultOpen?: boolean; children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen ?? false);
-  return (
-    <div className={`prof-section${open ? ' open' : ''}`}>
-      <button className="prof-section-hd" onClick={() => setOpen((v) => !v)}>
-        <div className="prof-section-hd-left">
-          <div className="prof-section-icon" style={{ background: iconBg }}>{icon}</div>
-          <span className="prof-section-title">{title}</span>
-        </div>
-        <svg className={`prof-chevron${open ? ' rot' : ''}`} viewBox="0 0 12 12" fill="none" width="18" height="18">
-          <path d="M2.5 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <div className="prof-section-body">
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
-  const [ratings, setRatings] = useState<number[]>([0,0,0,0]);
-  const [feedbackText, setFeedbackText] = useState('');
-  const [anonymous, setAnonymous] = useState(false);
-  const [feedbackDone, setFeedbackDone] = useState(false);
 
-  const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: getMe, staleTime: 60_000, retry: false });
-  const { data: lb } = useQuery({ queryKey: ['leaderboard', 5], queryFn: () => getLeaderboard(5), staleTime: 30_000, retry: false });
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getMe,
+    staleTime: 60_000,
+    retry: false,
+  });
 
-  const name       = profile?.name ?? user?.name ?? 'Summit Guest';
+  const { data: lb } = useQuery({
+    queryKey: ['leaderboard', 5],
+    queryFn: () => getLeaderboard(5),
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  const name       = profile?.name ?? user?.name ?? 'Gene Rebadow';
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
   const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
   const rank       = profile?.rank ?? '–';
+
   const leaderboard = lb?.leaderboard ?? STATIC_LB;
 
-  async function handleFeedbackSubmit() {
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/v1/activities/feedback/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('agentx_token') : ''}` },
-        body: JSON.stringify({ ratings, comments: feedbackText, anonymous }),
-      });
-    } catch { /* non-blocking */ }
-    setFeedbackDone(true);
-  }
+  const nameParts = name.trim().split(' ');
+  const firstName = nameParts[0];
+  const lastName  = nameParts.slice(1).join(' ');
 
   return (
     <>
       <style>{`
-        .profile-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .profile-page {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column;
+          overflow: hidden;
+        }
         .profile-scroll {
-          flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+          flex: 1; overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
           padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
-        .profile-page-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700;
-          color: var(--t); letter-spacing: -.025em; margin: 0 0 18px;
-        }
-        /* Hero card */
+
+        /* ── Hero card — full-bleed photo with seamless dark blend ── */
         .profile-hero-v7 {
-          background: linear-gradient(160deg, #1a2d50 0%, #0e1f3a 55%, #0a1830 100%);
-          border-radius: var(--r-xl); padding: 24px 20px;
+          border-radius: var(--r-xl);
+          overflow: hidden;
           margin-bottom: 18px;
-          box-shadow: 0 10px 36px rgba(8,24,64,.22), inset 0 1px 0 rgba(255,255,255,.06);
-          position: relative; overflow: hidden;
-          border: 1px solid rgba(255,255,255,.06);
-        }
-        .profile-hero-v7::before {
-          content: ''; position: absolute; top: -40%; right: -15%;
-          width: 280px; height: 280px;
-          background: radial-gradient(circle, rgba(27,79,196,.14), transparent 70%);
-          border-radius: 50%; pointer-events: none;
-        }
-        .hero-top-row {
-          display: flex; align-items: center;
-          gap: 18px; margin-bottom: 20px; position: relative; z-index: 1;
-        }
-        .hero-avatar {
-          width: 56px; height: 56px;
-          background: rgba(255,255,255,.10);
-          border-radius: 16px;
-          display: flex; align-items: center; justify-content: center;
-          border: 1.5px solid rgba(255,255,255,.16); flex-shrink: 0;
-        }
-        .hero-name {
-          font-family: 'Sora', sans-serif;
-          font-size: 22px; font-weight: 800;
-          letter-spacing: -.02em; color: #fff; line-height: 1.1;
-        }
-        .hero-role { font-size: 14px; color: rgba(255,255,255,.60); margin-top: 3px; font-weight: 500; }
-        .hero-rank-chip {
-          display: inline-flex; align-items: center; margin-top: 10px;
-          background: rgba(27,79,196,.28);
-          border: 1px solid rgba(27,79,196,.45);
-          border-radius: 10px; padding: 5px 12px;
-          font-size: 12px; font-weight: 700;
-          color: rgba(180,210,255,.95); letter-spacing: .02em;
-          font-family: 'Sora', sans-serif;
-        }
-        .hero-stats {
-          display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 14px; position: relative; z-index: 1;
-        }
-        .hero-stat-cell { text-align: center; }
-        .hero-stat-cell:nth-child(2) {
-          border-left: 1px solid rgba(255,255,255,.12);
-          border-right: 1px solid rgba(255,255,255,.12);
-        }
-        .hero-pts {
-          font-family: 'Sora', sans-serif;
-          font-size: 36px; font-weight: 800;
-          letter-spacing: -.04em; color: #fff; line-height: 1;
-        }
-        .hero-pts-label {
-          font-size: 11px; color: rgba(255,255,255,.55);
-          font-weight: 600; letter-spacing: .03em;
-          margin-top: 3px; text-transform: uppercase;
+          position: relative;
+          background: #1F2D45;
+          border: 1px solid rgba(255,255,255,.10);
+          box-shadow: 0 24px 64px rgba(0,0,0,.60),
+                      inset 0 1px 0 rgba(255,255,255,.06);
+          min-height: 300px;
         }
 
-        /* Collapse section card */
+        /* Photo container — right side, absolute */
+        .hero-photo-wrap {
+          position: absolute;
+          right: 0; top: 0; bottom: 0;
+          width: 62%;
+          pointer-events: none;
+        }
+        .hero-photo {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          object-position: 65% 20%;
+          display: block;
+        }
+        /* Left-side fade — tight 32% blend into hero background */
+        .hero-photo-wrap::before {
+          content: '';
+          position: absolute; inset: 0; z-index: 1;
+          background: linear-gradient(
+            to right,
+            #1F2D45 0%,
+            rgba(31,45,69,.90) 8%,
+            rgba(31,45,69,.50) 16%,
+            rgba(31,45,69,.12) 24%,
+            transparent 32%
+          );
+        }
+        /* Bottom fade — image dissolves into strip */
+        .hero-photo-wrap::after {
+          content: '';
+          position: absolute; left: 0; right: 0; bottom: 0;
+          height: 50%; z-index: 1;
+          background: linear-gradient(
+            to top,
+            #1F2D45 0%,
+            rgba(31,45,69,.75) 40%,
+            transparent 100%
+          );
+        }
+
+        /* Text content — above image layers */
+        .hero-content {
+          position: relative; z-index: 2;
+          padding: 28px 24px 20px;
+          max-width: 64%;
+        }
+
+        .hero-first {
+          font-family: 'Sora', sans-serif;
+          font-size: 38px; font-weight: 800;
+          letter-spacing: -.04em; line-height: .92;
+          color: #CCDEE7;
+        }
+        .hero-last {
+          font-family: 'Sora', sans-serif;
+          font-size: 24px; font-weight: 700;
+          letter-spacing: -.02em; line-height: 1.1;
+          color: #E39548;
+        }
+        .hero-role-tag {
+          font-size: 10px; font-weight: 700;
+          color: rgba(204,222,231,.38);
+          letter-spacing: .12em; text-transform: uppercase;
+          margin: 10px 0 22px;
+        }
+
+        .hero-pts-row {
+          display: flex; align-items: baseline; gap: 7px;
+          margin-bottom: 8px;
+        }
+        .hero-pts-big {
+          font-family: 'Sora', sans-serif;
+          font-size: 48px; font-weight: 800; letter-spacing: -.05em;
+          color: #fff; line-height: 1;
+          text-shadow: 0 2px 20px rgba(0,0,0,.40);
+        }
+        .hero-pts-unit {
+          font-family: 'Sora', sans-serif;
+          font-size: 12px; font-weight: 700; letter-spacing: .10em;
+          color: rgba(204,222,231,.45); text-transform: uppercase;
+        }
+
+        .hero-rank-row {
+          display: flex; align-items: center; gap: 5px;
+        }
+        .hero-rank-badge {
+          font-family: 'Sora', sans-serif;
+          font-size: 19px; font-weight: 800; letter-spacing: -.02em;
+          color: var(--amber);
+        }
+        .hero-rank-label {
+          font-size: 11px; font-weight: 700;
+          color: rgba(204,222,231,.38);
+          letter-spacing: .08em; text-transform: uppercase;
+        }
+
+        /* Bottom stats strip */
+        .hero-strip {
+          position: relative; z-index: 2;
+          display: flex;
+          background: rgba(14,22,38,.80);
+          border-top: 1px solid rgba(255,255,255,.07);
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+        }
+        .hero-strip-stat {
+          flex: 1; text-align: center;
+          padding: 14px 8px;
+        }
+        .hero-strip-stat + .hero-strip-stat {
+          border-left: 1px solid rgba(255,255,255,.07);
+        }
+        .hero-strip-val {
+          font-family: 'Sora', sans-serif;
+          font-size: 20px; font-weight: 800; letter-spacing: -.03em;
+          color: #CCDEE7; line-height: 1;
+          display: block;
+        }
+        .hero-strip-label {
+          font-size: 10px; font-weight: 700; letter-spacing: .09em;
+          text-transform: uppercase; color: rgba(204,222,231,.40);
+          display: block; margin-top: 5px;
+        }
+
+        /* ── Section cards ── */
         .prof-section {
-          background: var(--surface);
-          border: 1px solid var(--border-metal);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
           box-shadow: var(--shadow-card);
           overflow: hidden;
@@ -197,289 +224,229 @@ export default function ProfilePage() {
         .prof-section-hd {
           display: flex; align-items: center;
           justify-content: space-between;
-          padding: 16px 18px;
-          border: none; cursor: pointer;
-          width: 100%; font-family: inherit;
-          background: none; transition: background var(--tr);
+          padding: 15px 18px;
+          border-bottom: 1px solid rgba(0,0,0,.08);
         }
-        .prof-section-hd:active { background: var(--bg2); }
-        .prof-section.open .prof-section-hd { border-bottom: 1px solid var(--border-metal); }
-        .prof-section-hd-left { display: flex; align-items: center; gap: 12px; }
+        .prof-section-hd-left {
+          display: flex; align-items: center; gap: 12px;
+        }
         .prof-section-icon {
-          width: 38px; height: 38px; border-radius: 11px;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+          width: 36px; height: 36px;
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
         }
         .prof-section-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px; font-weight: 700;
-          color: var(--t); letter-spacing: -.01em;
+          font-size: 13px; font-weight: 800;
+          color: #1C283C;
+          letter-spacing: .08em; text-transform: uppercase;
         }
-        .prof-chevron { color: var(--t3); transition: transform .22s ease; flex-shrink: 0; }
-        .prof-chevron.rot { transform: rotate(180deg); }
 
-        /* Collapse body */
-        .prof-section-body {
-          max-height: 0; overflow: hidden;
-          transition: max-height .35s cubic-bezier(.4,0,.2,1);
-        }
-        .prof-section.open .prof-section-body { max-height: 1800px; }
-
-        /* Leaderboard rows */
+        /* ── Leaderboard rows ── */
         .lb-row-v7 {
           display: flex; align-items: center;
-          gap: 12px; padding: 14px 18px;
-          border-bottom: 1px solid var(--border);
+          gap: 12px; padding: 13px 18px;
+          border-bottom: 1px solid rgba(0,0,0,.06);
         }
         .lb-row-v7:last-child { border-bottom: none; }
         .lb-row-v7.me {
-          background: linear-gradient(90deg, rgba(27,79,196,.06), transparent);
+          background: linear-gradient(90deg, rgba(227,149,72,.08), transparent);
         }
         .lb-medal {
-          width: 32px; height: 32px; border-radius: 50%;
+          width: 28px; height: 28px;
+          border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 800; flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 1px 3px rgba(0,0,0,.14);
+          font-size: 11px; font-weight: 700;
+          letter-spacing: -.01em; flex-shrink: 0;
         }
         .lb-medal.gold {
-          background: linear-gradient(135deg, #f8d77a 0%, #d4a017 50%, #a67710 100%);
-          color: #4a3308; border: 1px solid rgba(166,119,16,.35);
+          background: linear-gradient(145deg,
+            #F0E08A 0%, #C8A020 28%,
+            #9A7800 52%, #B89018 72%,
+            #EAD278 100%
+          );
+          color: #3A2C00;
+          border: 0.5px solid rgba(192,156,24,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.60),
+                      inset 0 -1px 0 rgba(0,0,0,.28),
+                      0 2px 8px rgba(172,128,0,.30);
         }
         .lb-medal.silver {
-          background: linear-gradient(135deg, #e6ecf6 0%, #b8c4d8 50%, #94a3b8 100%);
-          color: #3a4858; border: 1px solid rgba(120,140,180,.40);
+          background: linear-gradient(145deg,
+            #EEF1F8 0%, #BCC6DA 28%,
+            #8E9CB2 52%, #A8B6CA 72%,
+            #E4E8F4 100%
+          );
+          color: #28364A;
+          border: 0.5px solid rgba(148,164,196,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.70),
+                      inset 0 -1px 0 rgba(0,0,0,.18),
+                      0 2px 6px rgba(100,120,160,.22);
         }
         .lb-medal.bronze {
-          background: linear-gradient(135deg, #e8b78a 0%, #c2671c 60%, #8a4a14 100%);
-          color: #3a1f0a; border: 1px solid rgba(140,80,30,.38);
+          background: linear-gradient(145deg,
+            #E0C098 0%, #B87840 28%,
+            #8A481A 52%, #A66830 72%,
+            #DCA870 100%
+          );
+          color: #2C1200;
+          border: 0.5px solid rgba(152,96,36,.55);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.48),
+                      inset 0 -1px 0 rgba(0,0,0,.28),
+                      0 2px 6px rgba(136,72,20,.28);
         }
         .lb-rank-num {
-          width: 32px; height: 32px;
+          width: 30px; height: 30px;
           display: flex; align-items: center; justify-content: center;
           font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 700; color: var(--t3); flex-shrink: 0;
+          font-size: 12px; font-weight: 700;
+          color: #4a6080; flex-shrink: 0;
         }
-        .lb-name-v7 { flex: 1; font-size: 15px; font-weight: 600; color: var(--t); }
+        .lb-name-v7 {
+          flex: 1; font-size: 16px; font-weight: 600; color: #1C283C;
+        }
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 800; color: var(--gold);
+          font-size: 14px; font-weight: 800; font-style: italic;
+          color: #E39548; letter-spacing: -.02em;
         }
 
-        /* Sponsors */
-        .sponsor-row {
-          display: flex; align-items: center; gap: 12px;
+        /* ── Feedback / Sponsor link rows ── */
+        .section-link-row {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          padding: 14px 18px; text-decoration: none;
+          color: inherit;
+        }
+        .section-link-left {
+          display: flex; align-items: center; gap: 0;
+          flex: 1;
+        }
+        .section-link-body { flex: 1; }
+        .section-link-sub {
+          font-size: 14px; color: var(--t3); margin-top: 2px;
+        }
+        .section-static-row {
+          display: flex; align-items: center;
           padding: 14px 18px;
-          border-bottom: 1px solid var(--border);
+          gap: 0;
         }
-        .sponsor-row:last-child { border-bottom: none; }
-        .sponsor-icon {
-          width: 38px; height: 38px; border-radius: 10px;
-          background: var(--bg2); font-size: 20px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
+        .section-static-body { flex: 1; }
+        .section-name {
+          font-size: 16px; font-weight: 600; color: #1C283C;
+          margin-top: 2px;
         }
-        .sponsor-name-text { font-size: 15px; font-weight: 700; color: var(--t); }
-        .sponsor-role-text { font-size: 13px; color: var(--t3); margin-top: 2px; }
-
-        /* Feedback */
-        .feedback-inner { padding: 14px 18px; }
-        .anonymous-row {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 18px;
-        }
-        .anonymous-label { font-size: 15px; font-weight: 600; color: var(--t2); }
-        .toggle-track {
-          width: 44px; height: 26px; border-radius: 13px;
-          background: var(--bg3); border: 1.5px solid var(--border-metal);
-          position: relative; cursor: pointer; transition: background var(--tr);
-          flex-shrink: 0;
-        }
-        .toggle-track.on { background: var(--blue); border-color: var(--blue); }
-        .toggle-thumb {
-          position: absolute; top: 3px; left: 3px;
-          width: 18px; height: 18px; border-radius: 50%;
-          background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.18);
-          transition: transform .2s ease;
-        }
-        .toggle-track.on .toggle-thumb { transform: translateX(18px); }
-
-        .fb-q-row {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 14px; gap: 12px;
-        }
-        .fb-q-label { font-size: 14px; font-weight: 600; color: var(--t2); flex: 1; }
-        .star-row { display: flex; gap: 2px; flex-shrink: 0; }
-        .star-btn {
-          background: none; border: none; cursor: pointer;
-          font-size: 22px; color: var(--border-metal);
-          transition: color .1s; padding: 2px;
-          line-height: 1;
-        }
-        .star-btn.active { color: var(--gold-rich); }
-        .fb-textarea {
-          width: 100%; min-height: 90px;
-          background: var(--bg2);
-          border: 1.5px solid var(--border-metal);
-          border-radius: 12px; padding: 12px 14px;
-          font-size: 15px; color: var(--t);
-          font-family: 'DM Sans', sans-serif;
-          line-height: 1.55; resize: none; outline: none;
-          margin-bottom: 14px;
-          transition: border-color var(--tr), box-shadow var(--tr);
-        }
-        .fb-textarea:focus {
-          border-color: var(--blue);
-          box-shadow: 0 0 0 3px rgba(27,79,196,.08);
-        }
-        .fb-submit-btn {
-          width: 100%; height: 50px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff; font-size: 15px; font-weight: 700;
-          font-family: 'Sora', sans-serif;
-          border: none; cursor: pointer;
-          box-shadow: var(--shadow-blue);
-        }
-        .fb-thanks {
-          text-align: center; padding: 24px 0 8px;
-          font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700; color: var(--green);
-        }
-        .fb-thanks-sub { text-align: center; font-size: 14px; color: var(--t3); padding-bottom: 8px; }
-
-        /* Admin link */
-        .admin-link {
-          display: flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 16px; text-decoration: none;
-          font-size: 14px; font-weight: 600; color: var(--t3);
-          border: 1px dashed var(--border-metal);
-          border-radius: var(--r); margin-top: 4px;
-          transition: color var(--tr), border-color var(--tr);
-        }
-        .admin-link:active { color: var(--t2); }
+        .prof-chevron { color: rgba(28,40,60,.35); flex-shrink: 0; }
       `}</style>
 
       <div className="profile-page">
         <div className="profile-scroll">
-          <h1 className="profile-page-title">Profile</h1>
 
-          {/* Hero */}
+          {/* ── F1-style hero ── */}
           <div className="profile-hero-v7">
-            <div className="hero-top-row">
-              <div className="hero-avatar">
-                <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
-                  <circle cx="12" cy="8" r="4" stroke="rgba(255,255,255,.80)" strokeWidth="1.6"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="rgba(255,255,255,.80)" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
+            <div className="hero-photo-wrap">
+              <img src="/Gene_Avatar.png" alt="" className="hero-photo" />
+            </div>
+            <div className="hero-content">
+              <div className="hero-first">{firstName}</div>
+              {lastName && <div className="hero-last">{lastName}</div>}
+              <div className="hero-role-tag">{role}</div>
+
+              <div className="hero-pts-row">
+                <span className="hero-pts-big">{points.toLocaleString()}</span>
+                <span className="hero-pts-unit">pts</span>
               </div>
-              <div style={{ flex: 1 }}>
-                <div className="hero-name">{name}</div>
-                <div className="hero-role">{role}</div>
-                <div className="hero-rank-chip">#{rank} of summit</div>
+              <div className="hero-rank-row">
+                <span className="hero-rank-badge">#{rank}</span>
+                <span className="hero-rank-label">Summit Rank</span>
               </div>
             </div>
-            <div className="hero-stats">
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{points.toLocaleString()}</div>
-                <div className="hero-pts-label">Points</div>
+
+            <div className="hero-strip">
+              <div className="hero-strip-stat">
+                <span className="hero-strip-val">{activities}/5</span>
+                <span className="hero-strip-label">Activities</span>
               </div>
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{activities}/5</div>
-                <div className="hero-pts-label">Activities</div>
-              </div>
-              <div className="hero-stat-cell">
-                <div className="hero-pts">{touchpts}/5</div>
-                <div className="hero-pts-label">Touchpoints</div>
+              <div className="hero-strip-stat">
+                <span className="hero-strip-val">{touchpts}/5</span>
+                <span className="hero-strip-label">Touchpoints</span>
               </div>
             </div>
           </div>
 
-          {/* Leaderboard (default open) */}
-          <CollapseSection
-            defaultOpen
-            title="Leaderboard"
-            iconBg="linear-gradient(135deg, #fff8e0, var(--gold-lt))"
-            icon={<svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M5 10H3a1 1 0 00-1 1v6a1 1 0 001 1h14a1 1 0 001-1v-6a1 1 0 00-1-1h-2M10 2v12M7 5l3-3 3 3" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-          >
+          {/* ── Leaderboard ── */}
+          <div className="prof-section">
+            <div className="prof-section-hd">
+              <div className="prof-section-hd-left">
+                <div className="prof-section-icon" style={{ background: 'rgba(212,160,23,.10)', border: '1px solid rgba(166,119,16,.18)' }}>
+                  <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                    <path d="M5 10H3a1 1 0 00-1 1v6a1 1 0 001 1h14a1 1 0 001-1v-6a1 1 0 00-1-1h-2M10 2v12M7 5l3-3 3 3" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="prof-section-title">Leaderboard</span>
+              </div>
+              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
+                <path d="M2.5 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+
             {leaderboard.map((entry) => (
               <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
             ))}
             {lb?.currentUser && !leaderboard.some((e) => e.rank === lb.currentUser?.rank) && (
-              <LbRow entry={{ rank: lb.currentUser.rank, name, totalPoints: lb.currentUser.totalPoints }} highlight />
+              <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
             )}
-          </CollapseSection>
+          </div>
 
-          {/* Sponsors */}
-          <CollapseSection
-            title="Summit Sponsors"
-            iconBg="linear-gradient(135deg, #eef4ff, var(--blue-lt))"
-            icon={<svg viewBox="0 0 20 20" fill="none" width="20" height="20"><rect x="2" y="6" width="16" height="11" rx="2" stroke="var(--blue)" strokeWidth="1.6"/><path d="M6 6V5a4 4 0 018 0v1" stroke="var(--blue)" strokeWidth="1.6"/></svg>}
-          >
-            {SPONSORS.map((s) => (
-              <div key={s.name} className="sponsor-row">
-                <div className="sponsor-icon">{s.icon}</div>
-                <div>
-                  <div className="sponsor-name-text">{s.name}</div>
-                  <div className="sponsor-role-text">{s.role}</div>
+          {/* ── Feedback ── */}
+          <div className="prof-section">
+            <div className="prof-section-hd">
+              <div className="prof-section-hd-left">
+                <div className="prof-section-icon" style={{ background: 'rgba(28,40,60,.07)', border: '1px solid rgba(28,40,60,.10)' }}>
+                  <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                    <path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V5a1 1 0 011-1z" stroke="#1C283C" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M7 8l2 2 4-4" stroke="#1C283C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="prof-section-title">Feedback</span>
+              </div>
+            </div>
+            <Link href="/profile/feedback" className="section-link-row">
+              <div className="section-link-left">
+                <div className="section-link-body">
+                  <div className="section-name">Share Your Summit Experience</div>
+                  <div className="section-link-sub">A few minutes helps us shape next year</div>
                 </div>
               </div>
-            ))}
-          </CollapseSection>
+              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
+                <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
 
-          {/* Feedback */}
-          <CollapseSection
-            title="Summit Feedback"
-            iconBg="linear-gradient(135deg, #fff4e0, var(--amber-lt))"
-            icon={<svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V5a1 1 0 011-1z" stroke="var(--amber)" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7 8l2 2 4-4" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-          >
-            {feedbackDone ? (
-              <div className="feedback-inner">
-                <div className="fb-thanks">Thank you for your feedback! 🎉</div>
-                <div className="fb-thanks-sub">Your response helps us improve every year.</div>
-              </div>
-            ) : (
-              <div className="feedback-inner">
-                <div className="anonymous-row">
-                  <span className="anonymous-label">Submit anonymously</span>
-                  <button
-                    className={`toggle-track${anonymous ? ' on' : ''}`}
-                    onClick={() => setAnonymous((v) => !v)}
-                    type="button"
-                    aria-label="Toggle anonymous"
-                  >
-                    <span className="toggle-thumb" />
-                  </button>
+          {/* ── Sponsors ── */}
+          <div className="prof-section">
+            <div className="prof-section-hd">
+              <div className="prof-section-hd-left">
+                <div className="prof-section-icon" style={{ background: 'rgba(227,149,72,.10)', border: '1px solid rgba(227,149,72,.20)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                    <rect x="3" y="10" width="18" height="11" rx="1.5" stroke="#D07B38" strokeWidth="1.6"/>
+                    <path d="M8 21V14h4v7" stroke="#D07B38" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 10l10-7 10 7" stroke="#D07B38" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                {FEEDBACK_QUESTIONS.map((q, i) => (
-                  <div key={q} className="fb-q-row">
-                    <span className="fb-q-label">{q}</span>
-                    <StarRating value={ratings[i]} onChange={(v) => setRatings((prev) => { const n = [...prev]; n[i] = v; return n; })} />
-                  </div>
-                ))}
-                <textarea
-                  className="fb-textarea"
-                  placeholder="Any other thoughts? (optional)"
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                />
-                <button className="fb-submit-btn" onClick={handleFeedbackSubmit} type="button">
-                  Submit Feedback →
-                </button>
+                <span className="prof-section-title">Our Sponsors</span>
               </div>
-            )}
-          </CollapseSection>
-
-          {/* Admin link */}
-          <Link href="/admin" className="admin-link">
-            <svg viewBox="0 0 18 18" fill="none" width="16" height="16">
-              <circle cx="9" cy="9" r="3" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.05 3.05l1.42 1.42M13.53 13.53l1.42 1.42M13.53 4.47l1.42-1.42M3.05 14.95l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            Admin Access
-            <svg viewBox="0 0 12 12" fill="none" width="12" height="12">
-              <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </Link>
+            </div>
+            <div className="section-static-row">
+              <div className="section-static-body">
+                <div className="section-name">WFG Title &amp; Escrow</div>
+                <div className="section-link-sub">Your trusted partner for every closing</div>
+              </div>
+            </div>
+          </div>
 
           <div style={{ height: 28 }} />
         </div>
