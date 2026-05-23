@@ -59,7 +59,7 @@ export default function HomePage() {
   const upcoming = getNextSession(events);
   const featured = current ?? upcoming;
 
-  const firstName = (user?.name ?? 'Summit Guest').split(' ')[0];
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
   return (
@@ -81,7 +81,7 @@ export default function HomePage() {
         .home-name {
           font-family: 'Sora', sans-serif;
           font-size: 34px;
-          font-weight: 800;
+          font-weight: 700;
           color: var(--t);
           letter-spacing: -.03em;
           line-height: 1.1;
@@ -109,7 +109,7 @@ export default function HomePage() {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
         .sec-label {
@@ -355,7 +355,7 @@ export default function HomePage() {
         {/* Scrollable content */}
         <div className="home-scroll">
           {/* Happening Now */}
-          <div className="sec-label">Happening Now</div>
+          <div className="sec-label">{current ? 'Happening Now' : 'Up Next'}</div>
 
           {featured ? (
             <div className="whats-next-card">

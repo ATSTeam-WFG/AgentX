@@ -8,7 +8,7 @@ import { V7_EVENTS } from '@/lib/v7-agenda';
 
 const DAY_TABS = [
   { day: 0, label: 'Wed · Jun 3',  title: 'Arrivals & Welcome Dinner',    badge: 'Pre-Summit' },
-  { day: 1, label: 'Thu · Jun 4',  title: 'Summit Day One',               badge: 'Day 1'      },
+  { day: 1, label: 'Thu · Jun 4',  title: 'Summit Day',                   badge: 'Day 1'      },
   { day: 2, label: 'Fri · Jun 5',  title: 'Departures',                   badge: 'Day 2'      },
 ];
 
@@ -25,13 +25,13 @@ function getStatus(startsAt: string, endsAt: string): 'past' | 'live' | 'upcomin
   return 'upcoming';
 }
 
-function SessionCard({ event }: { event: AgendaEvent }) {
+function SessionCard({ event, hideTime }: { event: AgendaEvent; hideTime?: boolean }) {
   const status = getStatus(event.startsAt, event.endsAt);
   return (
     <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none' }}>
       <div className={`session-card ${status}`}>
         <div className="session-time-col">
-          <span className="session-time">{formatTime(event.startsAt)}</span>
+          {!hideTime && <span className="session-time">{formatTime(event.startsAt)}</span>}
           {status === 'live' && <span className="live-pip" />}
           {status === 'past' && (
             <span className="past-dot">
@@ -58,7 +58,7 @@ function SessionCard({ event }: { event: AgendaEvent }) {
         </div>
         {status === 'live' && <span className="live-badge">Live</span>}
         {status !== 'live' && (
-          <span className="session-chev">
+          <span className="session-chev" style={event.description ? { color: '#E39548' } : {}}>
             <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
               <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -92,7 +92,7 @@ export default function AgendaPage() {
 
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 32px; font-weight: 800; color: var(--t);
+          font-size: 26px; font-weight: 700; color: var(--t);
           letter-spacing: .02em; text-transform: uppercase; margin: 0;
         }
         .agenda-dates {
@@ -120,10 +120,10 @@ export default function AgendaPage() {
           white-space: nowrap;
         }
         .day-tab.active {
-          background: linear-gradient(180deg, #F0A55A, #E39548, #D07B38);
-          color: #1C283C;
-          border-color: rgba(227,149,72,.50);
-          box-shadow: 0 4px 14px rgba(227,149,72,.40), 0 2px 6px rgba(227,149,72,.26);
+          background: rgba(227,149,72,.12);
+          color: #E39548;
+          border: 1.5px solid rgba(227,149,72,.55);
+          box-shadow: 0 1px 6px rgba(227,149,72,.18);
         }
 
         .day-header {
@@ -141,8 +141,14 @@ export default function AgendaPage() {
 
         .agenda-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 12px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 12px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
+        }
+        .time-group { margin-bottom: 4px; }
+        .time-header {
+          font-size: 12px; font-weight: 700; letter-spacing: .08em;
+          text-transform: uppercase; color: rgba(204,222,231,.45);
+          padding: 8px 2px 4px;
         }
 
         .session-card {
@@ -225,16 +231,25 @@ export default function AgendaPage() {
             <div className="day-header-summary">
               {activeTab.day === 0 && 'Registration & opening reception'}
               {activeTab.day === 1 && 'Keynote, breakouts, ATS demos & awards'}
-              {activeTab.day === 2 && 'Safe travels — see you next year!'}
+              {activeTab.day === 2 && 'Safe travels. See you next year!'}
             </div>
           </div>
         )}
 
         <div className="agenda-scroll">
-          {filtered.length > 0
-            ? filtered.map((e) => <SessionCard key={e.id} event={e} />)
-            : <div className="empty-state">No sessions for this day.</div>
-          }
+          {filtered.length > 0 ? (() => {
+            const groups = filtered.reduce<Record<string, typeof filtered>>((acc, ev) => {
+              (acc[ev.startsAt] ??= []).push(ev);
+              return acc;
+            }, {});
+            const timeSlots = Object.keys(groups).sort();
+            return timeSlots.map((ts) => (
+              <div key={ts} className="time-group">
+                <div className="time-header">{formatTime(ts)}</div>
+                {groups[ts].map((e) => <SessionCard key={e.id} event={e} hideTime />)}
+              </div>
+            ));
+          })() : <div className="empty-state">No sessions for this day.</div>}
         </div>
       </div>
     </>

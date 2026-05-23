@@ -11,7 +11,7 @@ const ACTIVITIES = [
     pts: 500,
     iconBg: '#dde9ff',
     iconColor: '#1a3d9e',
-    desc: '50 questions. 60 seconds. Answer as many title-industry questions as you can.',
+    desc: 'Test your title industry knowledge. 10 questions, instant scoring.',
     href: '/activities/trivia',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -27,7 +27,7 @@ const ACTIVITIES = [
     pts: 150,
     iconBg: '#ead9ed',
     iconColor: '#7c2d9e',
-    desc: 'Upload a photo (+50 pts) and print your branded summit avatar (+100 pts).',
+    desc: 'AI-generated executive portrait in the ES26 summit backdrop.',
     href: '/activities/avatar',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -43,7 +43,7 @@ const ACTIVITIES = [
     pts: 100,
     iconBg: '#cef5f8',
     iconColor: '#036b80',
-    desc: '5 real title scenarios. Pick the best AI prompt. Every answer earns points.',
+    desc: '5 real title scenarios. Pick the sharpest AI prompt.',
     href: '/activities/prompt-challenge',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -58,7 +58,7 @@ const ACTIVITIES = [
     pts: 100,
     iconBg: '#faecc8',
     iconColor: '#a67710',
-    desc: 'Share a real business pain point from the title industry for ATS review.',
+    desc: 'Share a real industry insight. AI scores your response for quality.',
     href: '/activities/golden-points',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -72,7 +72,7 @@ const ACTIVITIES = [
     pts: 150,
     iconBg: '#d5f5e3',
     iconColor: '#146636',
-    desc: 'Scan QR codes at 5 summit locations to earn points and explore the event.',
+    desc: 'Respond to 5 summit zone prompts to earn reflection points.',
     href: '/activities/touchpoints',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -89,7 +89,7 @@ const ACTIVITIES = [
     pts: 50,
     iconBg: '#fde8cc',
     iconColor: '#c2671c',
-    desc: "Share your overall experience to help us shape next year's Executive Summit.",
+    desc: "Rate your ES26 experience and help shape next year's summit.",
     href: '/profile/feedback',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -121,6 +121,14 @@ export default function ActivitiesPage() {
   const maxPts = 1000;
   const pct = Math.min(100, (totalPts / maxPts) * 100);
 
+  const MILESTONES = [
+    { label: 'Bronze', pts: 50 },
+    { label: 'Silver', pts: 250 },
+    { label: 'Gold', pts: 500 },
+    { label: 'Elite', pts: 1000 },
+  ];
+  const nextMilestone = MILESTONES.find((m) => m.pts > totalPts) ?? MILESTONES[MILESTONES.length - 1];
+
   return (
     <>
       <style>{`
@@ -140,7 +148,7 @@ export default function ActivitiesPage() {
         }
         .acts-title {
           font-family: 'Sora', sans-serif;
-          font-size: 32px; font-weight: 800;
+          font-size: 26px; font-weight: 700;
           color: var(--t); letter-spacing: .02em;
           text-transform: uppercase;
           margin: 0; line-height: 1;
@@ -158,6 +166,12 @@ export default function ActivitiesPage() {
           font-size: 14px; font-weight: 600;
           color: var(--t3); margin-top: 2px;
         }
+        .acts-pts-hint {
+          font-family: 'Sora', sans-serif;
+          font-size: 13px; font-weight: 600;
+          color: rgba(204,222,231,.55); text-align: right;
+          line-height: 1.3; max-width: 140px;
+        }
         .acts-progress-wrap {
           height: 6px; background: rgba(255,255,255,.10);
           border-radius: 4px; overflow: hidden;
@@ -173,11 +187,12 @@ export default function ActivitiesPage() {
         .acts-scroll {
           flex: 1; overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
-        /* Activity card — 20% smaller than before */
+        /* Activity card */
         .v7-act-card {
+          position: relative;
           background: var(--metallic);
           border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
@@ -190,6 +205,13 @@ export default function ActivitiesPage() {
           color: inherit;
         }
         .v7-act-card:active { opacity: .88; }
+        .v7-act-card--done { opacity: .72; }
+        .v7-act-done-overlay {
+          position: absolute; inset: 0;
+          border-radius: var(--r);
+          background: rgba(20,102,54,.04);
+          pointer-events: none;
+        }
         .v7-act-header {
           display: flex; align-items: center;
           gap: 12px; margin-bottom: 10px;
@@ -213,12 +235,12 @@ export default function ActivitiesPage() {
         .v7-act-pts {
           font-family: 'Sora', sans-serif;
           font-size: 20px; font-weight: 700; letter-spacing: -.03em;
-          color: #8B6914; line-height: 1;
+          color: #E39548; line-height: 1;
         }
         .v7-act-pts-label {
           font-family: 'Sora', sans-serif;
           font-size: 9px; font-weight: 700; letter-spacing: .10em;
-          text-transform: uppercase; color: rgba(139,105,20,.55);
+          text-transform: uppercase; color: rgba(227,149,72,.60);
           text-align: right; margin-top: 2px;
         }
         .v7-act-desc {
@@ -265,8 +287,14 @@ export default function ActivitiesPage() {
             <h1 className="acts-title">Activities</h1>
 
             <div className="acts-pts-total">
-              <div className="acts-pts-num">{totalPts}</div>
-              <div className="acts-pts-of">/ {maxPts.toLocaleString()} pts</div>
+              {totalPts === 0 ? (
+                <div className="acts-pts-hint">Earn {nextMilestone.pts} pts to reach {nextMilestone.label}</div>
+              ) : (
+                <>
+                  <div className="acts-pts-num">{totalPts}</div>
+                  <div className="acts-pts-of">/ {maxPts.toLocaleString()} pts</div>
+                </>
+              )}
             </div>
           </div>
           <div className="acts-progress-wrap">
@@ -279,7 +307,8 @@ export default function ActivitiesPage() {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;
             return (
-              <Link key={act.id} href={act.href} className="v7-act-card">
+              <Link key={act.id} href={act.href} className={`v7-act-card${done ? ' v7-act-card--done' : ''}`}>
+                {done && <div className="v7-act-done-overlay" aria-hidden />}
                 <div className="v7-act-header">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
                     {act.icon}

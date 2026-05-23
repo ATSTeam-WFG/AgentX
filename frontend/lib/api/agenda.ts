@@ -1,5 +1,12 @@
 import { apiFetch } from '../api';
 
+export interface Speaker {
+  name: string;
+  title: string;
+  bio: string;
+  photoUrl?: string;
+}
+
 export interface AgendaEvent {
   id: string;
   day: number;
@@ -7,6 +14,7 @@ export interface AgendaEvent {
   description?: string;
   location?: string;
   speakerName?: string;
+  speakers?: Speaker[];
   startsAt: string;
   endsAt: string;
   version: number;

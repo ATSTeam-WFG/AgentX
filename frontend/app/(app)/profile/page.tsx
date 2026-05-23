@@ -23,6 +23,19 @@ function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boole
   );
 }
 
+const SPONSORS = [
+  { name: 'AccuTitle',     src: '/sponsors/accutitle.png'     },
+  { name: 'CertifID',      src: '/sponsors/certifid.png'      },
+  { name: 'Qualia',        src: '/sponsors/qualia.png'        },
+  { name: 'Closinglock',   src: '/sponsors/closinglock.png'   },
+  { name: 'Bear Printing', src: '/sponsors/bear-printing.png' },
+  { name: 'PropLogix',     src: '/sponsors/proplogix.png'     },
+  { name: 'Pythonic',      src: '/sponsors/pythonic.png'      },
+  { name: 'Rynoh',         src: '/sponsors/rynoh.png'         },
+  { name: 'Capital Bank',  src: '/sponsors/capital-bank.png'  },
+  { name: 'alanna.ai',     src: '/sponsors/alanna-ai.png'     },
+];
+
 const STATIC_LB: LeaderboardEntry[] = [
   { rank: 1, name: 'Sarah M.',  totalPoints: 820 },
   { rank: 2, name: 'James R.',  totalPoints: 740 },
@@ -53,7 +66,7 @@ export default function ProfilePage() {
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
   const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
-  const rank       = profile?.rank ?? '–';
+  const rank       = profile?.rank ?? '-';
 
   const leaderboard = lb?.leaderboard ?? STATIC_LB;
 
@@ -72,7 +85,7 @@ export default function ProfilePage() {
         .profile-scroll {
           flex: 1; overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
 
@@ -211,6 +224,14 @@ export default function ProfilePage() {
           text-transform: uppercase; color: rgba(204,222,231,.40);
           display: block; margin-top: 5px;
         }
+        .hero-hint {
+          font-size: 12px; font-weight: 500;
+          color: rgba(255,255,255,.45);
+          margin-top: 6px; text-align: center;
+          padding: 6px 16px 10px;
+          background: rgba(14,22,38,.80);
+          border-top: 1px solid rgba(255,255,255,.05);
+        }
 
         /* ── Section cards ── */
         .prof-section {
@@ -339,6 +360,32 @@ export default function ProfilePage() {
           margin-top: 2px;
         }
         .prof-chevron { color: rgba(28,40,60,.35); flex-shrink: 0; }
+
+        /* ── Sponsor logo grid ── */
+        .sponsors-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 14px 16px 18px;
+        }
+        .sponsor-tile {
+          background: #fff;
+          border-radius: 14px;
+          padding: 14px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 68px;
+          box-shadow: 0 1px 6px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.80);
+          border: 1px solid rgba(0,0,0,.06);
+        }
+        .sponsor-logo {
+          width: 100%;
+          height: 44px;
+          object-fit: contain;
+          object-position: center;
+          display: block;
+        }
       `}</style>
 
       <div className="profile-page">
@@ -374,17 +421,15 @@ export default function ProfilePage() {
                 <span className="hero-strip-label">Touchpoints</span>
               </div>
             </div>
+            {activities === 0 && touchpts === 0 && (
+              <div className="hero-hint">Complete activities to track your progress</div>
+            )}
           </div>
 
           {/* ── Leaderboard ── */}
           <div className="prof-section">
             <div className="prof-section-hd">
               <div className="prof-section-hd-left">
-                <div className="prof-section-icon" style={{ background: 'rgba(212,160,23,.10)', border: '1px solid rgba(166,119,16,.18)' }}>
-                  <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
-                    <path d="M5 10H3a1 1 0 00-1 1v6a1 1 0 001 1h14a1 1 0 001-1v-6a1 1 0 00-1-1h-2M10 2v12M7 5l3-3 3 3" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
                 <span className="prof-section-title">Leaderboard</span>
               </div>
               <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
@@ -440,11 +485,12 @@ export default function ProfilePage() {
                 <span className="prof-section-title">Our Sponsors</span>
               </div>
             </div>
-            <div className="section-static-row">
-              <div className="section-static-body">
-                <div className="section-name">WFG Title &amp; Escrow</div>
-                <div className="section-link-sub">Your trusted partner for every closing</div>
-              </div>
+            <div className="sponsors-grid">
+              {SPONSORS.map((s) => (
+                <div key={s.name} className="sponsor-tile">
+                  <img src={s.src} alt={s.name} className="sponsor-logo" />
+                </div>
+              ))}
             </div>
           </div>
 
