@@ -5,6 +5,7 @@ export const redis = new Redis(config.REDIS_URL, {
   lazyConnect: true,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
+  retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 500)),
 })
 
 redis.on('error', (err) => {
