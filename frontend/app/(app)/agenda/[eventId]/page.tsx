@@ -1,26 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getAgendaEvent, postSessionFeedback } from '@/lib/api/agenda';
+import { getAgendaEvent, postSessionFeedback, type Speaker } from '@/lib/api/agenda';
+import { V7_EVENTS } from '@/lib/v7-agenda';
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-export default function SessionDetailPage({ params }: { params: { eventId: string } }) {
+export default function SessionDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const router = useRouter();
+  const { eventId } = use(params);
   const [rating, setRating]   = useState(0);
   const [comment, setComment] = useState('');
   const [submitted, setDone]  = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { data: event } = useQuery({
-    queryKey: ['agenda-event', params.eventId],
-    queryFn: () => getAgendaEvent(params.eventId),
+  const { data: apiEvent } = useQuery({
+    queryKey: ['agenda-event', eventId],
+    queryFn: () => getAgendaEvent(eventId),
     staleTime: 300_000,
+    retry: false,
   });
+  const event = apiEvent ?? V7_EVENTS.find((e) => e.id === eventId);
 
   async function handleFeedback() {
     if (!rating || !event) return;
@@ -45,35 +49,80 @@ export default function SessionDetailPage({ params }: { params: { eventId: strin
         }
         .back-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 15px; font-weight: 600; color: var(--blue);
+          font-size: 15px; font-weight: 600; color: var(--amber);
           background: none; border: none; cursor: pointer; margin-bottom: 20px; padding: 0;
         }
         .session-title {
           font-family: 'Sora', sans-serif;
-          font-size: 24px; font-weight: 700; color: var(--navy); margin: 0 0 14px; line-height: 1.2;
+          font-size: 24px; font-weight: 700; color: #CCDEE7; margin: 0 0 14px; line-height: 1.2;
         }
         .meta-row {
           display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
         }
         .meta-chip {
           display: inline-flex; align-items: center; gap: 6px;
-          background: var(--surface2); border: 1px solid var(--border-metal);
+          background: rgba(204,222,231,.10); border: 1px solid rgba(204,222,231,.18);
           border-radius: 20px; padding: 6px 12px;
-          font-size: 13px; font-weight: 600; color: var(--t2);
+          font-size: 13px; font-weight: 600; color: rgba(204,222,231,.70);
         }
         .desc-card {
-          background: var(--surface); border: 1.5px solid var(--border);
+          background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg); padding: 18px; margin-bottom: 20px;
-          box-shadow: var(--shadow-xs);
+          box-shadow: var(--shadow-card);
         }
-        .desc-text { font-size: 15px; color: var(--t2); line-height: 1.6; }
+        .desc-subtitle {
+          font-family: 'Sora', sans-serif;
+          font-size: 16px; font-weight: 700; color: #1C283C;
+          line-height: 1.3; margin: 0 0 14px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(28,40,60,.10);
+        }
+        .desc-text { font-size: 15px; color: #4a6080; line-height: 1.6; margin: 0 0 10px; }
+        .desc-text:last-child { margin-bottom: 0; }
+        .speakers-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(28,40,60,.08); }
+        .speakers-label {
+          font-size: 11px; font-weight: 800; letter-spacing: .10em;
+          text-transform: uppercase; color: rgba(28,40,60,.45); margin-bottom: 14px;
+        }
+        .speaker-row { display: flex; flex-direction: column; gap: 12px; }
+        .speaker-item { padding-bottom: 12px; border-bottom: 1px dashed rgba(28,40,60,.08); }
+        .speaker-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .speaker-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .speaker-avatar {
+          width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+          overflow: hidden; background: rgba(227,149,72,.15);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .speaker-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .speaker-initials {
+          font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #E39548;
+        }
+        .speaker-name { font-size: 15px; font-weight: 700; color: #1C283C; margin-bottom: 2px; }
+        .speaker-title-text { font-size: 13px; font-weight: 400; color: #4a6080; }
+        .speaker-bio { font-size: 14px; color: #4a6080; line-height: 1.55; }
+        .desc-bullets {
+          list-style: none; margin: 6px 0 0; padding: 0;
+          display: flex; flex-direction: column; gap: 10px;
+        }
+        .desc-bullet {
+          display: flex; align-items: flex-start; gap: 10px;
+          font-size: 15px; color: #4a6080; line-height: 1.55;
+        }
+        .desc-bullet::before {
+          content: '';
+          flex-shrink: 0;
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #E39548;
+          margin-top: 7px;
+        }
         .feedback-card {
-          background: var(--surface); border: 1.5px solid var(--border);
-          border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-xs);
+          background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
+          border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-card);
         }
         .feedback-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 12px;
+          font-size: 13px; font-weight: 800; color: #1C283C;
+          text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px;
         }
         .stars { display: flex; gap: 8px; margin-bottom: 14px; }
         .star {
@@ -84,20 +133,22 @@ export default function SessionDetailPage({ params }: { params: { eventId: strin
         .star:active { transform: scale(.9); }
         .fb-textarea {
           width: 100%; min-height: 90px;
-          background: var(--surface2); border: 1.5px solid var(--border-metal);
+          background: rgba(28,40,60,.06); border: 1.5px solid rgba(28,40,60,.12);
           border-radius: 12px; padding: 12px 14px;
-          font-size: 15px; color: var(--t); font-family: 'DM Sans', sans-serif;
+          font-size: 15px; color: #1C283C; font-family: 'Sora', sans-serif;
           resize: none; outline: none; margin-bottom: 14px;
           transition: border-color var(--tr);
         }
-        .fb-textarea:focus { border-color: var(--cyan); }
+        .fb-textarea:focus { border-color: #E39548; box-shadow: 0 0 0 3px rgba(227,149,72,.12); }
         .btn-fb {
           width: 100%; height: 50px; border-radius: 12px;
-          background: var(--blue); color: #fff;
-          font-size: 16px; font-weight: 700; font-family: 'Sora', sans-serif;
-          border: none; cursor: pointer; box-shadow: var(--shadow-blue);
-          transition: opacity var(--tr);
+          background: #1C283C; color: #E39548;
+          font-size: 15px; font-weight: 700; font-family: 'Sora', sans-serif;
+          border: 1px solid rgba(227,149,72,.18); cursor: pointer;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: background .15s;
         }
+        .btn-fb:hover { background: #243352; }
         .btn-fb:disabled { opacity: .5; }
         .done-msg {
           display: flex; align-items: center; gap: 8px;
@@ -105,7 +156,7 @@ export default function SessionDetailPage({ params }: { params: { eventId: strin
           padding: 8px 0;
         }
         .skeleton {
-          background: var(--surface2); border-radius: 8px; height: 20px; margin-bottom: 10px;
+          background: rgba(255,255,255,.08); border-radius: 8px; height: 20px; margin-bottom: 10px;
           animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer {
@@ -130,7 +181,56 @@ export default function SessionDetailPage({ params }: { params: { eventId: strin
 
               {event.description && (
                 <div className="desc-card">
-                  <p className="desc-text">{event.description}</p>
+                  {event.description.split('\n\n').map((block, i) => {
+                    const lines = block.split('\n');
+                    const bullets = lines.filter((l) => l.startsWith('•'));
+                    const prose = lines.filter((l) => !l.startsWith('•'));
+                    // First block with no bullets → styled subtitle
+                    if (i === 0 && bullets.length === 0) {
+                      return <p key={i} className="desc-subtitle">{block}</p>;
+                    }
+                    return (
+                      <div key={i}>
+                        {prose.map((line, j) => line.trim() && (
+                          <p key={j} className="desc-text">{line}</p>
+                        ))}
+                        {bullets.length > 0 && (
+                          <ul className="desc-bullets">
+                            {bullets.map((b, j) => (
+                              <li key={j} className="desc-bullet">{b.replace(/^•\s*/, '')}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {event.speakers && event.speakers.length > 0 && (
+                <div className="desc-card" style={{ marginBottom: 20 }}>
+                  <div className="speakers-section" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none' }}>
+                    <div className="speakers-label">Speakers</div>
+                    <div className="speaker-row">
+                      {event.speakers.map((sp: Speaker, i: number) => (
+                        <div key={i} className="speaker-item">
+                          <div className="speaker-header">
+                            <div className="speaker-avatar">
+                              {sp.photoUrl
+                                ? <img src={sp.photoUrl} alt={sp.name} />
+                                : <span className="speaker-initials">{sp.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>
+                              }
+                            </div>
+                            <div>
+                              <div className="speaker-name">{sp.name}</div>
+                              <div className="speaker-title-text">{sp.title}</div>
+                            </div>
+                          </div>
+                          <div className="speaker-bio">{sp.bio}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 

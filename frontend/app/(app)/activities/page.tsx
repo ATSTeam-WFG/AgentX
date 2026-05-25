@@ -11,7 +11,7 @@ const ACTIVITIES = [
     pts: 500,
     iconBg: '#dde9ff',
     iconColor: '#1a3d9e',
-    desc: '50 questions. 60 seconds. Answer as many title-industry questions as you can.',
+    desc: 'Test your title industry knowledge. 10 questions, instant scoring.',
     href: '/activities/trivia',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -27,7 +27,7 @@ const ACTIVITIES = [
     pts: 150,
     iconBg: '#ead9ed',
     iconColor: '#7c2d9e',
-    desc: 'Upload a photo (+50 pts) and print your branded summit avatar (+100 pts).',
+    desc: 'AI-generated executive portrait in the ES26 summit backdrop.',
     href: '/activities/avatar',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -43,7 +43,7 @@ const ACTIVITIES = [
     pts: 100,
     iconBg: '#cef5f8',
     iconColor: '#036b80',
-    desc: '5 real title scenarios. Pick the best AI prompt. Every answer earns points.',
+    desc: '5 real title scenarios. Pick the sharpest AI prompt.',
     href: '/activities/prompt-challenge',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -58,7 +58,7 @@ const ACTIVITIES = [
     pts: 100,
     iconBg: '#faecc8',
     iconColor: '#a67710',
-    desc: 'Share a real business pain point from the title industry for ATS review.',
+    desc: 'Share a real industry insight. AI scores your response for quality.',
     href: '/activities/golden-points',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -72,7 +72,7 @@ const ACTIVITIES = [
     pts: 150,
     iconBg: '#d5f5e3',
     iconColor: '#146636',
-    desc: 'Scan QR codes at 5 summit locations to earn points and explore the event.',
+    desc: 'Respond to 5 summit zone prompts to earn reflection points.',
     href: '/activities/touchpoints',
     icon: (
       <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
@@ -83,22 +83,30 @@ const ACTIVITIES = [
       </svg>
     ),
   },
-  {
-    id: 'feedback',
-    name: 'Summit Feedback',
-    pts: 50,
-    iconBg: '#fde8cc',
-    iconColor: '#c2671c',
-    desc: "Share your overall experience to help us shape next year's Executive Summit.",
-    href: '/profile/feedback',
-    icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
-        <path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V6a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
-        <path d="M8 8.5l1.5 1.5L13 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
 ];
+
+function PtsRing({ pts, max }: { pts: number; max: number }) {
+  const r = 20;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - Math.min(1, pts / max));
+  return (
+    <svg width="54" height="54" viewBox="0 0 52 52" aria-label={`${pts} of ${max} points`}>
+      <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="4"/>
+      <circle
+        cx="26" cy="26" r={r} fill="none"
+        stroke={pts > 0 ? 'var(--gold-rich)' : 'rgba(227,149,72,.25)'}
+        strokeWidth="4"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform="rotate(-90 26 26)"
+        style={{ transition: 'stroke-dashoffset .8s ease' }}
+      />
+      <text x="26" y="24" textAnchor="middle" fill={pts > 0 ? 'var(--gold-rich)' : 'rgba(204,222,231,.45)'} fontSize="10" fontWeight="800" fontFamily="Sora, sans-serif">{pts}</text>
+      <text x="26" y="35" textAnchor="middle" fill="rgba(204,222,231,.28)" fontSize="7" fontFamily="Sora, sans-serif">/ {max}</text>
+    </svg>
+  );
+}
 
 export default function ActivitiesPage() {
   const { data: apiActivities } = useQuery({
@@ -134,29 +142,16 @@ export default function ActivitiesPage() {
           flex-shrink: 0;
         }
         .acts-title-row {
-          display: flex; align-items: flex-end;
+          display: flex; align-items: center;
           justify-content: space-between;
           margin-bottom: 16px;
         }
         .acts-title {
           font-family: 'Sora', sans-serif;
-          font-size: 32px; font-weight: 800;
+          font-size: 26px; font-weight: 700;
           color: var(--t); letter-spacing: .02em;
           text-transform: uppercase;
           margin: 0; line-height: 1;
-        }
-        .acts-pts-total {
-          text-align: right;
-        }
-        .acts-pts-num {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 800;
-          color: var(--gold-rich); letter-spacing: -.03em;
-          line-height: 1;
-        }
-        .acts-pts-of {
-          font-size: 14px; font-weight: 600;
-          color: var(--t3); margin-top: 2px;
         }
         .acts-progress-wrap {
           height: 6px; background: rgba(255,255,255,.10);
@@ -173,11 +168,12 @@ export default function ActivitiesPage() {
         .acts-scroll {
           flex: 1; overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
-        /* Activity card — 20% smaller than before */
+        /* Activity card */
         .v7-act-card {
+          position: relative;
           background: var(--metallic);
           border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
@@ -190,6 +186,13 @@ export default function ActivitiesPage() {
           color: inherit;
         }
         .v7-act-card:active { opacity: .88; }
+        .v7-act-card--done { opacity: .72; }
+        .v7-act-done-overlay {
+          position: absolute; inset: 0;
+          border-radius: var(--r);
+          background: rgba(20,102,54,.04);
+          pointer-events: none;
+        }
         .v7-act-header {
           display: flex; align-items: center;
           gap: 12px; margin-bottom: 10px;
@@ -213,12 +216,12 @@ export default function ActivitiesPage() {
         .v7-act-pts {
           font-family: 'Sora', sans-serif;
           font-size: 20px; font-weight: 700; letter-spacing: -.03em;
-          color: #8B6914; line-height: 1;
+          color: #E39548; line-height: 1;
         }
         .v7-act-pts-label {
           font-family: 'Sora', sans-serif;
           font-size: 9px; font-weight: 700; letter-spacing: .10em;
-          text-transform: uppercase; color: rgba(139,105,20,.55);
+          text-transform: uppercase; color: rgba(227,149,72,.60);
           text-align: right; margin-top: 2px;
         }
         .v7-act-desc {
@@ -264,10 +267,7 @@ export default function ActivitiesPage() {
           <div className="acts-title-row">
             <h1 className="acts-title">Activities</h1>
 
-            <div className="acts-pts-total">
-              <div className="acts-pts-num">{totalPts}</div>
-              <div className="acts-pts-of">/ {maxPts.toLocaleString()} pts</div>
-            </div>
+            <PtsRing pts={totalPts} max={maxPts} />
           </div>
           <div className="acts-progress-wrap">
             <div className="acts-progress-fill" style={{ width: `${pct}%` }} />
@@ -279,7 +279,8 @@ export default function ActivitiesPage() {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;
             return (
-              <Link key={act.id} href={act.href} className="v7-act-card">
+              <Link key={act.id} href={act.href} className={`v7-act-card${done ? ' v7-act-card--done' : ''}`}>
+                {done && <div className="v7-act-done-overlay" aria-hidden />}
                 <div className="v7-act-header">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
                     {act.icon}

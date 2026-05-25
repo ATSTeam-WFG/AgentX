@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>AgentX — WFG Executive Summit</title>
+        <title>AgentX · WFG Executive Summit</title>
         <meta name="description" content="Your companion app for the WFG Executive Summit 2026" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#06090f" />

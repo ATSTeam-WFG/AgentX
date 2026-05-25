@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useUiStore } from '@/store/ui';
 
 interface Initiative {
   name: string;
@@ -23,7 +22,7 @@ const INITIATIVES: Initiative[] = [
     mono: 'eR',
     color: '#067a98',
     bg: '#c2e9f3',
-    shortDesc: 'Digital remittance payments for title agents — no manual steps, no back-and-forth.',
+    shortDesc: 'Digital remittance payments for title agents. No manual steps, no back-and-forth.',
     what: 'A platform that lets title agents pay their remittances directly to WFG, eliminating manual wire transfers and reducing errors.',
     audience: 'Title agents and office managers processing monthly remittances.',
     why: 'Manual remittance processes are error-prone, time-consuming, and frustrating. eRemit automates the entire workflow.',
@@ -35,7 +34,7 @@ const INITIATIVES: Initiative[] = [
     mono: 'FQ',
     color: '#a45f0a',
     bg: '#f5d8b0',
-    shortDesc: 'AI-powered tracking for every field activity — lunches, pop-bys, CE classes, and more.',
+    shortDesc: 'AI-powered tracking for every field activity: lunches, pop-bys, CE classes, and more.',
     what: 'Captures and analyzes every field activity that title agents perform. Relationship work that never got tracked before now becomes actionable data.',
     audience: 'Title agents and sales representatives doing field business development.',
     why: 'Field sales activities are invisible to management and hard to correlate with results. FieldIQ changes that.',
@@ -63,7 +62,6 @@ const ALSO_IN_WORKS = [
 ];
 
 export default function ExplorePage() {
-  const openSheet = useUiStore((s) => s.openSheet);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
@@ -93,33 +91,19 @@ export default function ExplorePage() {
           padding: 20px 18px 0;
           flex-shrink: 0;
         }
-        .explore-title-row {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 6px;
-        }
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 32px; font-weight: 800;
+          font-size: 26px; font-weight: 700;
           color: var(--t); letter-spacing: .02em;
-          text-transform: uppercase; margin: 0;
+          text-transform: uppercase; margin: 0 0 6px;
         }
-        .ai-chat-btn {
-          display: flex; align-items: center; gap: 7px;
-          background: rgba(227,149,72,.14);
-          border: 1.5px solid rgba(227,149,72,.38);
-          border-radius: 22px; padding: 8px 14px;
-          font-size: 14px; font-weight: 700; color: var(--amber);
-          cursor: pointer; white-space: nowrap; font-family: inherit;
-          transition: background var(--tr);
-        }
-        .ai-chat-btn:active { background: rgba(227,149,72,.22); }
         .explore-subtitle {
           font-size: 17px; color: var(--t3); margin: 6px 0 14px;
           line-height: 1.6;
         }
         .explore-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
         .sec-label {
@@ -333,16 +317,7 @@ export default function ExplorePage() {
 
       <div className="explore-page">
         <div className="explore-header">
-          <div className="explore-title-row">
-            <h1 className="page-title">Explore</h1>
-            <button className="ai-chat-btn" onClick={openSheet}>
-              <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
-                <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.6"/>
-                <path d="M7 10h6M10 7v6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-              </svg>
-              Ask Agent X
-            </button>
-          </div>
+          <h1 className="page-title">Explore</h1>
           <p className="explore-subtitle">Discover what ATS is building for the title industry.</p>
         </div>
 
