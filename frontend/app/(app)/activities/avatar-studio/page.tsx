@@ -1,68 +1,102 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint } from '../../../../lib/api/activities';
 
-const FRAMES = [
-  { id: 'navy',   label: 'Navy Crest',   bg: '#081840', border: '#1b4fc4' },
-  { id: 'gold',   label: 'Gold Summit',  bg: '#b07a00', border: '#c99010' },
-  { id: 'steel',  label: 'Steel Edge',   bg: '#3a5278', border: '#4a86d0' },
-  { id: 'cyan',   label: 'Cyan Wave',    bg: '#0ab8de', border: '#0f2d8a' },
+type Status = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
+
+const BACKDROPS = [
+  { id: '1' as const, label: 'Backdrop 1', src: '/backdrops/backdrop1.png' },
+  { id: '2' as const, label: 'Backdrop 2', src: '/backdrops/backdrop2.png' },
 ];
 
 export default function AvatarStudioPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoUploaded, setPhotoUploaded] = useState(false);
-  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selectedBackdrop, setSelectedBackdrop] = useState<'1' | '2' | null>(null);
+
+  const [status, setStatus] = useState<Status>('idle');
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const [ptsFromGenerate, setPtsFromGenerate] = useState(0);
+  const [ptsFromPrint, setPtsFromPrint] = useState(0);
   const [printClaimed, setPrintClaimed] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
-  const totalPts = (photoUploaded ? 50 : 0) + (selectedFrame ? 0 : 0) + (printClaimed ? 100 : 0);
+  const totalPts = ptsFromGenerate + ptsFromPrint;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelfieFile(file);
     const reader = new FileReader();
-    reader.onload = () => setPhotoPreview(reader.result as string);
+    reader.onload = () => setSelfiePreview(reader.result as string);
     reader.readAsDataURL(file);
   }
 
-  async function handleUploadPhoto() {
-    if (!photoPreview) return;
-    setUploading(true);
+  async function handleGenerate() {
+    if (!selfieFile || !selectedBackdrop) return;
+    setStatus('uploading');
+    setErrorMsg('');
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/v1/activities/avatar-studio/photo`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('agentx_token') : ''}`,
-        },
-        body: JSON.stringify({ photoData: photoPreview, frameId: selectedFrame }),
-      });
-    } catch { /* non-blocking */ }
-    setPhotoUploaded(true);
-    setUploading(false);
+      const { jobId: id, pointsAwarded } = await uploadSelfieAndGenerate(selfieFile, selectedBackdrop);
+      setJobId(id);
+      setPtsFromGenerate(pointsAwarded);
+      setStatus('generating');
+    } catch {
+      setErrorMsg('Upload failed. Please try again.');
+      setStatus('error');
+    }
   }
+
+  // Poll for generation result
+  useEffect(() => {
+    if (status !== 'generating' || !jobId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await getAvatarStatus(jobId);
+        if (res.status === 'done' && res.avatarUrl) {
+          setAvatarUrl(res.avatarUrl);
+          setStatus('done');
+          clearInterval(interval);
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+        } else if (res.status === 'failed') {
+          setErrorMsg('Avatar generation failed. Please try again.');
+          setStatus('error');
+          clearInterval(interval);
+        }
+      } catch {
+        setErrorMsg('Connection error while checking status.');
+        setStatus('error');
+        clearInterval(interval);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [status, jobId, queryClient]);
 
   async function handleClaimPrint() {
     setClaiming(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/v1/activities/avatar-studio/print`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('agentx_token') : ''}`,
-        },
-        body: JSON.stringify({ frameId: selectedFrame }),
-      });
-    } catch { /* non-blocking */ }
-    setPrintClaimed(true);
+      const { pointsAwarded } = await claimAvatarPrint();
+      setPtsFromPrint(pointsAwarded);
+      setPrintClaimed(true);
+    } catch {
+      /* non-blocking — kiosk staff can manually verify */
+    }
     setClaiming(false);
   }
+
+  const canGenerate = !!selfieFile && !!selectedBackdrop && status === 'idle';
+  const isGenerating = status === 'uploading' || status === 'generating';
 
   return (
     <>
@@ -85,7 +119,6 @@ export default function AvatarStudioPage() {
         }
         .page-sub { font-size: 15px; color: var(--t3); margin: 0 0 24px; }
 
-        /* Points tally */
         .pts-tally {
           display: flex; align-items: center; justify-content: space-between;
           background: var(--gold-lt);
@@ -94,13 +127,9 @@ export default function AvatarStudioPage() {
           margin-bottom: 22px;
         }
         .pts-tally-label { font-size: 14px; font-weight: 600; color: var(--t3); }
-        .pts-tally-num {
-          font-family: 'Sora', sans-serif;
-          font-size: 22px; font-weight: 800; color: var(--gold);
-        }
+        .pts-tally-num { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--gold); }
         .pts-tally-max { font-size: 12px; color: var(--t4); font-weight: 600; }
 
-        /* Section cards */
         .av-section {
           background: var(--surface);
           border: 1px solid var(--border-metal);
@@ -113,23 +142,15 @@ export default function AvatarStudioPage() {
           display: flex; align-items: center; justify-content: space-between;
           margin-bottom: 14px;
         }
-        .av-section-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700; color: var(--t);
-        }
+        .av-section-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: var(--t); }
         .av-pts-badge {
           background: var(--gold-lt); color: var(--gold);
           border: 1px solid rgba(176,122,0,.18);
           border-radius: 8px; padding: 4px 10px;
-          font-size: 13px; font-weight: 800;
-          font-family: 'Sora', sans-serif;
+          font-size: 13px; font-weight: 800; font-family: 'Sora', sans-serif;
         }
-        .av-pts-badge.earned {
-          background: var(--green-lt); color: var(--green);
-          border-color: rgba(21,122,64,.18);
-        }
+        .av-pts-badge.earned { background: var(--green-lt); color: var(--green); border-color: rgba(21,122,64,.18); }
 
-        /* Photo upload area */
         .photo-upload-area {
           border: 2px dashed var(--border-metal);
           border-radius: var(--r); padding: 32px 20px;
@@ -147,38 +168,30 @@ export default function AvatarStudioPage() {
           border-radius: calc(var(--r) - 2px);
         }
         .photo-upload-icon { font-size: 36px; }
-        .photo-upload-label {
-          font-size: 15px; font-weight: 600; color: var(--t2);
-          text-align: center;
-        }
+        .photo-upload-label { font-size: 15px; font-weight: 600; color: var(--t2); text-align: center; }
         .photo-upload-sub { font-size: 13px; color: var(--t3); text-align: center; }
 
-        /* Frame grid */
-        .frame-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr);
-          gap: 10px; margin-bottom: 14px;
-        }
-        .frame-option {
-          aspect-ratio: 1; border-radius: 12px;
+        .backdrop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+        .backdrop-option {
+          aspect-ratio: 4/3; border-radius: 12px;
           border: 2px solid var(--border-metal);
           cursor: pointer; transition: all var(--tr);
-          display: flex; flex-direction: column;
-          align-items: center; justify-content: center;
-          gap: 4px; padding: 8px;
-          background: var(--bg2);
+          overflow: hidden; position: relative;
         }
-        .frame-option.selected {
-          border-width: 2.5px;
+        .backdrop-option.selected {
+          border-color: var(--blue); border-width: 2.5px;
           box-shadow: 0 0 0 3px rgba(27,79,196,.12);
         }
-        .frame-swatch {
-          width: 28px; height: 28px; border-radius: 8px;
-          border: 2px solid rgba(255,255,255,.3);
+        .backdrop-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .backdrop-label {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 6px 10px;
+          background: linear-gradient(transparent, rgba(0,0,0,.55));
+          font-size: 12px; font-weight: 700; color: #fff;
+          letter-spacing: .02em;
         }
-        .frame-label { font-size: 10px; font-weight: 700; color: var(--t3); text-align: center; letter-spacing: .02em; }
-        .frame-option.selected .frame-label { color: var(--blue); }
+        .backdrop-option.selected .backdrop-label { color: #fff; }
 
-        /* Action buttons */
         .av-btn {
           width: 100%; height: 52px; border-radius: 13px;
           background: linear-gradient(135deg, var(--blue-mid), var(--blue));
@@ -192,23 +205,50 @@ export default function AvatarStudioPage() {
         .av-btn:disabled { opacity: .45; cursor: not-allowed; }
         .av-btn.done-btn {
           background: var(--green-lt); color: var(--green);
-          border: 1px solid rgba(21,122,64,.22);
-          box-shadow: none;
-          pointer-events: none;
+          border: 1px solid rgba(21,122,64,.22); box-shadow: none; pointer-events: none;
         }
         .av-btn.gold-btn {
           background: linear-gradient(135deg, #d4941c, var(--gold-rich));
           box-shadow: var(--shadow-gold);
         }
+        .av-btn.secondary-btn {
+          background: var(--bg2); color: var(--t2);
+          border: 1px solid var(--border-metal); box-shadow: none;
+        }
+
+        .result-img-wrap {
+          border-radius: var(--r); overflow: hidden;
+          margin-bottom: 14px; aspect-ratio: 1;
+          background: var(--bg2);
+        }
+        .result-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .generating-state {
+          display: flex; flex-direction: column; align-items: center;
+          gap: 12px; padding: 28px 0;
+        }
+        .spinner {
+          width: 40px; height: 40px; border-radius: 50%;
+          border: 3px solid var(--border-metal);
+          border-top-color: var(--blue);
+          animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .generating-label { font-size: 15px; font-weight: 600; color: var(--t2); text-align: center; }
+        .generating-sub { font-size: 13px; color: var(--t3); text-align: center; }
+
+        .error-msg {
+          font-size: 14px; color: #c0392b; font-weight: 600;
+          background: rgba(192,57,43,.08); border-radius: 10px;
+          padding: 12px 14px; margin-bottom: 14px; text-align: center;
+        }
+
         .check-circle {
           width: 22px; height: 22px; border-radius: 50%;
           background: var(--green); display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
         }
-        .print-note {
-          font-size: 13px; color: var(--t3); text-align: center;
-          margin-top: 10px; line-height: 1.4;
-        }
+        .print-note { font-size: 13px; color: var(--t3); text-align: center; margin-top: 10px; line-height: 1.4; }
       `}</style>
 
       <div className="av-page">
@@ -226,64 +266,109 @@ export default function AvatarStudioPage() {
             <div className="pts-tally-num">+{totalPts} pts</div>
           </div>
 
-          {/* Step 1: Photo */}
-          <div className={`av-section${photoUploaded ? ' done' : ''}`}>
-            <div className="av-section-header">
-              <div className="av-section-title">
-                {photoUploaded ? '✅ Photo uploaded' : '1. Upload your photo'}
-              </div>
-              <span className={`av-pts-badge${photoUploaded ? ' earned' : ''}`}>+50 pts</span>
-            </div>
-
-            {!photoUploaded && (
-              <>
-                <div className="photo-upload-area" onClick={() => fileRef.current?.click()}>
-                  {photoPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photoPreview} alt="Preview" />
-                  ) : (
-                    <>
-                      <span className="photo-upload-icon">📸</span>
-                      <span className="photo-upload-label">Tap to take or upload a photo</span>
-                      <span className="photo-upload-sub">JPG or PNG, used for your summit avatar</span>
-                    </>
-                  )}
-                </div>
-                <input ref={fileRef} type="file" accept="image/*" capture="user" style={{ display: 'none' }} onChange={handleFileChange} />
-                <button className="av-btn" onClick={handleUploadPhoto} disabled={!photoPreview || uploading}>
-                  {uploading ? 'Uploading…' : 'Upload Photo · +50 pts'}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Step 2: Frame */}
+          {/* Step 1: Upload selfie */}
           <div className="av-section">
             <div className="av-section-header">
-              <div className="av-section-title">2. Choose a frame</div>
-              <span className="av-pts-badge">Included</span>
+              <div className="av-section-title">1. Take or upload a photo</div>
             </div>
-            <div className="frame-grid">
-              {FRAMES.map((frame) => (
+            <div className="photo-upload-area" onClick={() => !isGenerating && fileRef.current?.click()}>
+              {selfiePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selfiePreview} alt="Selfie preview" />
+              ) : (
+                <>
+                  <span className="photo-upload-icon">📸</span>
+                  <span className="photo-upload-label">Tap to take or upload a photo</span>
+                  <span className="photo-upload-sub">JPG or PNG · used to generate your avatar</span>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* Step 2: Choose backdrop */}
+          <div className="av-section">
+            <div className="av-section-header">
+              <div className="av-section-title">2. Choose a backdrop</div>
+            </div>
+            <div className="backdrop-grid">
+              {BACKDROPS.map((bd) => (
                 <button
-                  key={frame.id}
-                  className={`frame-option${selectedFrame === frame.id ? ' selected' : ''}`}
-                  style={{ borderColor: selectedFrame === frame.id ? frame.border : undefined }}
-                  onClick={() => setSelectedFrame(frame.id)}
+                  key={bd.id}
                   type="button"
+                  className={`backdrop-option${selectedBackdrop === bd.id ? ' selected' : ''}`}
+                  onClick={() => !isGenerating && setSelectedBackdrop(bd.id)}
                 >
-                  <div className="frame-swatch" style={{ background: frame.bg, borderColor: frame.border }} />
-                  <div className="frame-label">{frame.label}</div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={bd.src} alt={bd.label} />
+                  <div className="backdrop-label">{bd.label}</div>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Step 3: Print */}
+          {/* Step 3: Generate */}
+          <div className={`av-section${status === 'done' ? ' done' : ''}`}>
+            <div className="av-section-header">
+              <div className="av-section-title">
+                {status === 'done' ? '✅ Avatar generated' : '3. Generate your avatar'}
+              </div>
+              <span className={`av-pts-badge${ptsFromGenerate > 0 ? ' earned' : ''}`}>+50 pts</span>
+            </div>
+
+            {status === 'idle' || status === 'error' ? (
+              <>
+                {status === 'error' && <div className="error-msg">{errorMsg}</div>}
+                <button className="av-btn" onClick={handleGenerate} disabled={!canGenerate}>
+                  ✨ Generate Avatar · +50 pts
+                </button>
+                {!selfieFile && (
+                  <p className="print-note">Upload a photo first to get started.</p>
+                )}
+                {selfieFile && !selectedBackdrop && (
+                  <p className="print-note">Choose a backdrop to continue.</p>
+                )}
+              </>
+            ) : isGenerating ? (
+              <div className="generating-state">
+                <div className="spinner" />
+                <div className="generating-label">
+                  {status === 'uploading' ? 'Uploading your photo…' : 'AI is generating your avatar…'}
+                </div>
+                <div className="generating-sub">This takes 15–30 seconds</div>
+              </div>
+            ) : status === 'done' && avatarUrl ? (
+              <>
+                <div className="result-img-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={avatarUrl} alt="Your AI avatar" />
+                </div>
+                <a
+                  href={avatarUrl}
+                  download="agentx-avatar.jpg"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="av-btn secondary-btn"
+                  style={{ textDecoration: 'none', marginBottom: 0 }}
+                >
+                  ⬇ Download Avatar
+                </a>
+              </>
+            ) : null}
+          </div>
+
+          {/* Step 4: Claim print */}
           <div className={`av-section${printClaimed ? ' done' : ''}`}>
             <div className="av-section-header">
               <div className="av-section-title">
-                {printClaimed ? '✅ Print claimed' : '3. Claim your print'}
+                {printClaimed ? '✅ Print claimed' : '4. Claim your print'}
               </div>
               <span className={`av-pts-badge${printClaimed ? ' earned' : ''}`}>+100 pts</span>
             </div>
@@ -292,7 +377,7 @@ export default function AvatarStudioPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
                 <div className="check-circle">
                   <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
-                    <path d="M2.5 7l3.5 3.5 5.5-5.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2.5 7l3.5 3.5 5.5-5.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--green)' }}>Print queued at the Agent X kiosk!</span>
@@ -300,16 +385,16 @@ export default function AvatarStudioPage() {
             ) : (
               <>
                 <button
-                  className={`av-btn gold-btn`}
+                  className="av-btn gold-btn"
                   onClick={handleClaimPrint}
-                  disabled={claiming || !photoUploaded}
+                  disabled={claiming || status !== 'done'}
                 >
                   {claiming ? 'Processing…' : '🖨 Claim Print at Kiosk · +100 pts'}
                 </button>
-                {!photoUploaded && (
-                  <p className="print-note">Upload your photo first to unlock print claiming.</p>
+                {status !== 'done' && (
+                  <p className="print-note">Generate your avatar first to unlock print claiming.</p>
                 )}
-                {photoUploaded && (
+                {status === 'done' && (
                   <p className="print-note">Visit the Agent X kiosk to pick up your printed avatar.</p>
                 )}
               </>

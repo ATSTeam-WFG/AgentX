@@ -6,18 +6,24 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
   fastify.get('/activities', { preHandler: [authenticate] }, async (request: FastifyRequest, reply) => {
     const userId = request.user.sub
 
-    const [activities, triviaAttempt, pcAnswers, totalPcQuestions] = await Promise.all([
-      prisma.activity.findMany({ orderBy: { createdAt: 'asc' } }),
-      prisma.activityAttempt.findFirst({
-        where: { userId, activity: { type: 'trivia' } },
-      }),
-      prisma.promptChallengeAnswer.aggregate({
-        where: { userId },
-        _sum: { pointsAwarded: true },
-        _count: { id: true },
-      }),
-      prisma.promptChallengeQuestion.count(),
-    ])
+    const [activities, triviaAttempt, pcAnswers, totalPcQuestions, gpSubmission, avatarUser] =
+      await Promise.all([
+        prisma.activity.findMany({ orderBy: { createdAt: 'asc' } }),
+        prisma.activityAttempt.findFirst({
+          where: { userId, activity: { type: 'trivia' } },
+        }),
+        prisma.promptChallengeAnswer.aggregate({
+          where: { userId },
+          _sum: { pointsAwarded: true },
+          _count: { id: true },
+        }),
+        prisma.promptChallengeQuestion.count(),
+        prisma.goldenPointsSubmission.findFirst({
+          where: { userId, status: { not: 'pending' } },
+          select: { pointsAwarded: true, status: true },
+        }),
+        prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
+      ])
 
     const result = activities.map((activity) => {
       let isCompleted = false
@@ -29,6 +35,12 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
       } else if (activity.type === 'prompt_challenge') {
         isCompleted = totalPcQuestions > 0 && pcAnswers._count.id === totalPcQuestions
         pointsEarned = pcAnswers._sum.pointsAwarded ?? 0
+      } else if (activity.type === 'golden_points') {
+        isCompleted = gpSubmission != null
+        pointsEarned = gpSubmission?.pointsAwarded ?? 0
+      } else if (activity.type === 'avatar') {
+        isCompleted = avatarUser?.avatarUrl != null
+        pointsEarned = avatarUser?.avatarUrl ? 50 : 0
       }
 
       return {

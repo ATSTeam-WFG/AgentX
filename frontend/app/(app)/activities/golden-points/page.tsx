@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { submitGoldenPoints, getGoldenPointsStatus } from '@/lib/api/activities';
+import { getPushState, requestAndSubscribe } from '@/lib/push';
 
 type Status = 'idle' | 'submitting' | 'scoring' | 'done' | 'error';
 const MIN_WORDS = 50;
@@ -23,13 +25,23 @@ function wordCount(text: string) {
 
 export default function GoldenPointsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [text, setText]       = useState('');
   const [status, setStatus]   = useState<Status>('idle');
   const [submissionId, setId] = useState('');
   const [points, setPoints]   = useState(0);
+  const [feedback, setFeedback] = useState('');
   const [error, setError]     = useState('');
+  const [pushState, setPushState] = useState<'idle' | 'asking' | 'granted' | 'denied' | 'unsupported'>('idle');
   const wc = wordCount(text);
   const canSubmit = wc >= MIN_WORDS && (status === 'idle' || status === 'error');
+
+  // Initialize push state from current browser permission on mount
+  useEffect(() => {
+    const s = getPushState();
+    if (s === 'unsupported' || s === 'denied') setPushState(s);
+    else if (s === 'granted') setPushState('granted');
+  }, []);
 
   useEffect(() => {
     if (status !== 'scoring' || !submissionId) return;
@@ -38,8 +50,11 @@ export default function GoldenPointsPage() {
         const res = await getGoldenPointsStatus(submissionId);
         if (res.status === 'scored' && res.pointsAwarded != null) {
           setPoints(res.pointsAwarded);
+          if (res.feedback) setFeedback(res.feedback);
           setStatus('done');
           clearInterval(interval);
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
         }
       } catch {
         setStatus('error');
@@ -60,6 +75,12 @@ export default function GoldenPointsPage() {
       setError('Submission failed. Please try again.');
       setStatus('error');
     }
+  }
+
+  async function handleNotifyMe() {
+    setPushState('asking');
+    const result = await requestAndSubscribe();
+    setPushState(result);
   }
 
   function appendChip(chip: string) {
@@ -186,7 +207,12 @@ export default function GoldenPointsPage() {
           font-family: 'Sora', sans-serif;
           font-size: 48px; font-weight: 800; color: var(--gold-rich); line-height: 1;
         }
-        .done-sub { font-size: 15px; color: var(--t3); text-align: center; margin-bottom: 20px; }
+        .done-sub { font-size: 15px; color: var(--t3); text-align: center; margin-bottom: 8px; }
+        .done-feedback {
+          font-size: 14px; color: var(--t2); text-align: center;
+          font-style: italic; margin-bottom: 20px; line-height: 1.5;
+          padding: 0 8px;
+        }
         .btn-back {
           width: 100%; height: 54px; border-radius: 14px;
           background: var(--surface); color: var(--t);
@@ -196,6 +222,19 @@ export default function GoldenPointsPage() {
           box-shadow: var(--shadow-card);
         }
         .error-msg { font-size: 14px; color: var(--rose); margin-top: 8px; text-align: center; }
+        .push-prompt {
+          display: flex; flex-direction: column; align-items: center; gap: 10px;
+          margin-top: 14px; padding: 14px 20px;
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: var(--r);
+        }
+        .push-prompt-text { font-size: 14px; color: var(--mute); text-align: center; margin: 0; }
+        .push-prompt-btn {
+          background: rgba(91,143,249,0.15); color: var(--ac); font-size: 14px; font-weight: 700;
+          font-family: 'Sora', sans-serif; border: 1px solid rgba(91,143,249,0.25);
+          border-radius: 10px; padding: 10px 20px; cursor: pointer;
+        }
+        .push-prompt-sub { font-size: 13px; color: var(--dim); text-align: center; margin-top: 8px; }
       `}</style>
 
       <div className="gp-page">
@@ -204,13 +243,22 @@ export default function GoldenPointsPage() {
             <div className="scoring-spinner" />
             <div className="scoring-label">AI is scoring your response…</div>
             <div className="scoring-sub">This usually takes 10–20 seconds.</div>
+            {pushState === 'idle' && (
+              <div className="push-prompt">
+                <p className="push-prompt-text">Get notified when your score is ready?</p>
+                <button className="push-prompt-btn" onClick={handleNotifyMe}>Notify me</button>
+              </div>
+            )}
+            {pushState === 'asking' && <p className="push-prompt-sub">Waiting for permission…</p>}
+            {pushState === 'granted' && <p className="push-prompt-sub">You&apos;ll be notified when scoring is done.</p>}
           </div>
         ) : status === 'done' ? (
           <div className="done-wrap">
             <span className="done-icon">🏆</span>
             <div className="done-title">Points Awarded!</div>
             <div className="done-pts">+{points}</div>
-            <div className="done-sub">Your response was scored by Agent X. Great job!</div>
+            <div className="done-sub">Your response was scored by Agent X.</div>
+            {feedback && <div className="done-feedback">&ldquo;{feedback}&rdquo;</div>}
             <button className="btn-back" onClick={() => router.push('/activities')}>← Back to Activities</button>
           </div>
         ) : (

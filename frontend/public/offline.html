@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#06090f" />
+  <title>AgentX — Offline</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #06090f;
+      color: #CCDEE7;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .brand {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(204, 222, 231, 0.45);
+      margin-bottom: 32px;
+    }
+
+    .icon-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      background: rgba(227, 149, 72, 0.10);
+      border: 1.5px solid rgba(227, 149, 72, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 8px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    h1 {
+      font-family: 'Sora', 'DM Sans', -apple-system, sans-serif;
+      font-size: clamp(28px, 7vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: #CCDEE7;
+      text-align: center;
+      margin-bottom: 14px;
+      line-height: 1.1;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #7A96A8;
+      text-align: center;
+      max-width: 280px;
+      margin-bottom: 40px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      color: #06090f;
+      background: linear-gradient(180deg, #F0A55A 0%, #E39548 55%, #D07B38 100%);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 40px;
+      cursor: pointer;
+      box-shadow:
+        0 6px 22px rgba(227, 149, 72, 0.38),
+        0 2px 8px rgba(227, 149, 72, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      transition: opacity 0.15s, transform 0.12s;
+      min-height: 54px;
+      letter-spacing: -0.01em;
+    }
+
+    button:active {
+      opacity: 0.88;
+      transform: scale(0.97);
+    }
+
+    .hint {
+      margin-top: 20px;
+      font-size: 13px;
+      color: rgba(122, 150, 168, 0.55);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">WFG Executive Summit 2026</div>
+
+  <div class="icon-wrap">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+         stroke="#E39548" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+      <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+      <circle cx="12" cy="20" r="1" fill="#E39548" stroke="none"/>
+    </svg>
+  </div>
+
+  <h1>You're offline</h1>
+  <p>Check your connection and try again. Your activity data syncs automatically when you reconnect.</p>
+
+  <button onclick="window.location.reload()">Try again</button>
+  <p class="hint">AgentX · agentx.wfgtitle.com</p>
+</body>
+</html>

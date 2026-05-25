@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 function getToken() {
-  return typeof window !== 'undefined' ? localStorage.getItem('agentx_admin_token') ?? localStorage.getItem('agentx_token') ?? '' : '';
+  return typeof window !== 'undefined' ? localStorage.getItem('agentx_admin_token') ?? '' : '';
 }
 
 interface GoldenPointsEntry {
@@ -14,48 +14,52 @@ interface GoldenPointsEntry {
   userName: string;
   userEmail: string;
   text: string;
+  wordCount: number;
+  aiScore: number | null;
+  aiFeedback: string | null;
+  status: 'pending' | 'ai_scored' | 'flagged_for_review' | 'approved' | 'rejected';
+  pointsAwarded: number;
   submittedAt: string;
-  status: 'pending' | 'approved' | 'skipped';
 }
 
-async function getPendingQueue(): Promise<GoldenPointsEntry[]> {
-  const res = await fetch(`${API_URL}/v1/admin/golden-points?status=pending`, {
+async function getAllSubmissions(): Promise<GoldenPointsEntry[]> {
+  const res = await fetch(`${API_URL}/v1/admin/golden-points`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   if (!res.ok) throw new Error('Failed');
   return res.json();
 }
 
-async function reviewEntry(id: string, action: 'approve' | 'skip') {
-  const res = await fetch(`${API_URL}/v1/admin/golden-points/${id}/${action}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${getToken()}` },
-  });
-  if (!res.ok) throw new Error('Failed');
-  return res.json();
-}
+const STATUS_LABEL: Record<GoldenPointsEntry['status'], string> = {
+  pending: 'Pending',
+  ai_scored: 'AI Scored',
+  flagged_for_review: 'Flagged',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
 
-const MOCK_QUEUE: GoldenPointsEntry[] = [
-  { id: '1', userName: 'Sarah Martinez', userEmail: 's.martinez@example.com', text: 'One of the biggest pain points our team faces is the delay between title search completion and policy issuance. Clients often wait 3-5 business days and it creates friction at the closing table. AI could dramatically speed up the verification process…', submittedAt: new Date().toISOString(), status: 'pending' },
-  { id: '2', userName: 'James Reeves',   userEmail: 'j.reeves@example.com',   text: 'Wire fraud is the #1 concern for our escrow team. We spend hours manually verifying banking changes. An AI tool that cross-references wire instructions against known fraud patterns and flags anomalies in real-time would save us significant risk…', submittedAt: new Date().toISOString(), status: 'pending' },
-  { id: '3', userName: 'Linda Kim',      userEmail: 'l.kim@example.com',      text: 'Remote notarization is becoming more common but the workflow is fragmented. We still rely on email chains and phone calls to coordinate. A unified AI-powered platform that handles scheduling, identity verification, and document routing would transform closings…', submittedAt: new Date().toISOString(), status: 'pending' },
-];
+// Dark-enough colors for use on the silver (#CCDEE7) card surface
+const STATUS_COLOR: Record<GoldenPointsEntry['status'], string> = {
+  pending:           '#4a6080',   // slate — was var(--t3) which now resolves dark ✓
+  ai_scored:         '#146636',   // dark green ✓
+  flagged_for_review:'#a87c0e',   // dark gold — was gold-rich (#e8b824) which was too bright
+  approved:          '#2a5cd4',   // blue ✓
+  rejected:          '#ba1818',   // dark red ✓
+};
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default function AdminGoldenPointsPage() {
-  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const { data: queue, isLoading } = useQuery({
+  const { data: submissions, isLoading } = useQuery({
     queryKey: ['admin-golden-points'],
-    queryFn: getPendingQueue,
+    queryFn: getAllSubmissions,
     staleTime: 30_000,
     retry: false,
-    placeholderData: MOCK_QUEUE,
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'skip' }) => reviewEntry(id, action),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-golden-points'] }),
   });
 
   function toggleExpand(id: string) {
@@ -66,7 +70,8 @@ export default function AdminGoldenPointsPage() {
     });
   }
 
-  const pending = (queue ?? MOCK_QUEUE).filter((e) => e.status === 'pending');
+  const all = submissions ?? [];
+  const entries = statusFilter === 'all' ? all : all.filter((e) => e.status === statusFilter);
 
   return (
     <>
@@ -74,118 +79,146 @@ export default function AdminGoldenPointsPage() {
         .gpa-title {
           font-family: 'Sora', sans-serif;
           font-size: 22px; font-weight: 700; color: var(--t);
-          margin: 0 0 6px; letter-spacing: -.02em;
+          margin: 0 0 14px; letter-spacing: -.02em;
         }
-        .gpa-sub { font-size: 14px; color: var(--t3); margin: 0 0 20px; }
+        .gpa-filter-row {
+          display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px;
+        }
+        .gpa-filter-btn {
+          height: 32px; padding: 0 12px;
+          border-radius: 20px; border: 1.5px solid rgba(28,40,60,.15);
+          background: rgba(204,222,231,.45); color: #4a6080;
+          font-size: 12px; font-weight: 700; letter-spacing: .03em;
+          font-family: inherit; cursor: pointer; transition: all var(--tr);
+        }
+        .gpa-filter-btn.active {
+          background: #2a5cd4; color: #fff;
+          border-color: #2a5cd4;
+        }
+        .gpa-sub { font-size: 13px; color: var(--t3); margin: 0 0 16px; }
         .gpa-empty {
           text-align: center; padding: 60px 20px;
           font-size: 15px; color: var(--t4);
         }
         .gpa-card {
           background: var(--surface);
-          border: 1px solid var(--border-metal);
+          border: 1px solid rgba(255,255,255,.30);
           border-radius: var(--r-lg);
           box-shadow: var(--shadow-card);
-          overflow: hidden; margin-bottom: 14px;
+          overflow: hidden; margin-bottom: 12px;
         }
         .gpa-card-header {
           padding: 14px 16px; cursor: pointer;
           display: flex; align-items: flex-start; gap: 12px;
         }
+        .gpa-card-header:active { background: rgba(204,222,231,.70); }
         .gpa-avatar {
-          width: 36px; height: 36px; border-radius: 50%;
-          background: var(--blue-lt); flex-shrink: 0;
+          width: 38px; height: 38px; border-radius: 50%;
+          background: rgba(42,92,212,.14); flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700;
-          color: var(--blue);
+          color: #2a5cd4;
         }
-        .gpa-user-name {
-          font-size: 15px; font-weight: 700; color: var(--t);
+        .gpa-user-name { font-size: 15px; font-weight: 700; color: var(--t); }
+        .gpa-user-email { font-size: 12px; color: var(--t3); margin-top: 2px; }
+        .gpa-meta {
+          display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap;
         }
-        .gpa-user-email { font-size: 13px; color: var(--t3); margin-top: 1px; }
+        .gpa-status {
+          font-size: 11px; font-weight: 700; letter-spacing: .04em;
+          text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+        }
+        .gpa-score {
+          font-size: 12px; font-weight: 700; color: var(--t2);
+        }
+        .gpa-pts {
+          font-size: 12px; color: var(--t3); font-weight: 600;
+        }
+        .gpa-date {
+          font-size: 11px; color: var(--t4); margin-left: auto; flex-shrink: 0;
+        }
         .gpa-preview {
           font-size: 13px; color: var(--t2); margin-top: 6px;
           line-height: 1.5; display: -webkit-box;
           -webkit-box-orient: vertical; -webkit-line-clamp: 2;
           overflow: hidden;
         }
-        .gpa-expand-label { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 4px; }
+        .gpa-expand-label { font-size: 12px; color: #2a5cd4; font-weight: 600; margin-top: 6px; }
         .gpa-full-text {
+          padding: 14px 16px;
+          font-size: 14px; color: var(--t2); line-height: 1.65;
+          border-top: 1px solid rgba(28,40,60,.12);
+        }
+        .gpa-feedback {
           padding: 0 16px 14px;
-          font-size: 14px; color: var(--t2); line-height: 1.6;
-          border-top: 1px solid var(--border); padding-top: 14px;
+          font-size: 13px; color: var(--t3); font-style: italic;
+          border-top: 1px solid rgba(28,40,60,.08);
+          padding-top: 10px;
         }
-        .gpa-actions {
-          display: flex; gap: 10px;
-          padding: 0 16px 16px;
-        }
-        .gpa-approve-btn {
-          flex: 1; height: 46px; border-radius: 12px;
-          background: var(--green-lt); color: var(--green);
-          border: 1.5px solid rgba(21,122,64,.22);
-          font-size: 14px; font-weight: 700; font-family: inherit;
-          cursor: pointer; transition: opacity var(--tr);
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .gpa-approve-btn:active { opacity: .8; }
-        .gpa-skip-btn {
-          flex: 1; height: 46px; border-radius: 12px;
-          background: var(--bg2); color: var(--t3);
-          border: 1px solid var(--border-metal);
-          font-size: 14px; font-weight: 600; font-family: inherit;
-          cursor: pointer; transition: opacity var(--tr);
-        }
-        .gpa-skip-btn:active { opacity: .8; }
         .gpa-loading { text-align: center; padding: 40px; color: var(--t3); }
       `}</style>
 
-      <h1 className="gpa-title">Golden Points Review</h1>
-      <p className="gpa-sub">{pending.length} pending approval{pending.length !== 1 ? 's' : ''}</p>
+      <h1 className="gpa-title">Golden Points</h1>
 
-      {isLoading && <div className="gpa-loading">Loading queue…</div>}
+      <div className="gpa-filter-row">
+        {(['all', 'pending', 'ai_scored', 'flagged_for_review', 'approved', 'rejected'] as const).map((s) => (
+          <button
+            key={s}
+            className={`gpa-filter-btn${statusFilter === s ? ' active' : ''}`}
+            onClick={() => setStatusFilter(s)}
+          >
+            {s === 'all' ? 'All' : STATUS_LABEL[s as GoldenPointsEntry['status']]}
+          </button>
+        ))}
+      </div>
 
-      {pending.length === 0 && !isLoading && (
-        <div className="gpa-empty">All caught up! No pending submissions.</div>
+      <p className="gpa-sub">{entries.length} submission{entries.length !== 1 ? 's' : ''}</p>
+
+      {isLoading && <div className="gpa-loading">Loading submissions…</div>}
+
+      {entries.length === 0 && !isLoading && (
+        <div className="gpa-empty">No submissions{statusFilter !== 'all' ? ` with status "${statusFilter}"` : ''} yet.</div>
       )}
 
-      {pending.map((entry) => {
+      {entries.map((entry) => {
         const isExpanded = expanded.has(entry.id);
-        const initials = entry.userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
-        const isBusy = reviewMutation.isPending && reviewMutation.variables?.id === entry.id;
+        const initials = entry.userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+        const color = STATUS_COLOR[entry.status] ?? '#4a6080';
+        const bgColor = `${color}1e`; // ~12% opacity hex
 
         return (
           <div key={entry.id} className="gpa-card">
             <div className="gpa-card-header" onClick={() => toggleExpand(entry.id)}>
               <div className="gpa-avatar">{initials}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="gpa-user-name">{entry.userName}</div>
-                <div className="gpa-user-email">{entry.userEmail}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <div className="gpa-user-name">{entry.userName}</div>
+                    <div className="gpa-user-email">{entry.userEmail}</div>
+                  </div>
+                  <div className="gpa-date">{formatDate(entry.submittedAt)}</div>
+                </div>
+                <div className="gpa-meta">
+                  <span className="gpa-status" style={{ background: bgColor, color }}>
+                    {STATUS_LABEL[entry.status]}
+                  </span>
+                  {entry.aiScore != null && (
+                    <span className="gpa-score">Score {entry.aiScore}/100</span>
+                  )}
+                  <span className="gpa-pts">+{entry.pointsAwarded} pts</span>
+                </div>
                 {!isExpanded && <div className="gpa-preview">{entry.text}</div>}
                 <div className="gpa-expand-label">{isExpanded ? '▲ Collapse' : '▼ Read full response'}</div>
               </div>
             </div>
             {isExpanded && (
-              <div className="gpa-full-text">{entry.text}</div>
+              <>
+                <div className="gpa-full-text">{entry.text}</div>
+                {entry.aiFeedback && (
+                  <div className="gpa-feedback">AI feedback: &ldquo;{entry.aiFeedback}&rdquo;</div>
+                )}
+              </>
             )}
-            <div className="gpa-actions">
-              <button
-                className="gpa-approve-btn"
-                disabled={isBusy}
-                onClick={() => reviewMutation.mutate({ id: entry.id, action: 'approve' })}
-              >
-                <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
-                  <path d="M2.5 7l3.5 3.5 5.5-5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                {isBusy ? 'Processing…' : 'Approve'}
-              </button>
-              <button
-                className="gpa-skip-btn"
-                disabled={isBusy}
-                onClick={() => reviewMutation.mutate({ id: entry.id, action: 'skip' })}
-              >
-                Skip
-              </button>
-            </div>
           </div>
         );
       })}

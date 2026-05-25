@@ -28,7 +28,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
 
     if (!user) throw notFound('User not found')
 
-    prisma.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } }).catch(() => {})
+    await prisma.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } })
 
     const higherRanked = await prisma.userScore.count({
       where: { totalPoints: { gt: userScore?.totalPoints ?? 0 } },

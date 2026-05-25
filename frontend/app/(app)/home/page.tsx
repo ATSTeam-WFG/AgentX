@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
+import { PwaPromptBanner } from '@/components/PwaPromptBanner';
 
 function getDayGreeting() {
   const h = new Date().getHours();
@@ -48,13 +49,14 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
 
-  const { data: agenda } = useQuery({
+  const { data: agenda, isLoading: agendaLoading } = useQuery({
     queryKey: ['agenda'],
     queryFn: () => getAgenda(),
     staleTime: 30_000,
   });
 
-  const events   = agenda?.events ?? V7_EVENTS;
+  // While fetching: show skeleton. Once settled: use live data or fall back to V7_EVENTS (real schedule).
+  const events   = agendaLoading ? [] : (agenda?.events ?? V7_EVENTS);
   const current  = getActiveSession(events);
   const upcoming = getNextSession(events);
   const featured = current ?? upcoming;
@@ -331,6 +333,16 @@ export default function HomePage() {
           color: var(--t3);
           font-size: 15px;
         }
+        @keyframes home-shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position:  200% 0; }
+        }
+        .home-skel {
+          border-radius: 8px;
+          background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.06) 75%);
+          background-size: 200% 100%;
+          animation: home-shimmer 1.4s ease-in-out infinite;
+        }
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0 }}>
@@ -354,10 +366,21 @@ export default function HomePage() {
 
         {/* Scrollable content */}
         <div className="home-scroll">
+          <PwaPromptBanner />
+
           {/* Happening Now */}
           <div className="sec-label">Happening Now</div>
 
-          {featured ? (
+          {agendaLoading ? (
+            <div className="whats-next-card">
+              <div className="home-skel" style={{ width: '40%', height: 11, marginBottom: 14 }} />
+              <div className="home-skel" style={{ width: '85%', height: 22, marginBottom: 10 }} />
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div className="home-skel" style={{ width: '28%', height: 13 }} />
+                <div className="home-skel" style={{ width: '35%', height: 13 }} />
+              </div>
+            </div>
+          ) : featured ? (
             <div className="whats-next-card">
               <div className="wn-eyebrow">
                 {current ? <><span className="live-dot" /> Live Now</> : 'Coming Up'}

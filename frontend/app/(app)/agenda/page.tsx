@@ -72,14 +72,14 @@ function SessionCard({ event }: { event: AgendaEvent }) {
 export default function AgendaPage() {
   const [activeDay, setActiveDay] = useState(1);
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['agenda'],
     queryFn: () => getAgenda(),
     staleTime: 60_000,
   });
 
-  // Prefer live API data; fall back to v7 static data
-  const allEvents   = data?.events ?? V7_EVENTS;
+  // While fetching: show nothing (skeleton). Once settled: use live data or fall back to V7_EVENTS.
+  const allEvents   = isLoading ? [] : (data?.events ?? V7_EVENTS);
   const filtered    = allEvents.filter((e) => e.day === activeDay);
   const activeTab   = DAY_TABS.find((t) => t.day === activeDay)!;
 
@@ -200,6 +200,23 @@ export default function AgendaPage() {
           text-align: center; padding: 60px 20px;
           color: var(--t4); font-size: 15px;
         }
+        @keyframes agenda-shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position:  200% 0; }
+        }
+        .session-skel {
+          margin: 0 16px 12px; padding: 16px;
+          border-radius: 14px;
+          background: var(--surface, #f4f6f9);
+          border: 1px solid rgba(0,0,0,.06);
+          display: flex; gap: 12px; align-items: center;
+        }
+        .skel-bar {
+          border-radius: 6px;
+          background: linear-gradient(90deg, #e4e9f0 25%, #f0f4f8 50%, #e4e9f0 75%);
+          background-size: 200% 100%;
+          animation: agenda-shimmer 1.4s ease-in-out infinite;
+        }
       `}</style>
 
       <div className="agenda-page">
@@ -231,9 +248,19 @@ export default function AgendaPage() {
         )}
 
         <div className="agenda-scroll">
-          {filtered.length > 0
-            ? filtered.map((e) => <SessionCard key={e.id} event={e} />)
-            : <div className="empty-state">No sessions for this day.</div>
+          {isLoading
+            ? [60, 45, 70, 50, 55].map((w, i) => (
+              <div key={i} className="session-skel">
+                <div className="skel-bar" style={{ width: 40, height: 40, borderRadius: 8, flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="skel-bar" style={{ width: `${w}%`, height: 14 }} />
+                  <div className="skel-bar" style={{ width: '35%', height: 11 }} />
+                </div>
+              </div>
+            ))
+            : filtered.length > 0
+              ? filtered.map((e) => <SessionCard key={e.id} event={e} />)
+              : <div className="empty-state">No sessions for this day.</div>
           }
         </div>
       </div>

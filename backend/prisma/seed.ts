@@ -165,7 +165,7 @@ async function main() {
     { id: 'seed-activity-prompt',     type: 'prompt_challenge' as const, name: 'Prompt Challenge',      maxPoints: 100, isOneShot: false, isOpen: true,  configJson: { pointsCorrect: 20, pointsWrong: 10 } },
     { id: 'seed-activity-touchpoint', type: 'touchpoint'       as const, name: 'Touchpoint Scans',      maxPoints: 0,   isOneShot: false, isOpen: true,  configJson: null },
     { id: 'seed-activity-avatar',     type: 'avatar'           as const, name: 'AI Avatar Creator',     maxPoints: 50,  isOneShot: true,  isOpen: false, configJson: null },
-    { id: 'seed-activity-golden',     type: 'golden_points'    as const, name: 'Golden Points',         maxPoints: 100, isOneShot: false, isOpen: false, configJson: null },
+    { id: 'seed-activity-golden',     type: 'golden_points'    as const, name: 'Golden Points',         maxPoints: 100, isOneShot: true,  isOpen: true,  configJson: { questionText: "How is AI transforming the title & escrow industry, and what excites you most about WFG's use of technology at this summit?" } },
   ]
   for (const act of activities) {
     const { id, ...data } = act
