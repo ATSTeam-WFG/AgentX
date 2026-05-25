@@ -1,4 +1,5 @@
-import { apiFetch } from '../api';
+import { apiFetch, ApiError } from '../api';
+import { readToken } from '../auth';
 
 export interface Activity {
   id: string;
@@ -63,9 +64,40 @@ export const submitGoldenPoints = (text: string, dedupeKey: string) =>
   });
 
 export const getGoldenPointsStatus = (id: string) =>
-  apiFetch<{ status: string; aiScore?: number; pointsAwarded?: number }>(
+  apiFetch<{ status: string; pointsAwarded?: number; feedback?: string }>(
     `/v1/activities/golden-points/${id}`
   );
+
+// Avatar — multipart upload uses fetch directly (apiFetch forces application/json Content-Type)
+export async function uploadSelfieAndGenerate(
+  selfie: File,
+  backdropId: '1' | '2',
+): Promise<{ jobId: string; pointsAwarded: number }> {
+  const formData = new FormData();
+  formData.append('selfie', selfie);
+  formData.append('backdropId', backdropId);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const token = readToken();
+  const res = await fetch(`${baseUrl}/v1/activities/avatar/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ApiError(res.status, body, `${res.status} /v1/activities/avatar/upload`);
+  }
+
+  return res.json();
+}
+
+export const getAvatarStatus = (jobId: string) =>
+  apiFetch<{ status: string; avatarUrl?: string }>(`/v1/activities/avatar/status/${jobId}`);
+
+export const claimAvatarPrint = () =>
+  apiFetch<{ pointsAwarded: number }>('/v1/activities/avatar/claim-print', { method: 'POST' });
 
 export const scanTouchpoint = (qrToken: string, dedupeKey: string) =>
   apiFetch<{ pointsAwarded: number; touchpoint: { name: string; locationDescription: string } }>(

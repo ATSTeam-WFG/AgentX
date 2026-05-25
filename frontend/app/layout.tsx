@@ -19,10 +19,12 @@ export default function RootLayout({
         <title>AgentX — WFG Executive Summit</title>
         <meta name="description" content="Your companion app for the WFG Executive Summit 2026" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <meta name="theme-color" content="#d8e0ec" />
+        <meta name="theme-color" content="#06090f" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-title" content="AgentX" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         {/* Google Fonts: DM Sans, DM Serif Display, Sora */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

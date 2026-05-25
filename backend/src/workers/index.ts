@@ -4,33 +4,11 @@ import { handleGoldenPointsScoring } from './golden-points'
 
 const POLL_INTERVAL_MS = 5000
 const LOCK_DURATION_MS = 60000
+const BATCH_SIZE = 5
 const WORKER_ID = `worker-${process.pid}`
 
-async function processNextJob() {
-  const now = new Date()
-  const lockUntil = new Date(now.getTime() + LOCK_DURATION_MS)
-
-  const job = await prisma.$queryRaw<{ id: string; type: string; payloadJson: unknown }[]>`
-    SELECT id, type, "payloadJson"
-    FROM "Job"
-    WHERE status = 'pending'
-      AND ("lockedUntil" IS NULL OR "lockedUntil" < ${now})
-    ORDER BY "createdAt" ASC
-    LIMIT 1
-    FOR UPDATE SKIP LOCKED
-  `
-
-  if (!job.length) return
-
-  const { id, type, payloadJson } = job[0]
-
-  await prisma.job.update({
-    where: { id },
-    data: { status: 'running', lockedBy: WORKER_ID, lockedUntil: lockUntil, attempts: { increment: 1 } },
-  })
-
+async function processSingleJob(id: string, type: string, payload: Record<string, unknown>) {
   try {
-    const payload = payloadJson as Record<string, unknown>
     if (type === 'avatar_generation') {
       await handleAvatarGeneration(id, payload)
     } else if (type === 'golden_points_scoring') {
@@ -56,9 +34,35 @@ async function processNextJob() {
   }
 }
 
+async function processNextBatch() {
+  const now = new Date()
+  const lockUntil = new Date(now.getTime() + LOCK_DURATION_MS)
+
+  const jobs = await prisma.$queryRaw<{ id: string; type: string; payloadJson: unknown }[]>`
+    SELECT id, type, "payloadJson"
+    FROM "Job"
+    WHERE status = 'pending'
+      AND ("lockedUntil" IS NULL OR "lockedUntil" < ${now})
+    ORDER BY "createdAt" ASC
+    LIMIT ${BATCH_SIZE}
+    FOR UPDATE SKIP LOCKED
+  `
+
+  if (!jobs.length) return
+
+  await prisma.job.updateMany({
+    where: { id: { in: jobs.map((j) => j.id) } },
+    data: { status: 'running', lockedBy: WORKER_ID, lockedUntil: lockUntil, attempts: { increment: 1 } },
+  })
+
+  await Promise.allSettled(
+    jobs.map((job) => processSingleJob(job.id, job.type, job.payloadJson as Record<string, unknown>)),
+  )
+}
+
 export function startWorker() {
-  console.log(`[worker] started (${WORKER_ID}), polling every ${POLL_INTERVAL_MS}ms`)
+  console.log(`[worker] started (${WORKER_ID}), polling every ${POLL_INTERVAL_MS}ms, batch size ${BATCH_SIZE}`)
   setInterval(() => {
-    processNextJob().catch((err) => console.error('[worker] poll error:', err))
+    processNextBatch().catch((err) => console.error('[worker] poll error:', err))
   }, POLL_INTERVAL_MS)
 }

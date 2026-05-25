@@ -104,6 +104,7 @@ model User {
   eventFeedbacks          EventFeedback[]
   appFeedbacks            AppFeedback[]
   sponsorImpressions      SponsorImpression[]
+  pushSubscriptions       PushSubscription[]
 }
 
 model Session {
@@ -113,6 +114,19 @@ model Session {
   expiresAt  DateTime
   revokedAt  DateTime?
   lastUsedAt DateTime?
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model AdminUser {

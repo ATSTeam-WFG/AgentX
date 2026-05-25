@@ -37,7 +37,7 @@ export default function InterestsPage() {
       // Non-blocking — proceed regardless
     } finally {
       setLoading(false);
-      router.push('/onboarding/tour');
+      router.push('/home');
     }
   }
 

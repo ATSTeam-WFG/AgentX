@@ -60,12 +60,17 @@ WorkFlow:
                         - Chose correct one
                     - No timer
 
-                - Break Out Points
+                    - Same change for the prompt challenge. We don't have a timer here but the user should be able to leave the activity mid way and resume his/her progress after trying to get back to it. 
+
+                - Golden Points
                     - Will be active in breakout rooms
                     - Users type pain points
                     - Points given on submission
                     - AI will score based on quality of text user gives
 
+                    - The Golden Points Activity is to get some real pain points from the agents attending the event. We plan to capture their pain points and how technology and AI can be used. For this, the user types thier answer and that answer is reviewed by a AI Agent. The scoring is returned in the output and the points are given accordingly. For this, we need to think of a standard way of doing this. 
+
+                    I have a sample prompt ready for this, which we will use for evalauting and scoring thier answers. Lets think about this first and see what all things I need to consider, what all can I do, etc
 
                 - Touch Points
                     - Still not decided but will share with you soon

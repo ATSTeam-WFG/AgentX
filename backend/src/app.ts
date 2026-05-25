@@ -27,6 +27,7 @@ import { promptChallengeRoutes } from './routes/activities/prompt-challenge'
 import { goldenPointsRoutes } from './routes/activities/golden-points'
 import { avatarRoutes } from './routes/activities/avatar'
 import { touchpointsRoutes } from './routes/activities/touchpoints'
+import { pushRoutes } from './routes/push'
 import { adminAuthRoutes } from './routes/admin/auth'
 import { adminUsersRoutes } from './routes/admin/users'
 import { adminInviteesRoutes } from './routes/admin/invitees'
@@ -109,6 +110,9 @@ export async function buildApp() {
     return reply.status(500).send({ error: 'INTERNAL_ERROR', message: 'Internal server error' })
   })
 
+  // Health check (no auth, used by Railway)
+  app.get('/health', async () => ({ status: 'ok', ts: Date.now() }))
+
   // Public routes
   app.register(authRoutes, { prefix: '/v1/auth' })
   app.register(agendaRoutes, { prefix: '/v1' })
@@ -131,6 +135,7 @@ export async function buildApp() {
   app.register(goldenPointsRoutes, { prefix: '/v1/activities/golden-points' })
   app.register(avatarRoutes, { prefix: '/v1/activities/avatar' })
   app.register(touchpointsRoutes, { prefix: '/v1/touchpoints' })
+  app.register(pushRoutes, { prefix: '/v1/push' })
 
   // Admin auth (no preHandler — login is public)
   app.register(adminAuthRoutes, { prefix: '/v1/admin/auth' })

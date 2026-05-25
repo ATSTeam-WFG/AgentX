@@ -7,7 +7,7 @@ import { badRequest, conflict, notFound, forbidden } from '../../lib/errors'
 const CompleteBodySchema = z.object({
   attemptId: z.string().uuid(),
   answers: z
-    .array(z.object({ questionId: z.string().min(1), selectedIndex: z.number().int().min(0).max(3) }))
+    .array(z.object({ questionId: z.string().min(1), selectedIndex: z.number().int().min(-1).max(3) }))
     .min(1),
   dedupeKey: z.string().min(1).max(200),
 })

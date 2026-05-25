@@ -23,13 +23,6 @@ function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boole
   );
 }
 
-const STATIC_LB: LeaderboardEntry[] = [
-  { rank: 1, name: 'Sarah M.',  totalPoints: 820 },
-  { rank: 2, name: 'James R.',  totalPoints: 740 },
-  { rank: 3, name: 'Linda K.',  totalPoints: 680 },
-  { rank: 4, name: 'Carlos B.', totalPoints: 610 },
-  { rank: 5, name: 'You',       totalPoints: 340 },
-];
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -41,7 +34,7 @@ export default function ProfilePage() {
     retry: false,
   });
 
-  const { data: lb } = useQuery({
+  const { data: lb, isLoading: lbLoading } = useQuery({
     queryKey: ['leaderboard', 5],
     queryFn: () => getLeaderboard(5),
     staleTime: 30_000,
@@ -55,7 +48,7 @@ export default function ProfilePage() {
   const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
   const rank       = profile?.rank ?? '–';
 
-  const leaderboard = lb?.leaderboard ?? STATIC_LB;
+  const leaderboard = lb?.leaderboard ?? [];
 
   const nameParts = name.trim().split(' ');
   const firstName = nameParts[0];
@@ -304,6 +297,22 @@ export default function ProfilePage() {
           font-size: 12px; font-weight: 700;
           color: #4a6080; flex-shrink: 0;
         }
+        @keyframes lb-shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position:  200% 0; }
+        }
+        .lb-skel-row {
+          display: flex; align-items: center; gap: 12px;
+          padding: 13px 18px;
+          border-bottom: 1px solid rgba(0,0,0,.06);
+        }
+        .lb-skel-row:last-child { border-bottom: none; }
+        .lb-skel {
+          border-radius: 6px;
+          background: linear-gradient(90deg, #e8edf2 25%, #f4f7fa 50%, #e8edf2 75%);
+          background-size: 200% 100%;
+          animation: lb-shimmer 1.4s ease-in-out infinite;
+        }
         .lb-name-v7 {
           flex: 1; font-size: 16px; font-weight: 600; color: #1C283C;
         }
@@ -347,7 +356,7 @@ export default function ProfilePage() {
           {/* ── F1-style hero ── */}
           <div className="profile-hero-v7">
             <div className="hero-photo-wrap">
-              <img src="/Gene_Avatar.png" alt="" className="hero-photo" />
+              <img src={profile?.avatarUrl ?? '/Gene_Avatar.png'} alt="" className="hero-photo" />
             </div>
             <div className="hero-content">
               <div className="hero-first">{firstName}</div>
@@ -392,12 +401,23 @@ export default function ProfilePage() {
               </svg>
             </div>
 
-            {leaderboard.map((entry) => (
-              <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
-            ))}
-            {lb?.currentUser && !leaderboard.some((e) => e.rank === lb.currentUser?.rank) && (
-              <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
-            )}
+            {lbLoading
+              ? [32, 24, 18, 14, 10].map((w, i) => (
+                <div key={i} className="lb-skel-row">
+                  <div className="lb-skel" style={{ width: 28, height: 28, borderRadius: '50%' }} />
+                  <div className="lb-skel" style={{ flex: 1, height: 14 }} />
+                  <div className="lb-skel" style={{ width: `${w}%`, height: 14 }} />
+                </div>
+              ))
+              : (<>
+                {leaderboard.map((entry) => (
+                  <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
+                ))}
+                {lb?.currentUser && !leaderboard.some((e) => e.rank === lb.currentUser?.rank) && (
+                  <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
+                )}
+              </>)
+            }
           </div>
 
           {/* ── Feedback ── */}

@@ -344,7 +344,19 @@ export const db = new AgentXDb();
 
 ### Outbox flush (`lib/outbox.ts`)
 
-- Triggered on: `window` `online` event + WebSocket reconnect
+Initialized in `app/(app)/layout.tsx` via a dedicated `useEffect` with `[]` deps:
+
+```typescript
+useEffect(() => {
+  flushOutbox()                // drain entries queued in previous sessions
+  const cleanup = initOutboxListeners()  // window 'online' → flushOutbox
+  return cleanup
+}, [])
+```
+
+`useWebSocket` also calls `flushOutbox()` on WebSocket reconnect as a belt-and-suspenders measure. The module-level `flushing` flag in `outbox.ts` prevents concurrent flushes.
+
+- Triggered on: app mount, `window` `online` event, WebSocket `__connected` event
 - Process entries sorted by `createdAt` ascending (oldest-first)
 - Per entry:
   - **Success (2xx):** delete from outbox
@@ -513,27 +525,52 @@ Separate auth (`agentx_admin_token`). Light utility surface (no dark theme requi
 
 ## 13. PWA Configuration
 
-### Serwist (`@serwist/next`)
+### Service Worker (`app/sw.ts` → `public/sw.js`)
 
-Configure in `next.config.ts`:
+Built with Serwist (`@serwist/next`). Disabled in development (`NEXT_PUBLIC_APP_ENV !== 'production'`).
 
 ```typescript
-import withSerwist from '@serwist/next';
-
-export default withSerwist({
+// next.config.ts
+withSerwist({
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
-})(nextConfig);
+  disable: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
+})(nextConfig)
 ```
 
-Cache strategies:
+The compiled SW has two layers of handlers:
+
+**Layer 1 — registered before Serwist (critical ordering):**
+
+```typescript
+// Caches offline.html during SW install
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open('agentx-offline-v1').then(c => c.add('/offline.html')))
+})
+
+// Navigation fallback: if any page navigation fails offline, serve offline.html
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode !== 'navigate') return  // non-navigation falls through to Serwist
+  event.respondWith(fetch(event.request).catch(async () => {
+    const cache = await caches.open('agentx-offline-v1')
+    return (await cache.match('/offline.html')) ?? new Response('Offline', { status: 503 })
+  }))
+})
+```
+
+SW `fetch` handlers fire in registration order. Ours is first, so it wins the `respondWith()` call for navigation requests. Non-navigation requests fall through to Serwist.
+
+**Layer 2 — Serwist runtime cache (`defaultCache` from `@serwist/next/worker`):**
 
 | Strategy | Applied to |
 |---|---|
 | `precache` | App shell: HTML, CSS, JS, icons, manifest |
 | `CacheFirst` | Static assets: images, fonts, SVGs |
-| `StaleWhileRevalidate` | `/v1/agenda`, `/v1/sponsors`, `/v1/initiatives` |
-| `NetworkFirst` | `/v1/me`, `/v1/activities`, `/v1/leaderboard` |
+| `NetworkFirst` | API routes, dynamic pages |
+
+**Layer 3 — push notification handlers (after Serwist):**
+- `push` event → `self.registration.showNotification()`
+- `notificationclick` → focus existing window or `clients.openWindow(url)`
 
 ### `public/manifest.json`
 
@@ -546,20 +583,38 @@ Cache strategies:
   "theme_color": "#06090f",
   "background_color": "#06090f",
   "start_url": "/",
+  "scope": "/",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
 ```
 
-### Additional PWA hardening
+Icons are center-cropped from `public/ES26logo.png` (1920×1080 source). `apple-touch-icon.png` (180×180) is in the same directory for iOS home screen. `favicon.ico` (32×32, ICO container wrapping PNG) is at `public/favicon.ico`.
 
-- `overscroll-behavior: contain` on `<body>` — disables pull-to-refresh
-- `padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px))` on tab bar and all bottom sheets
-- Landscape rotation overlay: show "Please rotate your device" on `orientation: landscape`
-- **Install prompt:** defer until user views 2 session detail pages, then show soft bottom-sheet: "Add AgentX to your home screen for the best experience."
-- **Haptics:** `navigator.vibrate(8)` on QR scan success + booking confirm. iOS: no-op (navigator.vibrate not supported — graceful fail).
+### Install prompt (`components/PwaPromptBanner.tsx`)
+
+Mounted at the top of the home page scroll area. Shows one prompt at a time, in priority order:
+
+| Condition | Prompt shown |
+|---|---|
+| Chrome/Android, `beforeinstallprompt` captured | "Add to home screen" + native install button |
+| iOS Safari, not in standalone mode | 3-step instructions: Share → "Add to Home Screen" |
+| Installed (or desktop), push permission not yet granted | "Enable notifications" with permission request |
+| Dismissed / already granted / iOS+installed | Nothing |
+
+Dismissal state stored in `localStorage` (`agentx_install_dismissed`, `agentx_notif_dismissed`). Does not re-appear after dismissal. Logic is in `hooks/usePwaPrompts.ts`.
+
+### Offline indicator (`components/OfflineBanner.tsx`)
+
+Fixed slim bar (`position: fixed; top: var(--topbar-h); z-index: 99`). Appears when `navigator.onLine` is false or the `offline` window event fires. Disappears on `online`. Slide-in animation on each appearance. Starts hidden (SSR-safe — initial state `false`, hydrated in `useEffect`). Mounted in `app/(app)/layout.tsx` between `<TopBar />` and `<main>`.
+
+### Offline fallback page (`public/offline.html`)
+
+Pure static HTML, no external dependencies. Shown by the service worker when any navigation request fails while offline. Contains: AgentX branding, wifi-off SVG icon, "You're offline" message, reload button. All styles inline; system font stack fallback (Google Fonts unavailable offline).
 
 ---
 
