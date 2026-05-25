@@ -2,7 +2,6 @@ import Fastify, { type FastifyRequest } from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
-import Redis from 'ioredis'
 import multipart from '@fastify/multipart'
 import websocket from '@fastify/websocket'
 
@@ -51,24 +50,11 @@ export async function buildApp() {
 
   await app.register(jwt, { secret: config.JWT_SECRET })
 
-  const rateLimitRedis = new Redis(config.REDIS_URL, {
-    connectTimeout: 500,
-    maxRetriesPerRequest: 1,
-    enableReadyCheck: false,
-    lazyConnect: true,
-    retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 500)),
-  })
-  rateLimitRedis.on('error', (err: Error) => {
-    console.error('[redis] rate-limit client error:', err.message)
-  })
-
   await app.register(rateLimit, {
     global: true,
     max: 300,
     timeWindow: '1 minute',
     hook: 'preHandler',
-    redis: rateLimitRedis,
-    skipOnError: true,
     allowList(request: FastifyRequest) {
       const secret = config.STRESS_BYPASS_SECRET
       return secret !== '' && request.headers['x-stress-bypass'] === secret
