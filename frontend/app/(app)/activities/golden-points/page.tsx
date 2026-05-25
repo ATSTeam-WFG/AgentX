@@ -167,12 +167,12 @@ export default function GoldenPointsPage() {
         <div className="gp-scroll">
           <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Golden Points</h1>
-          <p className="page-sub">Share a real insight — AI evaluates quality and awards up to 20 pts</p>
+          <p className="page-sub">Share a real insight. AI evaluates quality and awards up to 100 pts.</p>
 
           <div className="gp-card">
             <div className="gp-card-label">Context</div>
             <div className="gp-card-body">
-              Share a real challenge or insight from the title industry. AI evaluates your response quality and awards up to 20 points per submission. Max 100 total.
+              Share a challenge or insight from the title industry. AI evaluates your response quality and awards up to 100 points.
             </div>
           </div>
 

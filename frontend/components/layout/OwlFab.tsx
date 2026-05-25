@@ -33,7 +33,7 @@ export default function OwlFab() {
           position: fixed;
           right: 16px;
           bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 0px));
-          width: 56px;
+          width: 48px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -52,8 +52,8 @@ export default function OwlFab() {
           pointer-events: none;
         }
         .owl-fab-img {
-          width: 56px;
-          height: 56px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           object-fit: cover;
           filter: drop-shadow(0 6px 14px rgba(10,24,64,.32)) drop-shadow(0 0 18px rgba(6,182,212,.32));
@@ -94,8 +94,8 @@ export default function OwlFab() {
         <Image
           src="/AgentX.png"
           alt="Agent X"
-          width={56}
-          height={56}
+          width={48}
+          height={48}
           className="owl-fab-img"
           priority
         />

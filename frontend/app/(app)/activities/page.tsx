@@ -83,22 +83,30 @@ const ACTIVITIES = [
       </svg>
     ),
   },
-  {
-    id: 'feedback',
-    name: 'Summit Feedback',
-    pts: 50,
-    iconBg: '#fde8cc',
-    iconColor: '#c2671c',
-    desc: "Rate your ES26 experience and help shape next year's summit.",
-    href: '/profile/feedback',
-    icon: (
-      <svg viewBox="0 0 22 22" fill="none" width="22" height="22">
-        <path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H8l-4 3V6a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
-        <path d="M8 8.5l1.5 1.5L13 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
 ];
+
+function PtsRing({ pts, max }: { pts: number; max: number }) {
+  const r = 20;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - Math.min(1, pts / max));
+  return (
+    <svg width="54" height="54" viewBox="0 0 52 52" aria-label={`${pts} of ${max} points`}>
+      <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="4"/>
+      <circle
+        cx="26" cy="26" r={r} fill="none"
+        stroke={pts > 0 ? 'var(--gold-rich)' : 'rgba(227,149,72,.25)'}
+        strokeWidth="4"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform="rotate(-90 26 26)"
+        style={{ transition: 'stroke-dashoffset .8s ease' }}
+      />
+      <text x="26" y="24" textAnchor="middle" fill={pts > 0 ? 'var(--gold-rich)' : 'rgba(204,222,231,.45)'} fontSize="10" fontWeight="800" fontFamily="Sora, sans-serif">{pts}</text>
+      <text x="26" y="35" textAnchor="middle" fill="rgba(204,222,231,.28)" fontSize="7" fontFamily="Sora, sans-serif">/ {max}</text>
+    </svg>
+  );
+}
 
 export default function ActivitiesPage() {
   const { data: apiActivities } = useQuery({
@@ -121,14 +129,6 @@ export default function ActivitiesPage() {
   const maxPts = 1000;
   const pct = Math.min(100, (totalPts / maxPts) * 100);
 
-  const MILESTONES = [
-    { label: 'Bronze', pts: 50 },
-    { label: 'Silver', pts: 250 },
-    { label: 'Gold', pts: 500 },
-    { label: 'Elite', pts: 1000 },
-  ];
-  const nextMilestone = MILESTONES.find((m) => m.pts > totalPts) ?? MILESTONES[MILESTONES.length - 1];
-
   return (
     <>
       <style>{`
@@ -142,7 +142,7 @@ export default function ActivitiesPage() {
           flex-shrink: 0;
         }
         .acts-title-row {
-          display: flex; align-items: flex-end;
+          display: flex; align-items: center;
           justify-content: space-between;
           margin-bottom: 16px;
         }
@@ -152,25 +152,6 @@ export default function ActivitiesPage() {
           color: var(--t); letter-spacing: .02em;
           text-transform: uppercase;
           margin: 0; line-height: 1;
-        }
-        .acts-pts-total {
-          text-align: right;
-        }
-        .acts-pts-num {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 800;
-          color: var(--gold-rich); letter-spacing: -.03em;
-          line-height: 1;
-        }
-        .acts-pts-of {
-          font-size: 14px; font-weight: 600;
-          color: var(--t3); margin-top: 2px;
-        }
-        .acts-pts-hint {
-          font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 600;
-          color: rgba(204,222,231,.55); text-align: right;
-          line-height: 1.3; max-width: 140px;
         }
         .acts-progress-wrap {
           height: 6px; background: rgba(255,255,255,.10);
@@ -286,16 +267,7 @@ export default function ActivitiesPage() {
           <div className="acts-title-row">
             <h1 className="acts-title">Activities</h1>
 
-            <div className="acts-pts-total">
-              {totalPts === 0 ? (
-                <div className="acts-pts-hint">Earn {nextMilestone.pts} pts to reach {nextMilestone.label}</div>
-              ) : (
-                <>
-                  <div className="acts-pts-num">{totalPts}</div>
-                  <div className="acts-pts-of">/ {maxPts.toLocaleString()} pts</div>
-                </>
-              )}
-            </div>
+            <PtsRing pts={totalPts} max={maxPts} />
           </div>
           <div className="acts-progress-wrap">
             <div className="acts-progress-fill" style={{ width: `${pct}%` }} />

@@ -30,19 +30,31 @@ function SessionCard({ event, hideTime }: { event: AgendaEvent; hideTime?: boole
   return (
     <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none' }}>
       <div className={`session-card ${status}`}>
-        <div className="session-time-col">
-          {!hideTime && <span className="session-time">{formatTime(event.startsAt)}</span>}
-          {status === 'live' && <span className="live-pip" />}
-          {status === 'past' && (
-            <span className="past-dot">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-          )}
-        </div>
+        {!hideTime && (
+          <div className="session-time-col">
+            <span className="session-time">{formatTime(event.startsAt)}</span>
+            {status === 'live' && <span className="live-pip" />}
+            {status === 'past' && (
+              <span className="past-dot">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+            )}
+          </div>
+        )}
         <div className="session-info">
-          <div className="session-name">{event.name}</div>
+          <div className="session-name-row">
+            {hideTime && status === 'live' && <span className="live-pip-inline" />}
+            {hideTime && status === 'past' && (
+              <span className="past-check-inline">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+            )}
+            <div className="session-name">{event.name}</div>
+          </div>
           {event.speakerName && (
             <div className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
@@ -126,19 +138,6 @@ export default function AgendaPage() {
           box-shadow: 0 1px 6px rgba(227,149,72,.18);
         }
 
-        .day-header {
-          padding: 12px 18px 14px;
-          flex-shrink: 0;
-          border-bottom: 1px solid rgba(255,255,255,.08);
-        }
-        .day-header-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700; color: var(--t);
-        }
-        .day-header-summary {
-          font-size: 15px; color: var(--t3); margin-top: 2px;
-        }
-
         .agenda-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
           padding: 12px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
@@ -146,10 +145,18 @@ export default function AgendaPage() {
         }
         .time-group { margin-bottom: 4px; }
         .time-header {
-          font-size: 12px; font-weight: 700; letter-spacing: .08em;
-          text-transform: uppercase; color: rgba(204,222,231,.45);
-          padding: 8px 2px 4px;
+          font-size: 13px; font-weight: 700; letter-spacing: .06em;
+          color: #E39548;
+          padding: 10px 2px 5px;
         }
+        .session-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+        .live-pip-inline {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: var(--green); flex-shrink: 0;
+          box-shadow: 0 0 6px rgba(20,102,54,.6);
+          animation: pipPulse 2s ease-in-out infinite;
+        }
+        .past-check-inline { color: var(--green); display: flex; flex-shrink: 0; }
 
         .session-card {
           background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
@@ -224,17 +231,6 @@ export default function AgendaPage() {
             ))}
           </div>
         </div>
-
-        {activeTab && (
-          <div className="day-header">
-            <div className="day-header-title">{activeTab.title}</div>
-            <div className="day-header-summary">
-              {activeTab.day === 0 && 'Registration & opening reception'}
-              {activeTab.day === 1 && 'Keynote, breakouts, ATS demos & awards'}
-              {activeTab.day === 2 && 'Safe travels. See you next year!'}
-            </div>
-          </div>
-        )}
 
         <div className="agenda-scroll">
           {filtered.length > 0 ? (() => {

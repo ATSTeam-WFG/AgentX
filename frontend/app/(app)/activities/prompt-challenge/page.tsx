@@ -143,10 +143,14 @@ export default function PromptChallengePage() {
             background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
           }
           .q-cat-chip {
-            display: inline-flex; align-items: center;
-            font-size: 12px; font-weight: 700; letter-spacing: .06em;
-            text-transform: uppercase; border-radius: 8px; padding: 4px 10px;
-            margin-bottom: 12px;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; border-radius: 20px; padding: 5px 12px;
+            margin-bottom: 14px; border-width: 1px; border-style: solid;
+          }
+          .q-cat-chip::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: currentColor; flex-shrink: 0; opacity: .85;
           }
           .q-card {
             background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
@@ -258,10 +262,14 @@ export default function PromptChallengePage() {
           background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
         }
         .page-title {
-          font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800;
-          color: #CCDEE7; letter-spacing: .02em; text-transform: uppercase; margin: 0 0 8px;
+          font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 700;
+          color: #CCDEE7; letter-spacing: .02em; text-transform: uppercase; margin: 0 0 4px;
         }
-        .page-sub { font-size: 15px; color: rgba(204,222,231,.55); margin: 0 0 6px; }
+        .pc-intro {
+          font-size: 15px; color: rgba(204,222,231,.55); line-height: 1.65;
+          margin: 0 0 10px;
+        }
+        .page-sub { font-size: 13px; font-weight: 600; color: rgba(204,222,231,.45); margin: 0 0 6px; }
         .progress-bar-wrap {
           height: 4px; background: rgba(255,255,255,.10); border-radius: 4px;
           margin-bottom: 20px; overflow: hidden;
@@ -279,9 +287,14 @@ export default function PromptChallengePage() {
         .pc-card:active { transform: scale(.98); }
         .pc-card.done { opacity: .75; }
         .pc-cat-chip {
-          font-size: 11px; font-weight: 700; letter-spacing: .05em;
-          text-transform: uppercase; border-radius: 8px; padding: 3px 8px;
-          border: 1px solid; flex-shrink: 0;
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: 10px; font-weight: 700; letter-spacing: .07em;
+          text-transform: uppercase; border-radius: 20px; padding: 4px 10px;
+          border: 1px solid; flex-shrink: 0; width: fit-content;
+        }
+        .pc-cat-chip::before {
+          content: ''; width: 4px; height: 4px; border-radius: 50%;
+          background: currentColor; flex-shrink: 0; opacity: .85;
         }
         .pc-card-text { flex: 1; min-width: 0; }
         .pc-card-title { font-size: 15px; font-weight: 700; color: #1C283C; margin-bottom: 4px; line-height: 1.35; }
@@ -293,6 +306,7 @@ export default function PromptChallengePage() {
         <div className="pc-scroll">
           <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Prompt Challenge</h1>
+          <p className="pc-intro">Five real-world title industry scenarios. Each question presents four AI prompt options. Select the most effective one for the situation. Every answer earns points; the sharpest choice earns the most.</p>
           <p className="page-sub">{totalPts} / 100 pts · {answered.size} of {questions.length} answered</p>
           <div className="progress-bar-wrap">
             <div className="progress-bar-fill" style={{ width: `${Math.min(100, (totalPts / 100) * 100)}%` }} />
