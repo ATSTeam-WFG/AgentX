@@ -177,32 +177,19 @@ export default function ProfilePage() {
           letter-spacing: .08em; text-transform: uppercase;
         }
 
-        /* Bottom stats strip */
-        .hero-strip {
-          position: relative; z-index: 2;
-          display: flex;
-          background: rgba(14,22,38,.80);
-          border-top: 1px solid rgba(255,255,255,.07);
-          backdrop-filter: blur(4px);
-          -webkit-backdrop-filter: blur(4px);
+        .hero-stats-row {
+          display: flex; gap: 20px; margin-top: 14px;
         }
-        .hero-strip-stat {
-          flex: 1; text-align: center;
-          padding: 14px 8px;
-        }
-        .hero-strip-stat + .hero-strip-stat {
-          border-left: 1px solid rgba(255,255,255,.07);
-        }
-        .hero-strip-val {
+        .hero-stat-item { display: flex; flex-direction: column; }
+        .hero-stat-val {
           font-family: 'Sora', sans-serif;
-          font-size: 20px; font-weight: 800; letter-spacing: -.03em;
-          color: #CCDEE7; line-height: 1;
-          display: block;
+          font-size: 17px; font-weight: 700; letter-spacing: -.02em;
+          color: rgba(204,222,231,.80); line-height: 1;
         }
-        .hero-strip-label {
-          font-size: 10px; font-weight: 700; letter-spacing: .09em;
-          text-transform: uppercase; color: rgba(204,222,231,.40);
-          display: block; margin-top: 5px;
+        .hero-stat-label {
+          font-size: 9px; font-weight: 700; letter-spacing: .10em;
+          text-transform: uppercase; color: rgba(204,222,231,.38);
+          margin-top: 3px;
         }
 
         /* ── Section cards ── */
@@ -241,6 +228,7 @@ export default function ProfilePage() {
           display: flex; align-items: center;
           gap: 12px; padding: 13px 18px;
           border-bottom: 1px solid rgba(0,0,0,.06);
+          background: rgba(28,40,60,.04);
         }
         .lb-row-v7:last-child { border-bottom: none; }
         .lb-row-v7.me {
@@ -319,7 +307,7 @@ export default function ProfilePage() {
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
           font-size: 14px; font-weight: 800; font-style: italic;
-          color: #E39548; letter-spacing: -.02em;
+          color: #B85E00; letter-spacing: -.02em;
         }
 
         /* ── Feedback / Sponsor link rows ── */
@@ -371,16 +359,15 @@ export default function ProfilePage() {
                 <span className="hero-rank-badge">#{rank}</span>
                 <span className="hero-rank-label">Summit Rank</span>
               </div>
-            </div>
-
-            <div className="hero-strip">
-              <div className="hero-strip-stat">
-                <span className="hero-strip-val">{activities}/5</span>
-                <span className="hero-strip-label">Activities</span>
-              </div>
-              <div className="hero-strip-stat">
-                <span className="hero-strip-val">{touchpts}/5</span>
-                <span className="hero-strip-label">Touchpoints</span>
+              <div className="hero-stats-row">
+                <div className="hero-stat-item">
+                  <span className="hero-stat-val">{activities}/5</span>
+                  <span className="hero-stat-label">Activities</span>
+                </div>
+                <div className="hero-stat-item">
+                  <span className="hero-stat-val">{touchpts}/5</span>
+                  <span className="hero-stat-label">Touchpoints</span>
+                </div>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
+import { getMe } from '@/lib/api/profile';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
 import { PwaPromptBanner } from '@/components/PwaPromptBanner';
@@ -55,13 +56,21 @@ export default function HomePage() {
     staleTime: 30_000,
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getMe,
+    staleTime: 60_000,
+    retry: false,
+  });
+
   // While fetching: show skeleton. Once settled: use live data or fall back to V7_EVENTS (real schedule).
   const events   = agendaLoading ? [] : (agenda?.events ?? V7_EVENTS);
   const current  = getActiveSession(events);
   const upcoming = getNextSession(events);
   const featured = current ?? upcoming;
 
-  const firstName = (user?.name ?? 'Summit Guest').split(' ')[0];
+  const rawName  = profile?.name ?? user?.name ?? '';
+  const firstName = rawName ? rawName.split(' ')[0] : 'there';
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
   return (
