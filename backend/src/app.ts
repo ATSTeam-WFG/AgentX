@@ -1,4 +1,4 @@
-import Fastify from 'fastify'
+import Fastify, { type FastifyRequest } from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
@@ -65,11 +65,11 @@ export async function buildApp() {
     hook: 'preHandler',
     redis: rateLimitRedis,
     skipOnError: true,
-    skip(request) {
+    allowList(request: FastifyRequest) {
       const secret = config.STRESS_BYPASS_SECRET
       return secret !== '' && request.headers['x-stress-bypass'] === secret
     },
-    keyGenerator(request) {
+    keyGenerator(request: FastifyRequest) {
       const auth = request.headers.authorization
       if (auth?.startsWith('Bearer ')) {
         const parts = auth.slice(7).split('.')
