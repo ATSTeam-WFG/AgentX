@@ -6,7 +6,7 @@ Tracks what shipped each week, written for the full team (no technical backgroun
 
 ## Week of May 18–25, 2026
 
-Five major areas shipped this week: AI features (Golden Points + Avatar), design overhaul, admin improvements, full deployment setup, and PWA hardening.
+Six major areas shipped this week: AI features (Golden Points + Avatar), full admin panel, design overhaul, deployment setup, and PWA hardening.
 
 ---
 
@@ -38,37 +38,6 @@ After submitting a Golden Points response, users are offered the option to recei
 
 ---
 
-#### Admin Control Panel — Login & Live Dashboard
-
-Administrators now have a secure, password-protected login page. Once logged in, they see a live dashboard and a dedicated Golden Points management view.
-
-**Dashboard stats (updated in real time):**
-- Total registered attendees
-- Number of Golden Points submissions currently being processed by AI
-- Number of attendees who have scanned touchpoint locations
-- Average Golden Points score across all scored submissions
-
-**Golden Points admin view:**
-- Browse every submission with the attendee's name and email
-- See the AI score and how many points were awarded
-- Expand any submission to read the full response and the AI's written feedback
-- Color-coded status badges (pending, scored, rejected)
-
----
-
-### Improvements
-
-#### Visual Design Overhaul
-
-The app's look was significantly upgraded across all screens.
-
-- Color palette simplified to three core colors: deep navy, royal blue, and amber. Cleaner, more polished, executive feel.
-- Profile page redesigned with a full hero section showing the attendee's name, points total, and rank.
-- Navigation bar and header refined throughout.
-- All admin screens (dashboard, users, Golden Points) rebuilt with the new design language.
-
----
-
 #### Avatar Studio — Fully Live
 
 Attendees can now create an AI-generated executive portrait.
@@ -85,20 +54,36 @@ Provider: Google Gemini 3 Pro. Storage: Cloudflare R2.
 
 ---
 
-#### App Background & Offline Improvements
+#### Admin Control Panel — Fully Complete
 
-The app's background service (used for push notifications and caching content for offline access) was upgraded. This ensures smoother, more reliable performance on event day — particularly important given that venue Wi-Fi quality can be unpredictable.
+The admin panel is now fully implemented. Staff can manage every aspect of the event from a desktop browser at `/admin`.
+
+**What admins can now do:**
+
+- **Dashboard** — Live counts of registered attendees, Golden Points submissions in queue, touchpoints scanned, and average AI score.
+- **Walk-in approvals** — A "Pending" tab on the Users page shows all walk-in attendees waiting for approval. One tap approves them and retroactively applies any points they earned while pending.
+- **Point adjustments** — Any user card on the Users page expands to show a point adjustment form. Enter a delta (positive or negative) and a reason. Every change is logged.
+- **Announcements** — Create event-wide announcements with an optional expiry time. Existing announcements are listed below the form and can be deleted instantly.
+- **Agenda management** — Create, edit, and delete sessions inline. Events are grouped by day. Edit forms pre-fill the existing data. Deletes require a confirmation tap.
+- **Activity toggling** — Open or close any activity with a single toggle. Toggling off means the backend rejects new submissions immediately. The switch updates optimistically.
+- **Invitees** — Upload a CSV of pre-invited guests or add individuals one at a time. A searchable list shows all invitees with a "Registered" badge when they've created an account.
+- **Audit log** — Every admin action (approvals, point adjustments, announcements, agenda changes, activity toggles) is recorded with the admin's email, timestamp, and a full data payload. Log is paginated and each entry expands to show the raw JSON.
+- **Golden Points viewer** — Browse every submission, filter by status, expand to read the full response and AI feedback.
+
+**Security:** The admin panel is completely blocked when the app is opened from a home screen shortcut (PWA mode). Only accessible via a full desktop browser. Admins are automatically redirected to the login page if their session has expired.
 
 ---
 
-### Decisions Made This Week
+### Improvements
 
-| Decision | Why |
-|---|---|
-| AI scoring is final — no human review step | Keeps point awards instant. Removes the need for staff to manually approve or reject submissions on event day. |
-| Push notifications built without a third-party service | Reduces vendor dependency. The built-in Web Push standard works natively across all modern browsers and platforms. |
-| Admin Golden Points view is read-only | AI is the sole scoring authority. The admin view exists for visibility and auditing only. |
-| Avatar provider: Google Gemini 3 Pro | Selected for image generation quality; selfies deleted post-generation to limit data retention. |
+#### Visual Design Overhaul
+
+The app's look was significantly upgraded across all screens.
+
+- Color palette simplified to three core colors: deep navy, royal blue, and amber. Cleaner, more polished, executive feel.
+- Profile page redesigned with a full hero section showing the attendee's name, points total, and rank.
+- Navigation bar and header refined throughout.
+- All admin screens rebuilt with the new design language — dark navy shell, silver cards, correct contrast throughout.
 
 ---
 
@@ -142,6 +127,8 @@ The app now passes all practical PWA requirements for an event deployment.
 | Avatar provider: Google Gemini 3 Pro | Selected for image generation quality; selfies deleted post-generation to limit data retention. |
 | Offline write queue activated | Queue infrastructure existed but was never wired up. Now initialized on every app mount so venue Wi-Fi drops don't silently lose activity submissions. |
 | Offline fallback registered before Serwist | SW fetch handlers fire in registration order; our navigation fallback must intercept before Serwist's default handler to guarantee offline.html is served. |
+| Admin panel blocked in PWA mode | Staff cannot accidentally use the admin panel from within the attendee app. The panel requires a full desktop browser session — enforced at the layout level, not a router redirect. |
+| All admin writes are transactional | Every mutating admin operation writes its `AuditLog` row in the same Prisma transaction as the data change. Ensures the log is always consistent with actual state. |
 
 ---
 
@@ -172,5 +159,5 @@ Foundation and core activities complete. App connected end-to-end.
 
 ---
 
-*For build phase details and a full task list, see [progress.md](./progress.md).*
-*For technical architecture, see [backend.md](./backend.md) and [frontend.md](./frontend.md).*
+*For build phase details and a full task list, see [docs/progress.md](docs/progress.md).*
+*For technical architecture, see [docs/backend.md](docs/backend.md) and [docs/frontend.md](docs/frontend.md).*

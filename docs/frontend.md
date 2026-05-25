@@ -126,20 +126,24 @@ AgentX/frontend/
 │   ├── scan/
 │   │   └── page.tsx                  # QR scan landing (/scan?tp=<id>&sig=<hmac>)
 │   └── admin/
-│       ├── layout.tsx                # Admin shell, separate auth guard
-│       ├── page.tsx                  # Dashboard: totals, active users, queue depth
+│       ├── layout.tsx                # Admin shell: auth guard, PWA block, 8-tab nav, color zone CSS
+│       ├── login/
+│       │   └── page.tsx              # Admin login form (separate from attendee auth)
+│       ├── page.tsx                  # Dashboard: 4 stat cards + quick links
 │       ├── users/
-│       │   └── page.tsx              # User search, walk-in approval queue
+│       │   └── page.tsx              # All Users (search) + Pending tab; expandable point adjust
 │       ├── golden-points/
-│       │   └── page.tsx              # Moderation queue (pending → approve/reject/override)
+│       │   └── page.tsx              # Read-only AI scoring viewer; filter by status
 │       ├── agenda/
-│       │   └── page.tsx              # Create/edit/delete agenda events
+│       │   └── page.tsx              # CRUD agenda events; inline edit/delete; grouped by day
 │       ├── activities/
-│       │   └── page.tsx              # Open/close activities live
+│       │   └── page.tsx              # Toggle activities open/closed; optimistic UI
 │       ├── announcements/
-│       │   └── page.tsx              # Publish announcements
+│       │   └── page.tsx              # Create/delete announcements
+│       ├── invitees/
+│       │   └── page.tsx              # CSV upload + single add + paginated search
 │       └── audit-log/
-│           └── page.tsx              # Read-only admin action log
+│           └── page.tsx              # Paginated admin action log; expandable JSON payload
 │
 ├── components/
 │   ├── layout/
@@ -509,17 +513,22 @@ Entry: `agentx.wfg.app/scan?tp=<id>&sig=<hmac>`
 
 ## 12. Admin Console (`/admin`)
 
-Separate auth (`agentx_admin_token`). Light utility surface (no dark theme requirement). All calls via `lib/api/admin.ts`.
+Separate auth (`agentx_admin_token`, 24h expiry). URL-only entry point — not linked from the attendee app. Blocked entirely when running in PWA/standalone mode (layout.tsx detects `display-mode: standalone` + iOS `navigator.standalone`).
 
-| Route | Purpose | Key API call |
+All admin pages are `'use client'` with inline `<style>` blocks using prefixed class names. API calls use an inline `getToken()` + bare `fetch()` pattern (not the `apiFetch` wrapper) so no auth store is needed in the admin shell.
+
+**Color system:** Admin surfaces use `--surface: #CCDEE7` (silver) cards on a `--bg: #1C283C` (dark navy) shell. All admin page CSS uses hardcoded hex colors rather than CSS custom properties because several vars (`--bg2`, `--border-metal`, `--gold`) resolve to values designed for dark surfaces and are invisible on silver. The layout injects a global `[class*="card"]` CSS var override that sets `--t` through `--t5` to dark values, covering text that correctly uses `var(--t*)`.
+
+| Route | Purpose | Key API calls |
 |---|---|---|
-| `/admin` | Dashboard: totals, active users, queue depth | `GET /v1/admin/dashboard` |
-| `/admin/users` | Search users, approve walk-ins | `GET /v1/admin/users`, `POST /v1/admin/users/:id/approve` |
-| `/admin/golden-points` | Moderation queue | `GET /v1/admin/golden-points?status=pending`, `POST /v1/admin/golden-points/:id/decision` |
-| `/admin/agenda` | CRUD sessions | `POST /v1/admin/agenda` |
-| `/admin/activities` | Open/close activities | `POST /v1/admin/activities/:id/toggle` |
-| `/admin/announcements` | Publish announcements | `POST /v1/admin/announcements` |
-| `/admin/audit-log` | Read-only audit trail | `GET /v1/admin/audit-log` |
+| `/admin` | Dashboard: 4 live stat cards + quick links | `GET /v1/admin/dashboard` |
+| `/admin/users` | Search users (All tab) + walk-in approval queue (Pending tab); expandable cards for point adjustment | `GET /v1/admin/users`, `GET /v1/admin/users?pendingOnly=true`, `POST /v1/admin/users/:id/approve`, `POST /v1/admin/users/:id/points` |
+| `/admin/golden-points` | Read-only AI scoring viewer; filter by status | `GET /v1/admin/golden-points` |
+| `/admin/agenda` | Full CRUD for agenda events; inline edit/delete, grouped by day | `GET /v1/agenda`, `POST /v1/admin/agenda`, `PUT /v1/admin/agenda/:id`, `DELETE /v1/admin/agenda/:id` |
+| `/admin/activities` | Toggle activities open/closed; optimistic UI | `GET /v1/activities`, `POST /v1/admin/activities/:id/toggle` |
+| `/admin/announcements` | Create and delete announcements | `GET /v1/announcements`, `POST /v1/admin/announcements`, `DELETE /v1/admin/announcements/:id` |
+| `/admin/invitees` | CSV bulk upload + single add + paginated search | `POST /v1/admin/invitees/upload`, `POST /v1/admin/invitees`, `GET /v1/admin/invitees?search=&limit=&offset=` |
+| `/admin/audit-log` | Paginated admin action log; expandable JSON payload | `GET /v1/admin/audit-log?limit=50&offset=0` |
 
 ---
 

@@ -3,7 +3,7 @@
 Tracks implementation status across each phase defined in [`backend.md`](./backend.md).
 
 **Last updated:** 2026-05-25
-**Current phase:** Phase 4 — In progress (PWA hardening complete, deployment config done)
+**Current phase:** Phase 4 — Complete (admin panel fully implemented)
 
 ---
 
@@ -84,15 +84,17 @@ Full admin control plane and observability.
 | Admin dashboard (totals, queue depth) | Done | `src/routes/admin/dashboard.ts`; 4 live DB stats (users, GP pending, touchpoints engaged, avg score) |
 | Admin: user support lookup | Done | `GET /v1/admin/users?search=`; name/email search, returns role + score |
 | Admin: frontend login + auth guard | Done | `frontend/app/admin/login/page.tsx`; guards all `/admin/*` routes, separate `agentx_admin_token` key |
-| Admin: manual point adjustment with reason | Not started | |
-| Admin: walk-in approval queue | Not started | |
-| Admin: retroactive point application on approval | Not started | |
-| Admin: agenda create/edit/delete + version bump | Not started | |
-| Admin: initiatives management | Not started | |
-| Admin: sponsors management | Not started | |
-| Admin: activity toggle (open/close) | Not started | |
-| Admin: publish announcement | Not started | |
-| Admin: audit log viewer | Not started | |
+| Admin: manual point adjustment with reason | Done | `POST /v1/admin/users/:id/points { delta, reason }`; expandable user card in `frontend/app/admin/users/page.tsx`; writes `PointAdjustment` + `AuditLog` in transaction |
+| Admin: walk-in approval queue | Done | Pending tab in `frontend/app/admin/users/page.tsx`; `POST /v1/admin/users/:id/approve`; writes `AuditLog` |
+| Admin: retroactive point application on approval | Done | Backend `admin/users.ts` applies queued point awards on walk-in approval |
+| Admin: agenda create/edit/delete + version bump | Done | `src/routes/admin/agenda.ts`; PUT increments `version: { increment: 1 }`; `frontend/app/admin/agenda/page.tsx` — inline edit/delete forms, grouped by day |
+| Admin: initiatives management | Not started | Not needed for event |
+| Admin: sponsors management | Not started | Not needed for event |
+| Admin: activity toggle (open/close) | Done | `src/routes/admin/activities.ts`; `POST /v1/admin/activities/:id/toggle`; optimistic UI in `frontend/app/admin/activities/page.tsx` |
+| Admin: publish announcement | Done | `src/routes/admin/announcements.ts`; `POST /v1/admin/announcements`; `DELETE /v1/admin/announcements/:id`; `frontend/app/admin/announcements/page.tsx` |
+| Admin: audit log viewer | Done | `src/routes/admin/audit-log.ts`; paginated, includes admin email; `frontend/app/admin/audit-log/page.tsx` — color-coded dots, expandable JSON payload |
+| Admin: invitees management | Done | `frontend/app/admin/invitees/page.tsx`; CSV upload + single add + paginated list with search; "Registered" badge if invitee has linked user |
+| Admin: PWA block | Done | `frontend/app/admin/layout.tsx`; detects `(display-mode: standalone)` + iOS `navigator.standalone`; shows "Desktop Only" card in PWA mode |
 | Push notification integration | Done | VAPID Web Push (no third-party); `src/lib/push.ts`, `src/routes/push.ts`; frontend subscribe flow in `frontend/lib/push.ts` |
 | WebSocket: leaderboard, announcements, agenda, jobs | Not started | |
 | `GET /v1/sync` — reconnect delta endpoint | Not started | |
@@ -161,6 +163,9 @@ Pre-event readiness. Must complete before event day.
 | 2026-05-22 | Golden Points AI scoring implemented end-to-end; provider chosen as Claude Haiku (`claude-haiku-4-5-20251001`); no human review gate | Fully async job worker with prompt caching; admin view is read-only insights panel |
 | 2026-05-22 | Frontend–backend contract audit and fix pass | Fixed: admin URL (`/stats`→`/dashboard`), users params/response shape, agenda `speaker`→`speakerName` rename, missing `GET /agenda/:id`, admin auth not wired (no login page, no token save), `?q=`→`?search=` |
 | 2026-05-22 | Design polish merged from teammate (3-colour system, profile hero, amber/navy); TopBar WFG logo aspect-ratio fix | `git checkout --theirs` for all conflict files — teammate's design is canonical |
+| 2026-05-25 | Admin panel fully implemented — all backend stubs replaced + all frontend pages built | 5 backend routes implemented (`announcements`, `audit-log`, `activities`, `agenda`, `invitees`); 7 frontend pages built/overhauled; `AuditLog` written in same transaction as every mutating admin operation |
+| 2026-05-25 | Admin panel blocked in PWA/standalone mode | `layout.tsx` detects `(display-mode: standalone)` + iOS `navigator.standalone`; renders "Desktop Only" card and stops rendering all routes — prevents staff accidentally using admin in the attendee app |
+| 2026-05-25 | Admin panel color system: all CSS custom property references hardcoded for silver surface | Admin cards use `--surface: #CCDEE7` (silver) not the dark `--bg`; `var(--bg2)` on inputs + `var(--border-metal)` borders + `var(--gold)` status chips were invisible on silver. Fixed globally via `[class*="card"]` CSS var override in `layout.tsx` + per-page hardcoded hex for inputs, borders, and status colors |
 
 ---
 
