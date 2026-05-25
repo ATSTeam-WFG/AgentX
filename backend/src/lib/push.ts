@@ -2,11 +2,15 @@ import webPush from 'web-push'
 import { config } from '../config'
 import { prisma } from '../db'
 
-webPush.setVapidDetails(
-  `mailto:${config.VAPID_CONTACT_EMAIL}`,
-  config.VAPID_PUBLIC_KEY,
-  config.VAPID_PRIVATE_KEY,
-)
+if (config.VAPID_PUBLIC_KEY && config.VAPID_PRIVATE_KEY && config.VAPID_CONTACT_EMAIL) {
+  webPush.setVapidDetails(
+    `mailto:${config.VAPID_CONTACT_EMAIL}`,
+    config.VAPID_PUBLIC_KEY,
+    config.VAPID_PRIVATE_KEY,
+  )
+} else {
+  console.warn('[push] VAPID keys not set — push notifications disabled')
+}
 
 export interface PushPayload {
   title: string

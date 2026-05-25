@@ -17,9 +17,9 @@ const schema = z.object({
   STRESS_BYPASS_SECRET: z.string().default(''),
   ANTHROPIC_API_KEY: z.string().optional(),
   GOOGLE_AI_API_KEY: z.string().optional(),
-  VAPID_PUBLIC_KEY: z.string().min(1),
-  VAPID_PRIVATE_KEY: z.string().min(1),
-  VAPID_CONTACT_EMAIL: z.string().email(),
+  VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+  VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  VAPID_CONTACT_EMAIL: z.string().email().optional(),
 })
 
 const result = schema.safeParse(process.env)
@@ -36,6 +36,10 @@ if (!result.data.ANTHROPIC_API_KEY) {
 
 if (!result.data.GOOGLE_AI_API_KEY) {
   console.warn('[config] GOOGLE_AI_API_KEY not set — avatar generation will fail at runtime')
+}
+
+if (!result.data.VAPID_PUBLIC_KEY || !result.data.VAPID_PRIVATE_KEY) {
+  console.warn('[config] VAPID keys not set — push notifications disabled')
 }
 
 export const config = result.data
