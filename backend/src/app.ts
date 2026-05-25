@@ -55,7 +55,7 @@ export async function buildApp() {
     connectTimeout: 500,
     maxRetriesPerRequest: 1,
     enableReadyCheck: false,
-    lazyConnect: false,
+    lazyConnect: true,
     retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 500)),
   })
   rateLimitRedis.on('error', (err: Error) => {
