@@ -50,7 +50,7 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
 
-  const { data: agenda, isLoading: agendaLoading } = useQuery({
+  const { data: agenda } = useQuery({
     queryKey: ['agenda'],
     queryFn: () => getAgenda(),
     staleTime: 30_000,
@@ -63,8 +63,7 @@ export default function HomePage() {
     retry: false,
   });
 
-  // While fetching: show skeleton. Once settled: use live data or fall back to V7_EVENTS (real schedule).
-  const events   = agendaLoading ? [] : (agenda?.events ?? V7_EVENTS);
+  const events   = agenda?.events ?? V7_EVENTS;
   const current  = getActiveSession(events);
   const upcoming = getNextSession(events);
   const featured = current ?? upcoming;
@@ -92,7 +91,7 @@ export default function HomePage() {
         .home-name {
           font-family: 'Sora', sans-serif;
           font-size: 34px;
-          font-weight: 800;
+          font-weight: 700;
           color: var(--t);
           letter-spacing: -.03em;
           line-height: 1.1;
@@ -120,7 +119,7 @@ export default function HomePage() {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
         .sec-label {
@@ -342,16 +341,6 @@ export default function HomePage() {
           color: var(--t3);
           font-size: 15px;
         }
-        @keyframes home-shimmer {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
-        }
-        .home-skel {
-          border-radius: 8px;
-          background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.06) 75%);
-          background-size: 200% 100%;
-          animation: home-shimmer 1.4s ease-in-out infinite;
-        }
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0 }}>
@@ -377,19 +366,10 @@ export default function HomePage() {
         <div className="home-scroll">
           <PwaPromptBanner />
 
-          {/* Happening Now */}
-          <div className="sec-label">Happening Now</div>
+          {/* Happening Now / Up Next */}
+          <div className="sec-label">{current ? 'Happening Now' : 'Up Next'}</div>
 
-          {agendaLoading ? (
-            <div className="whats-next-card">
-              <div className="home-skel" style={{ width: '40%', height: 11, marginBottom: 14 }} />
-              <div className="home-skel" style={{ width: '85%', height: 22, marginBottom: 10 }} />
-              <div style={{ display: 'flex', gap: 10 }}>
-                <div className="home-skel" style={{ width: '28%', height: 13 }} />
-                <div className="home-skel" style={{ width: '35%', height: 13 }} />
-              </div>
-            </div>
-          ) : featured ? (
+          {featured ? (
             <div className="whats-next-card">
               <div className="wn-eyebrow">
                 {current ? <><span className="live-dot" /> Live Now</> : 'Coming Up'}

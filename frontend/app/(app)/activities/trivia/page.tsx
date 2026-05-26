@@ -1,36 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { startTrivia, completeTrivia, type TriviaQuestion } from '@/lib/api/activities';
 
 type Phase = 'hub' | 'play' | 'result';
 
 const TIMER_SECS = 60;
-const PROGRESS_KEY = 'agentx_trivia_progress';
-
-interface TriviaProgress {
-  attemptId: string;
-  startedAt: number;
-  questions: TriviaQuestion[];
-  answers: { questionId: string; selectedIndex: number }[];
-  qIdx: number;
-}
-
-function saveProgress(p: TriviaProgress) {
-  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch {}
-}
-
-function clearProgress() {
-  try { localStorage.removeItem(PROGRESS_KEY); } catch {}
-}
-
-function loadProgress(): TriviaProgress | null {
-  try {
-    const raw = localStorage.getItem(PROGRESS_KEY);
-    return raw ? (JSON.parse(raw) as TriviaProgress) : null;
-  } catch { return null; }
-}
 
 function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
   const r = 22;
@@ -38,10 +14,10 @@ function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
   const dash = circ * (seconds / total);
   return (
     <svg width="60" height="60" viewBox="0 0 60 60" style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx="30" cy="30" r={r} fill="none" stroke="var(--surface2)" strokeWidth="4" />
+      <circle cx="30" cy="30" r={r} fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="4" />
       <circle
         cx="30" cy="30" r={r} fill="none"
-        stroke={seconds <= 10 ? 'var(--rose)' : 'var(--blue)'}
+        stroke={seconds <= 10 ? 'var(--rose)' : '#E39548'}
         strokeWidth="4"
         strokeDasharray={`${dash} ${circ}`}
         strokeLinecap="round"
@@ -52,7 +28,7 @@ function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
         textAnchor="middle"
         dominantBaseline="central"
         fontSize="14" fontWeight="700"
-        fill={seconds <= 10 ? 'var(--rose)' : 'var(--navy)'}
+        fill={seconds <= 10 ? 'var(--rose)' : '#CCDEE7'}
         style={{ transform: 'rotate(90deg)', transformOrigin: '30px 30px', fontSize: '13px', fontFamily: 'Sora, sans-serif' }}
       >
         {seconds}
@@ -71,120 +47,56 @@ export default function TriviaPage() {
   const [selected, setSelected]     = useState<number | null>(null);
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
-  const [startError, setStartError] = useState('');
   const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
-
-  // Refs so the global timer callback can read latest values without re-triggering the effect
-  const answersRef     = useRef<{ questionId: string; selectedIndex: number }[]>([]);
-  const qIdxRef        = useRef(0);
-  const submittingRef  = useRef(false);
-  const startedAtRef   = useRef(0);
-
-  useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { qIdxRef.current = qIdx; }, [qIdx]);
-
-  // On mount: restore in-progress quiz from localStorage (wall-clock resume)
-  useEffect(() => {
-    const saved = loadProgress();
-    if (!saved) return;
-    const elapsed = Math.floor((Date.now() - saved.startedAt) / 1000);
-    const remaining = TIMER_SECS - elapsed;
-    if (remaining <= 0) {
-      // Time already expired while app was closed — submit what was answered
-      clearProgress();
-      const allAnswers = [...saved.answers];
-      for (let i = saved.qIdx; i < saved.questions.length; i++) {
-        allAnswers.push({ questionId: saved.questions[i].id, selectedIndex: -1 });
-      }
-      submittingRef.current = true;
-      completeTrivia(saved.attemptId, allAnswers, crypto.randomUUID())
-        .then((r) => { setResult(r); setPhase('result'); })
-        .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: saved.questions.length }); setPhase('result'); });
-    } else {
-      // Resume with remaining seconds
-      startedAtRef.current = saved.startedAt;
-      submittingRef.current = false;
-      setAttemptId(saved.attemptId);
-      setQuestions(saved.questions);
-      setQIdx(saved.qIdx);
-      setAnswers(saved.answers);
-      setSelected(null);
-      setTimer(remaining);
-      setPhase('play');
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = questions[qIdx];
 
   const advanceQuestion = useCallback((idx: number, sel: number | null) => {
-    if (submittingRef.current) return; // guard: timer may have already submitted
     const ans = sel !== null
       ? [...answers, { questionId: questions[idx].id, selectedIndex: sel }]
       : [...answers, { questionId: questions[idx].id, selectedIndex: -1 }];
     setAnswers(ans);
     setSelected(null);
+    setTimer(TIMER_SECS);
 
     if (idx + 1 < questions.length) {
       setQIdx(idx + 1);
-      // Save progress after each answer so resume is up to date
-      saveProgress({ attemptId, startedAt: startedAtRef.current, questions, answers: ans, qIdx: idx + 1 });
     } else {
-      submittingRef.current = true;
-      clearProgress();
+      // Submit
       completeTrivia(attemptId, ans, crypto.randomUUID())
         .then((r) => { setResult(r); setPhase('result'); })
         .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
     }
   }, [answers, attemptId, questions]);
 
-  // Global quiz timer — starts once when play begins, never resets between questions
   useEffect(() => {
     if (phase !== 'play') return;
     const t = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(t);
-          if (!submittingRef.current) {
-            submittingRef.current = true;
-            clearProgress();
-            const currentAnswers = answersRef.current;
-            const currentQIdx = qIdxRef.current;
-            // Fill all unanswered questions with -1
-            const allAnswers = [...currentAnswers];
-            for (let i = currentQIdx; i < questions.length; i++) {
-              allAnswers.push({ questionId: questions[i].id, selectedIndex: -1 });
-            }
-            completeTrivia(attemptId, allAnswers, crypto.randomUUID())
-              .then((r) => { setResult(r); setPhase('result'); })
-              .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
-          }
-          return 0;
+          advanceQuestion(qIdx, null);
+          return TIMER_SECS;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [phase, questions, attemptId]);
+  }, [phase, qIdx, advanceQuestion]);
 
   async function handleStart() {
     setLoading(true);
-    setStartError('');
     try {
       const res = await startTrivia();
-      startedAtRef.current = Date.now();
-      saveProgress({ attemptId: res.attemptId, startedAt: startedAtRef.current, questions: res.questions, answers: [], qIdx: 0 });
       setAttemptId(res.attemptId);
       setQuestions(res.questions);
       setQIdx(0);
       setAnswers([]);
       setSelected(null);
       setTimer(TIMER_SECS);
-      submittingRef.current = false;
       setPhase('play');
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setStartError(msg);
-      console.error('[trivia/start]', e);
+    } catch {
+      alert('Could not start trivia. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -223,7 +135,7 @@ export default function TriviaPage() {
           gap: 6px;
           font-size: 15px;
           font-weight: 600;
-          color: var(--blue);
+          color: var(--amber);
           background: none;
           border: none;
           cursor: pointer;
@@ -232,27 +144,30 @@ export default function TriviaPage() {
         }
         .page-title {
           font-family: 'Sora', sans-serif;
-          font-size: 28px;
-          font-weight: 700;
-          color: var(--navy);
-          letter-spacing: -.025em;
+          font-size: 32px;
+          font-weight: 800;
+          color: #CCDEE7;
+          letter-spacing: .02em;
+          text-transform: uppercase;
           margin: 0 0 8px;
         }
-        .page-sub { font-size: 15px; color: var(--t3); margin: 0 0 24px; }
+        .page-sub { font-size: 15px; color: rgba(204,222,231,.55); margin: 0 0 24px; }
         .rules-card {
-          background: var(--surface);
-          border: 1.5px solid var(--border);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
           padding: 18px;
-          box-shadow: var(--shadow-sm);
-          margin-bottom: 20px;
+          box-shadow: var(--shadow-card);
+          margin-bottom: 0;
         }
         .rules-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px;
-          font-weight: 700;
-          color: var(--navy);
-          margin-bottom: 10px;
+          font-size: 13px;
+          font-weight: 800;
+          color: #1C283C;
+          text-transform: uppercase;
+          letter-spacing: .08em;
+          margin-bottom: 12px;
         }
         .rules-list {
           list-style: none;
@@ -261,28 +176,32 @@ export default function TriviaPage() {
         }
         .rules-list li {
           display: flex; align-items: flex-start; gap: 8px;
-          font-size: 14px; color: var(--t2);
+          font-size: 14px; color: #4a6080;
         }
         .rules-list li::before {
           content: '•';
-          color: var(--blue);
+          color: #E39548;
           font-weight: 800;
           flex-shrink: 0;
         }
         .btn-start {
           width: 100%;
-          height: 54px;
+          height: 52px;
           border-radius: 14px;
-          background: var(--blue);
-          color: #fff;
-          font-size: 17px;
+          background: #1C283C;
+          color: #E39548;
+          font-size: 15px;
           font-weight: 700;
+          letter-spacing: .02em;
           font-family: 'Sora', sans-serif;
-          border: none;
+          border: 1px solid rgba(227,149,72,.18);
           cursor: pointer;
-          box-shadow: var(--shadow-blue);
-          transition: opacity var(--tr);
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: transform .18s cubic-bezier(.4,0,.2,1), background .15s;
+          margin-top: 16px;
         }
+        .btn-start:hover { background: #243352; }
+        .btn-start:active { transform: scale(.97); }
         .btn-start:disabled { opacity: .5; }
 
         /* Play phase */
@@ -298,11 +217,11 @@ export default function TriviaPage() {
           font-family: 'Sora', sans-serif;
           font-size: 16px;
           font-weight: 700;
-          color: var(--navy);
+          color: #CCDEE7;
         }
         .q-progress-track {
           height: 4px;
-          background: var(--surface2);
+          background: rgba(255,255,255,.10);
           border-radius: 2px;
           margin: 0 18px 16px;
           flex-shrink: 0;
@@ -311,7 +230,7 @@ export default function TriviaPage() {
         .q-progress-fill {
           height: 100%;
           border-radius: 2px;
-          background: linear-gradient(90deg, var(--blue), var(--cyan));
+          background: linear-gradient(90deg, #F0A55A, #E39548);
           transition: width .3s ease;
         }
         .tv-q-card {
@@ -348,9 +267,9 @@ export default function TriviaPage() {
         }
         .tv-opt:active { transform: scale(.98); }
         .tv-opt-sel {
-          background: var(--blue-lt);
-          border-color: var(--blue);
-          color: var(--blue);
+          background: rgba(227,149,72,.12);
+          border-color: #E39548;
+          color: #E39548;
         }
         .tv-opt-dim { opacity: .45; }
 
@@ -379,7 +298,7 @@ export default function TriviaPage() {
           font-family: 'Sora', sans-serif;
           font-size: 42px;
           font-weight: 800;
-          color: var(--navy);
+          color: #CCDEE7;
           line-height: 1;
         }
         .score-pts {
@@ -392,13 +311,13 @@ export default function TriviaPage() {
           font-family: 'Sora', sans-serif;
           font-size: 24px;
           font-weight: 700;
-          color: var(--navy);
+          color: #CCDEE7;
           margin-bottom: 6px;
           text-align: center;
         }
         .result-sub {
           font-size: 15px;
-          color: var(--t3);
+          color: rgba(204,222,231,.55);
           margin-bottom: 28px;
           text-align: center;
         }
@@ -410,36 +329,37 @@ export default function TriviaPage() {
           margin-bottom: 28px;
         }
         .result-stat {
-          background: var(--surface);
-          border: 1.5px solid var(--border);
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
           padding: 14px 8px;
           text-align: center;
-          box-shadow: var(--shadow-xs);
+          box-shadow: var(--shadow-card);
         }
         .rs-val {
           font-family: 'Sora', sans-serif;
           font-size: 22px;
           font-weight: 800;
-          color: var(--navy);
+          color: #1C283C;
         }
         .rs-lbl {
           font-size: 12px;
-          color: var(--t4);
+          color: #4a6080;
           margin-top: 3px;
           font-weight: 600;
         }
         .btn-back {
           width: 100%;
-          height: 54px;
+          height: 52px;
           border-radius: 14px;
-          background: var(--surface2);
-          color: var(--navy);
-          font-size: 16px;
+          background: #1C283C;
+          color: #E39548;
+          font-size: 15px;
           font-weight: 700;
           font-family: 'Sora', sans-serif;
-          border: 1.5px solid var(--border-metal);
+          border: 1px solid rgba(227,149,72,.18);
           cursor: pointer;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
         }
       `}</style>
 
@@ -453,20 +373,15 @@ export default function TriviaPage() {
             <div className="rules-card">
               <div className="rules-title">How it works</div>
               <ul className="rules-list">
-                <li>Answer 50 multiple-choice questions</li>
-                <li>You have 60 seconds for the entire quiz</li>
-                <li>Earn up to 500 points total</li>
+                <li>Answer 10 multiple-choice questions</li>
+                <li>You have 60 seconds per question</li>
+                <li>Earn up to 200 points total</li>
                 <li>Can only be played once</li>
               </ul>
+              <button className="btn-start" onClick={handleStart} disabled={loading}>
+                {loading ? 'Loading…' : 'Start Quiz →'}
+              </button>
             </div>
-            <button className="btn-start" onClick={handleStart} disabled={loading}>
-              {loading ? 'Loading…' : 'Start Quiz →'}
-            </button>
-            {startError && (
-              <p style={{ color: 'var(--rose)', fontSize: 14, marginTop: 12, textAlign: 'center' }}>
-                {startError}
-              </p>
-            )}
           </div>
         )}
 
@@ -496,10 +411,10 @@ export default function TriviaPage() {
           <div className="result-wrap">
             <div className="score-ring-wrap">
               <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="80" cy="80" r="68" fill="none" stroke="var(--surface2)" strokeWidth="10" />
+                <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="10" />
                 <circle
                   cx="80" cy="80" r="68" fill="none"
-                  stroke="var(--blue)"
+                  stroke="#E39548"
                   strokeWidth="10"
                   strokeDasharray={`${2 * Math.PI * 68 * (result.correctCount / result.totalQuestions)} ${2 * Math.PI * 68}`}
                   strokeLinecap="round"

@@ -86,7 +86,6 @@ export default function OwlFab() {
         @keyframes fabDotPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
       `}</style>
       <button
-        id="owl-fab"
         className="owl-fab-wrap"
         aria-label="Open Agent X assistant"
         onClick={openSheet}

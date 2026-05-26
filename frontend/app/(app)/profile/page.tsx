@@ -13,6 +13,19 @@ function MedalCell({ rank }: { rank: number }) {
   return <div className="lb-rank-num">#{rank}</div>;
 }
 
+const SPONSORS = [
+  { name: 'AccuTitle',     src: '/sponsors/accutitle.png'     },
+  { name: 'CertifID',      src: '/sponsors/certifid.png'      },
+  { name: 'Qualia',        src: '/sponsors/qualia.png'        },
+  { name: 'Closinglock',   src: '/sponsors/closinglock.png'   },
+  { name: 'Bear Printing', src: '/sponsors/bear-printing.png' },
+  { name: 'PropLogix',     src: '/sponsors/proplogix.png'     },
+  { name: 'Pythonic',      src: '/sponsors/pythonic.png'      },
+  { name: 'Rynoh',         src: '/sponsors/rynoh.png'         },
+  { name: 'Capital Bank',  src: '/sponsors/capital-bank.png'  },
+  { name: 'alanna.ai',     src: '/sponsors/alanna-ai.png'     },
+];
+
 function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boolean }) {
   return (
     <div className={`lb-row-v7${highlight ? ' me' : ''}`}>
@@ -336,6 +349,32 @@ export default function ProfilePage() {
           margin-top: 2px;
         }
         .prof-chevron { color: rgba(28,40,60,.35); flex-shrink: 0; }
+
+        /* ── Sponsor logo grid ── */
+        .sponsors-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 14px 16px 18px;
+        }
+        .sponsor-tile {
+          background: #fff;
+          border-radius: 14px;
+          padding: 14px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 68px;
+          box-shadow: 0 1px 6px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.80);
+          border: 1px solid rgba(0,0,0,.06);
+        }
+        .sponsor-logo {
+          width: 100%;
+          height: 44px;
+          object-fit: contain;
+          object-position: center;
+          display: block;
+        }
       `}</style>
 
       <div className="profile-page">
@@ -447,11 +486,12 @@ export default function ProfilePage() {
                 <span className="prof-section-title">Our Sponsors</span>
               </div>
             </div>
-            <div className="section-static-row">
-              <div className="section-static-body">
-                <div className="section-name">WFG Title &amp; Escrow</div>
-                <div className="section-link-sub">Your trusted partner for every closing</div>
-              </div>
+            <div className="sponsors-grid">
+              {SPONSORS.map((s) => (
+                <div key={s.name} className="sponsor-tile">
+                  <img src={s.src} alt={s.name} className="sponsor-logo" />
+                </div>
+              ))}
             </div>
           </div>
 

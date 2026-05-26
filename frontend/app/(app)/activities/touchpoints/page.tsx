@@ -2,86 +2,43 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { scoreTouchpointAnswer } from '@/lib/scoring';
+import { useUiStore } from '@/store/ui';
 
 const TOUCHPOINTS = [
-  {
-    id: 'main-stage',
-    name: 'Main Stage',
-    sub: 'Grand Ballroom · +30 pts',
-    icon: '🎤',
-    question: 'What was the most impactful moment or takeaway from the Main Stage sessions?',
-    placeholder: 'Share what stood out to you — a speaker, idea, or insight…',
-    pts: 30,
-  },
-  {
-    id: 'sponsor-hall',
-    name: 'Sponsor Hall',
-    sub: 'Exhibit Floor · +30 pts',
-    icon: '🤝',
-    question: 'Which sponsor or partner caught your attention, and what did you learn from them?',
-    placeholder: 'Describe a conversation, product demo, or connection you made…',
-    pts: 30,
-  },
-  {
-    id: 'agent-x-kiosk',
-    name: 'Agent X Kiosk',
-    sub: 'Technology Demo Area · +30 pts',
-    icon: '🤖',
-    question: 'After interacting with Agent X at the kiosk, how do you see AI changing your workflow?',
-    placeholder: 'What excites you most about AI in the title & escrow industry?',
-    pts: 30,
-  },
-  {
-    id: 'networking-lounge',
-    name: 'Networking Lounge',
-    sub: 'Level 2 Terrace · +30 pts',
-    icon: '💬',
-    question: 'What was the most valuable conversation or connection you made today?',
-    placeholder: 'Describe who you met, what you discussed, or what you plan to follow up on…',
-    pts: 30,
-  },
-  {
-    id: 'keynote-stage',
-    name: 'Keynote Stage',
-    sub: 'Grand Auditorium · +30 pts',
-    icon: '🏆',
-    question: 'What is one action or change you plan to make after attending the keynote?',
-    placeholder: 'Describe how this session will influence your approach or strategy going forward…',
-    pts: 30,
-  },
-];
+  { id: 'tp1', zone: 'Main Stage',      prompt: 'What stood out most from the opening keynote or main stage session today?' },
+  { id: 'tp2', zone: 'Sponsor Hall',    prompt: 'Which technology solution at the sponsor hall caught your attention most, and why?' },
+  { id: 'tp3', zone: 'Breakout Session',prompt: 'What operational bottleneck affects your agency most right now?' },
+  { id: 'tp4', zone: 'Networking Lounge',prompt: 'What AI workflow would save you the most time in your daily work?' },
+  { id: 'tp5', zone: 'ATS Demo Area',   prompt: 'What would you most like WFG and ATS to build or improve next?' },
+] as const;
 
-type SubmitState = 'idle' | 'submitting' | 'done';
+type TpId = typeof TOUCHPOINTS[number]['id'];
+type TpResult = { pointsAwarded: number; reason: string; answer: string };
 
 export default function TouchpointsPage() {
   const router = useRouter();
-  const [responses, setResponses] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
-  const [submitState, setSubmitState] = useState<Record<string, SubmitState>>({});
+  const { pushToast } = useUiStore();
+  const [expanded, setExpanded] = useState<TpId | null>(null);
+  const [drafts, setDrafts]     = useState<Record<string, string>>({});
+  const [done, setDone]         = useState<Record<string, TpResult>>({});
+  const [submitting, setSub]    = useState<TpId | null>(null);
 
-  function handleChange(id: string, value: string) {
-    setResponses((prev) => ({ ...prev, [id]: value }));
+  const totalPts  = Object.values(done).reduce((s, d) => s + d.pointsAwarded, 0);
+  const doneCount = Object.keys(done).length;
+
+  async function handleSubmit(tp: typeof TOUCHPOINTS[number]) {
+    const answer = (drafts[tp.id] ?? '').trim();
+    if (answer.length < 20) return;
+    setSub(tp.id);
+    await new Promise((r) => setTimeout(r, 400));
+    const res = scoreTouchpointAnswer(tp.prompt, answer, TOUCHPOINTS.indexOf(tp));
+    if (!res.isValid) { setSub(null); return; }
+    setDone((prev) => ({ ...prev, [tp.id]: { ...res, answer } }));
+    setExpanded(null);
+    pushToast({ message: `Response recorded. ${res.reason}`, points: res.pointsAwarded });
+    setSub(null);
   }
-
-  async function handleSubmit(tp: typeof TOUCHPOINTS[0]) {
-    const text = responses[tp.id] ?? '';
-    if (text.trim().length < 15) return;
-    setSubmitState((prev) => ({ ...prev, [tp.id]: 'submitting' }));
-    try {
-      await apiFetch('/v1/touchpoints/checkin', {
-        method: 'POST',
-        body: JSON.stringify({ locationId: tp.id, response: text, dedupeKey: crypto.randomUUID() }),
-      });
-    } catch {
-      // Non-blocking
-    } finally {
-      setSubmitted((prev) => ({ ...prev, [tp.id]: true }));
-      setSubmitState((prev) => ({ ...prev, [tp.id]: 'done' }));
-    }
-  }
-
-  const completedCount = Object.values(submitted).filter(Boolean).length;
 
   return (
     <>
@@ -94,173 +51,154 @@ export default function TouchpointsPage() {
         }
         .back-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 15px; font-weight: 600; color: var(--blue);
+          font-size: 15px; font-weight: 600; color: var(--amber);
           background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
         }
         .page-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 28px; font-weight: 700; color: var(--t);
-          letter-spacing: -.025em; margin: 0 0 6px;
+          font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800;
+          color: #CCDEE7; letter-spacing: .02em; text-transform: uppercase; margin: 0 0 8px;
         }
-        .page-sub { font-size: 15px; color: var(--t3); margin: 0 0 8px; }
-        .tp-progress {
-          display: flex; align-items: center; gap: 10px;
-          margin-bottom: 22px;
+        .page-sub { font-size: 15px; color: rgba(204,222,231,.55); margin: 0 0 6px; }
+        .progress-bar-wrap {
+          height: 4px; background: rgba(255,255,255,.10); border-radius: 4px;
+          margin-bottom: 20px; overflow: hidden;
         }
-        .tp-progress-track {
-          flex: 1; height: 6px; background: var(--bg3);
-          border-radius: 4px; overflow: hidden;
-        }
-        .tp-progress-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--blue), var(--cyan));
+        .progress-bar-fill {
+          height: 100%; background: linear-gradient(90deg, #E39548, #D4A017);
           border-radius: 4px; transition: width .4s ease;
         }
-        .tp-progress-label {
-          font-family: 'Sora', sans-serif;
-          font-size: 13px; font-weight: 700; color: var(--t3);
-          flex-shrink: 0; white-space: nowrap;
-        }
-
-        /* Location card */
         .tp-card {
-          background: var(--surface);
-          border: 1px solid var(--border-metal);
-          border-radius: var(--r-lg);
-          margin-bottom: 14px;
-          box-shadow: var(--shadow-card);
-          overflow: hidden;
+          background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
+          border-radius: var(--r-lg); padding: 16px 18px; margin-bottom: 10px;
+          box-shadow: var(--shadow-card); cursor: pointer;
+          transition: box-shadow var(--tr), border-color .2s;
+        }
+        .tp-card.expanded { border-color: rgba(227,149,72,.45); cursor: default; }
+        .tp-card.tp-done { border-color: rgba(20,102,54,.30); }
+        .tp-card-top { display: flex; align-items: center; gap: 12px; }
+        .tp-zone-chip {
+          display: inline-flex; align-items: center;
+          font-size: 11px; font-weight: 700; letter-spacing: .06em;
+          text-transform: uppercase; color: #E39548;
+          background: rgba(227,149,72,.10); border: 1px solid rgba(227,149,72,.30);
+          border-radius: 8px; padding: 3px 8px; flex-shrink: 0;
+        }
+        .tp-card.tp-done .tp-zone-chip { color: var(--green); background: rgba(20,102,54,.08); border-color: rgba(20,102,54,.25); }
+        .tp-prompt-text {
+          font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
+          color: #1C283C; line-height: 1.35; flex: 1;
+        }
+        .tp-done-pts {
+          font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800;
+          color: var(--green); flex-shrink: 0; white-space: nowrap;
+        }
+        .tp-done-preview {
+          margin-top: 10px; padding-top: 10px;
+          border-top: 1px solid rgba(28,40,60,.08);
+          font-size: 13px; color: #4a6080; line-height: 1.5;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .tp-expand-body { margin-top: 14px; }
+        .tp-textarea {
+          width: 100%; min-height: 110px;
+          background: rgba(28,40,60,.04); border: 1.5px solid rgba(28,40,60,.12);
+          border-radius: 12px; padding: 12px 14px;
+          font-size: 15px; color: #1C283C; font-family: 'Sora', sans-serif;
+          resize: none; outline: none; line-height: 1.55;
           transition: border-color var(--tr);
         }
-        .tp-card.done { border-color: rgba(21,122,64,.30); }
-        .tp-card-header {
-          display: flex; align-items: center; gap: 12px;
-          padding: 14px 16px;
+        .tp-textarea:focus { border-color: #E39548; box-shadow: 0 0 0 3px rgba(227,149,72,.12); }
+        .tp-char-hint {
+          font-size: 12px; color: rgba(28,40,60,.35);
+          margin: 6px 0 12px; text-align: right;
+          transition: color .2s;
         }
-        .tp-card.done .tp-card-header {
-          background: var(--green-lt);
+        .tp-char-hint.ok { color: var(--green); font-weight: 600; }
+        .btn-tp-submit {
+          width: 100%; height: 48px; border-radius: 12px;
+          background: #1C283C; color: #E39548;
+          font-size: 14px; font-weight: 700; font-family: 'Sora', sans-serif;
+          border: 1px solid rgba(227,149,72,.18); cursor: pointer;
+          box-shadow: 0 2px 10px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: background .15s;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .tp-icon {
-          width: 40px; height: 40px; border-radius: 11px;
-          background: var(--blue-lt);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 20px; flex-shrink: 0;
+        .btn-tp-submit:hover { background: #243352; }
+        .btn-tp-submit:disabled { opacity: .5; cursor: not-allowed; }
+        .tp-spinner {
+          width: 16px; height: 16px; border-radius: 50%;
+          border: 2px solid rgba(227,149,72,.25); border-top-color: #E39548;
+          animation: tpSpin .7s linear infinite; flex-shrink: 0;
         }
-        .tp-card.done .tp-icon { background: var(--green-lt); }
-        .tp-name {
-          font-family: 'Sora', sans-serif;
-          font-size: 16px; font-weight: 700; color: var(--t);
-          flex: 1;
-        }
-        .tp-sub { font-size: 13px; color: var(--t3); margin-top: 2px; }
-        .tp-badge-done {
-          font-size: 13px; font-weight: 700;
-          color: var(--green); flex-shrink: 0;
-          display: flex; align-items: center; gap: 4px;
-        }
-        /* Body (form) */
-        .tp-card-body { padding: 0 16px 16px; }
-        .tp-divider { height: 1px; background: var(--border-metal); margin: 0 0 14px; }
-        .tp-question {
-          font-size: 15px; font-weight: 600; color: var(--t2);
-          margin-bottom: 10px; line-height: 1.4;
-        }
-        .tp-textarea {
-          width: 100%;
-          min-height: 100px;
-          background: var(--bg2);
-          border: 1.5px solid var(--border-metal);
-          border-radius: 12px;
-          padding: 12px 14px;
-          font-size: 15px;
-          color: var(--t);
-          font-family: 'DM Sans', sans-serif;
-          line-height: 1.55;
-          resize: none;
-          outline: none;
-          transition: border-color var(--tr), box-shadow var(--tr);
-          margin-bottom: 10px;
-        }
-        .tp-textarea:focus {
-          border-color: var(--blue);
-          box-shadow: 0 0 0 3px rgba(27,79,196,.08);
-        }
-        .tp-char-count {
-          font-size: 12px; color: var(--t4); text-align: right;
-          margin-bottom: 10px; margin-top: -6px;
-        }
-        .tp-char-count.ok { color: var(--green); font-weight: 600; }
-        .tp-submit-btn {
-          width: 100%; height: 48px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff;
-          font-size: 15px; font-weight: 700;
-          font-family: 'Sora', sans-serif;
-          border: none; cursor: pointer;
-          box-shadow: var(--shadow-blue);
-          transition: opacity var(--tr);
-        }
-        .tp-submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+        @keyframes tpSpin { to { transform: rotate(360deg); } }
+        .tp-done-check { color: var(--green); flex-shrink: 0; }
+        .tp-chev { color: var(--t4); flex-shrink: 0; }
       `}</style>
 
       <div className="tp-page">
         <div className="tp-scroll">
           <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Touchpoints</h1>
-          <p className="page-sub">Share your experience at each summit location</p>
-
-          <div className="tp-progress">
-            <div className="tp-progress-track">
-              <div className="tp-progress-fill" style={{ width: `${(completedCount / TOUCHPOINTS.length) * 100}%` }} />
-            </div>
-            <span className="tp-progress-label">{completedCount} / {TOUCHPOINTS.length}</span>
+          <p className="page-sub">{doneCount} / 5 responses · {totalPts} / 150 pts</p>
+          <div className="progress-bar-wrap">
+            <div className="progress-bar-fill" style={{ width: `${Math.min(100, (totalPts / 150) * 100)}%` }} />
           </div>
 
-          {TOUCHPOINTS.map((tp) => {
-            const isDone = submitted[tp.id] ?? false;
-            const text = responses[tp.id] ?? '';
-            const charOk = text.trim().length >= 15;
-            const state = submitState[tp.id] ?? 'idle';
+          {TOUCHPOINTS.map((tp, idx) => {
+            const isDone     = !!done[tp.id];
+            const isExpanded = expanded === tp.id && !isDone;
+            const draft      = drafts[tp.id] ?? '';
+            const charOk     = draft.trim().length >= 20;
+            const isSub      = submitting === tp.id;
 
             return (
-              <div key={tp.id} className={`tp-card${isDone ? ' done' : ''}`}>
-                <div className="tp-card-header">
-                  <div className="tp-icon">{isDone ? '✅' : tp.icon}</div>
-                  <div>
-                    <div className="tp-name">{tp.name}</div>
-                    <div className="tp-sub">{tp.sub}</div>
-                  </div>
-                  {isDone && (
-                    <div className="tp-badge-done">
-                      <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
-                        <path d="M2.5 7l3.5 3.5 5.5-5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      +{tp.pts} pts
+              <div
+                key={tp.id}
+                className={`tp-card${isExpanded ? ' expanded' : ''}${isDone ? ' tp-done' : ''}`}
+                onClick={() => { if (!isDone && !isExpanded) setExpanded(tp.id); }}
+              >
+                <div className="tp-card-top">
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <span className="tp-zone-chip">{tp.zone}</span>
                     </div>
-                  )}
+                    <div className="tp-prompt-text">{tp.prompt}</div>
+                  </div>
+                  {isDone
+                    ? <><div className="tp-done-pts">+{done[tp.id].pointsAwarded} pts</div>
+                        <div className="tp-done-check">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                        </div>
+                      </>
+                    : isExpanded
+                      ? null
+                      : <div className="tp-chev"><svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+                  }
                 </div>
 
-                {!isDone && (
-                  <div className="tp-card-body">
-                    <div className="tp-divider" />
-                    <div className="tp-question">{tp.question}</div>
+                {isDone && (
+                  <div className="tp-done-preview">{done[tp.id].answer}</div>
+                )}
+
+                {isExpanded && (
+                  <div className="tp-expand-body" onClick={(e) => e.stopPropagation()}>
                     <textarea
                       className="tp-textarea"
-                      placeholder={tp.placeholder}
-                      value={text}
-                      onChange={(e) => handleChange(tp.id, e.target.value)}
-                      disabled={state === 'submitting'}
+                      placeholder="Share your thoughts… (20 chars minimum)"
+                      value={draft}
+                      onChange={(e) => setDrafts((prev) => ({ ...prev, [tp.id]: e.target.value }))}
+                      maxLength={250}
+                      autoFocus
                     />
-                    <div className={`tp-char-count${charOk ? ' ok' : ''}`}>
-                      {text.trim().length} / 15 chars min {charOk ? '✓' : ''}
+                    <div className={`tp-char-hint${charOk ? ' ok' : ''}`}>
+                      {charOk ? `${draft.trim().length} / 250 chars` : `${draft.trim().length} / 20 minimum`}
                     </div>
                     <button
-                      className="tp-submit-btn"
+                      className="btn-tp-submit"
                       onClick={() => handleSubmit(tp)}
-                      disabled={!charOk || state === 'submitting'}
+                      disabled={!charOk || isSub}
                     >
-                      {state === 'submitting' ? 'Submitting…' : `Submit · +${tp.pts} pts`}
+                      {isSub ? <><div className="tp-spinner" /> Submitting…</> : 'Submit Response'}
                     </button>
                   </div>
                 )}

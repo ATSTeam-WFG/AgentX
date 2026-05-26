@@ -112,6 +112,8 @@ export default function TopBar() {
           flex-shrink: 0;
         }
         .tb-wfg-logo {
+          height: 34px;
+          width: auto;
           object-fit: contain;
         }
 
@@ -153,7 +155,7 @@ export default function TopBar() {
               width={80}
               height={34}
               className="tb-wfg-logo"
-              style={{ height: 34, width: 'auto', objectFit: 'contain' }}
+              style={{ objectFit: 'contain' }}
               priority
             />
           </div>
