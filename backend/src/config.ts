@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { writeSync } from 'fs'
 
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -25,8 +26,9 @@ const schema = z.object({
 const result = schema.safeParse(process.env)
 
 if (!result.success) {
-  process.stderr.write('Missing or invalid environment variables:\n')
-  process.stderr.write(JSON.stringify(result.error.flatten().fieldErrors, null, 2) + '\n')
+  const msg = '[config] Missing or invalid environment variables:\n' +
+    JSON.stringify(result.error.flatten().fieldErrors, null, 2) + '\n'
+  writeSync(2, msg)
   process.exit(1)
 }
 
