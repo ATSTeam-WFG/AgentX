@@ -14,16 +14,16 @@ function MedalCell({ rank }: { rank: number }) {
 }
 
 const SPONSORS = [
-  { name: 'AccuTitle',     src: '/sponsors/accutitle.png'     },
-  { name: 'CertifID',      src: '/sponsors/certifid.png'      },
-  { name: 'Qualia',        src: '/sponsors/qualia.png'        },
-  { name: 'Closinglock',   src: '/sponsors/closinglock.png'   },
-  { name: 'Bear Printing', src: '/sponsors/bear-printing.png' },
-  { name: 'PropLogix',     src: '/sponsors/proplogix.png'     },
-  { name: 'Pythonic',      src: '/sponsors/pythonic.png'      },
-  { name: 'Rynoh',         src: '/sponsors/rynoh.png'         },
-  { name: 'Capital Bank',  src: '/sponsors/capital-bank.png'  },
-  { name: 'alanna.ai',     src: '/sponsors/alanna-ai.png'     },
+  { name: 'Qualia',         src: '/sponsors/logos/Qualia-logo-dark.png',                               dark: false },
+  { name: 'Closinglock',    src: '/sponsors/logos/Closinglock_Logo_Horizontal_Orange_CMYK%20(1).jpg',  dark: false },
+  { name: 'Bear Printing',  src: '/sponsors/logos/Bear%20Printing%20Logo%20-%20Bricks%20-%20Wide.png', dark: false },
+  { name: 'Pythonic',       src: '/sponsors/logos/Pythonic_logo%20horizontal-gradient.png',            dark: false },
+  { name: 'Capital Bank',   src: '/sponsors/logos/Capital%20Bank%20Full%20Color.jpg',                  dark: false },
+  { name: 'alanna.ai',      src: '/sponsors/logos/alanna-logo-horizontal%401x.png',                   dark: false },
+  { name: 'DataTrace',      src: '/sponsors/logos/DataTrace-logo-color.png',                           dark: false },
+  { name: 'Signature Xcel', src: '/sponsors/logos/Signature-Xcel-Logo-R-Tag-Lockup-Blue-v2.jpg',      dark: false },
+  { name: 'Connect',        src: '/sponsors/logos/Connect%20Powered%20by%20PLACE.png.svg',             dark: false },
+  { name: 'PalmAgent',      src: '/sponsors/logos/PalmAgent_white%20logo.png',                        dark: true  },
 ];
 
 function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boolean }) {
@@ -368,6 +368,11 @@ export default function ProfilePage() {
           box-shadow: 0 1px 6px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.80);
           border: 1px solid rgba(0,0,0,.06);
         }
+        .sponsor-tile.dark {
+          background: #1C283C;
+          border-color: rgba(255,255,255,.10);
+          box-shadow: 0 1px 6px rgba(0,0,0,.30);
+        }
         .sponsor-logo {
           width: 100%;
           height: 44px;
@@ -488,7 +493,7 @@ export default function ProfilePage() {
             </div>
             <div className="sponsors-grid">
               {SPONSORS.map((s) => (
-                <div key={s.name} className="sponsor-tile">
+                <div key={s.name} className={`sponsor-tile${s.dark ? ' dark' : ''}`}>
                   <img src={s.src} alt={s.name} className="sponsor-logo" />
                 </div>
               ))}
