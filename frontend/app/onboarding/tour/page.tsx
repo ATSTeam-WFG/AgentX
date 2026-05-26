@@ -83,7 +83,7 @@ export default function TourPage() {
     ? tooltipBelow
       ? spotRect.cy + spotRect.r + 18
       : spotRect.cy - spotRect.r - 18 - 140
-    : window.innerHeight / 2 - 70;
+    : (typeof window !== 'undefined' ? window.innerHeight : 600) / 2 - 70;
 
   return (
     <>
