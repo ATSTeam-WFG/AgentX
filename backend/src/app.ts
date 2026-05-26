@@ -40,24 +40,20 @@ import { adminAuditLogRoutes } from './routes/admin/audit-log'
 import { adminDashboardRoutes } from './routes/admin/dashboard'
 
 export async function buildApp() {
-  process.stdout.write('[buildApp] start\n')
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
 
   const corsOrigins = config.CORS_ORIGIN === '*'
     ? '*'
     : config.CORS_ORIGIN.split(',').map(o => o.trim())
 
-  process.stdout.write('[buildApp] registering cors\n')
   await app.register(cors, {
     origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
-  process.stdout.write('[buildApp] registering jwt\n')
   await app.register(jwt, { secret: config.JWT_SECRET })
 
-  process.stdout.write('[buildApp] registering rateLimit\n')
   await app.register(rateLimit, {
     global: true,
     max: 300,
@@ -86,15 +82,12 @@ export async function buildApp() {
     },
   })
 
-  process.stdout.write('[buildApp] registering multipart\n')
   await app.register(multipart, {
     limits: { fileSize: 10 * 1024 * 1024 },
   })
 
-  process.stdout.write('[buildApp] registering websocket\n')
   await app.register(websocket)
 
-  process.stdout.write('[buildApp] plugins done, registering routes\n')
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({ error: error.code, message: error.message })
@@ -159,6 +152,5 @@ export async function buildApp() {
     { prefix: '/v1/admin' },
   )
 
-  process.stdout.write('[buildApp] done\n')
   return app
 }
