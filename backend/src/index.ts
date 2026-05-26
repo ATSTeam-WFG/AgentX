@@ -3,6 +3,8 @@ import { buildApp } from './app'
 import { config } from './config'
 import { startWorker } from './workers/index'
 
+process.stdout.write('[index] modules loaded\n')
+
 async function main() {
   process.stdout.write('[startup] building app\n')
   const app = await buildApp()

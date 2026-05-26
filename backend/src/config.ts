@@ -25,8 +25,8 @@ const schema = z.object({
 const result = schema.safeParse(process.env)
 
 if (!result.success) {
-  console.error('Missing or invalid environment variables:')
-  console.error(result.error.flatten().fieldErrors)
+  process.stderr.write('Missing or invalid environment variables:\n')
+  process.stderr.write(JSON.stringify(result.error.flatten().fieldErrors, null, 2) + '\n')
   process.exit(1)
 }
 
