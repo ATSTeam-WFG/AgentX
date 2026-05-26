@@ -3,12 +3,12 @@ import { buildApp } from './app'
 import { config } from './config'
 import { startWorker } from './workers/index'
 
-process.stdout.write('[index] modules loaded\n')
+process.stdout.write('[startup] modules loaded\n')
 
 async function main() {
   process.stdout.write('[startup] building app\n')
   const app = await buildApp()
-  process.stdout.write('[startup] app built\n')
+  process.stdout.write('[startup] app built, calling listen\n')
 
   const shutdown = async () => {
     await app.close()
@@ -17,7 +17,6 @@ async function main() {
   process.on('SIGTERM', shutdown)
   process.on('SIGINT', shutdown)
 
-  process.stdout.write(`[startup] listening on port ${config.PORT}\n`)
   await app.listen({ port: config.PORT, host: '0.0.0.0' })
   process.stdout.write('[startup] server up\n')
   startWorker()
