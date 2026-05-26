@@ -28,6 +28,7 @@ const result = schema.safeParse(process.env)
 if (!result.success) {
   const msg = '[config] Missing or invalid environment variables:\n' +
     JSON.stringify(result.error.flatten().fieldErrors, null, 2) + '\n'
+  process.stdout.write(msg)
   writeSync(2, msg)
   process.exit(1)
 }
