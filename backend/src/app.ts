@@ -42,8 +42,12 @@ import { adminDashboardRoutes } from './routes/admin/dashboard'
 export async function buildApp() {
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
 
+  const corsOrigins = config.CORS_ORIGIN === '*'
+    ? '*'
+    : config.CORS_ORIGIN.split(',').map(o => o.trim())
+
   await app.register(cors, {
-    origin: config.CORS_ORIGIN,
+    origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
