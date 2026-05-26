@@ -50,6 +50,7 @@ export async function buildApp() {
     origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    strictPreflight: false,
   })
 
   await app.register(jwt, { secret: config.JWT_SECRET })
