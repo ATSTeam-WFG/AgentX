@@ -27,7 +27,7 @@ const STATIC_PROMPT_QUESTIONS: PromptQuestion[] = [
     optionsJson: [
       'A. "Draft a formal legal letter explaining the closing delay and providing a new estimated timeline."',
       'B. "Create a brief text message to notify the client that the closing is delayed without specific details."',
-      'C. "Draft a reassuring, plain-language explanation of the title issue, the steps being taken to resolve it, and a realistic timeline — in a warm, professional tone."',
+      'C. "Draft a reassuring, plain-language explanation of the title issue, the steps being taken to resolve it, and a realistic timeline, in a warm, professional tone."',
       'D. "Generate a legal disclaimer explaining our company\'s liability limitations regarding closing delays."',
     ],
     correctIndex: 2,
@@ -66,7 +66,7 @@ const STATIC_PROMPT_QUESTIONS: PromptQuestion[] = [
     optionsJson: [
       'A. "Write a formal business proposal outlining our title company\'s full service menu and competitive fee schedule."',
       'B. "Draft a LinkedIn post announcing our new digital closing capabilities and inviting agents to connect."',
-      'C. "Create a personalized outreach sequence for real estate agents — including relevant value propositions, local market insights, and a warm call-to-action for a 15-minute coffee meeting."',
+      'C. "Create a personalized outreach sequence for real estate agents, including relevant value propositions, local market insights, and a warm call-to-action for a 15-minute coffee meeting."',
       'D. "Generate a comprehensive list of all licensed real estate agents operating in my zip code."',
     ],
     correctIndex: 2,
@@ -109,14 +109,14 @@ export default function PromptChallengePage() {
       const res = await answerPrompt(q.id, idx, crypto.randomUUID());
       setAns((prev) => new Map(prev).set(q.id, { isCorrect: res.isCorrect, pointsAwarded: res.pointsAwarded, explanation: res.explanation }));
       pushToast({
-        message: res.isCorrect ? `Correct! Great prompt instinct.` : `Best prompt selected — keep going!`,
+        message: res.isCorrect ? `Correct! Great prompt instinct.` : `Best prompt selected. Keep going!`,
         points: res.pointsAwarded,
       });
     } catch {
       const isCorrect = q.correctIndex != null && idx === q.correctIndex;
       const pts = isCorrect ? 20 : 10;
       setAns((prev) => new Map(prev).set(q.id, { isCorrect, pointsAwarded: pts, explanation: q.explanation ?? undefined }));
-      pushToast({ message: isCorrect ? 'Correct! Great prompt instinct.' : 'Best prompt selected — keep going!', points: pts });
+      pushToast({ message: isCorrect ? 'Correct! Great prompt instinct.' : 'Best prompt selected. Keep going!', points: pts });
     } finally {
       setSub(false);
     }
@@ -319,7 +319,7 @@ export default function PromptChallengePage() {
                 <div className="pc-card-text">
                   <div className="pc-cat-chip" style={{ color: catColor, borderColor: `${catColor}40`, background: `${catColor}10` }}>{q.category}</div>
                   <div className="pc-card-title" style={{ marginTop: 6 }}>{q.scenarioText.slice(0, 85)}{q.scenarioText.length > 85 ? '…' : ''}</div>
-                  {ans && <div className="pc-card-sub">{ans.isCorrect ? `Correct — +${ans.pointsAwarded} pts earned` : `Answered — +${ans.pointsAwarded} pts`}</div>}
+                  {ans && <div className="pc-card-sub">{ans.isCorrect ? `Correct! +${ans.pointsAwarded} pts earned` : `Answered, +${ans.pointsAwarded} pts`}</div>}
                 </div>
                 {ans
                   ? <div className="pc-done-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>

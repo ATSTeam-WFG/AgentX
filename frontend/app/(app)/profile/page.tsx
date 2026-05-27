@@ -8,6 +8,7 @@ import { getLeaderboard, type LeaderboardEntry } from '@/lib/api/leaderboard';
 import { useAuthStore } from '@/store/auth';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
+import { SPONSORS_DATA } from '@/lib/sponsors-data';
 
 function MedalCell({ rank }: { rank: number }) {
   if (rank === 1) return <div className="lb-medal gold">{rank}</div>;
@@ -16,25 +17,16 @@ function MedalCell({ rank }: { rank: number }) {
   return <div className="lb-rank-num">#{rank}</div>;
 }
 
-const SPONSORS = [
-  { name: 'Qualia',         src: '/sponsors/logos/Qualia-logo-dark.png',                               dark: false },
-  { name: 'Closinglock',    src: '/sponsors/logos/Closinglock_Logo_Horizontal_Orange_CMYK%20(1).jpg',  dark: false },
-  { name: 'Bear Printing',  src: '/sponsors/logos/Bear%20Printing%20Logo%20-%20Bricks%20-%20Wide.png', dark: false },
-  { name: 'Pythonic',       src: '/sponsors/logos/Pythonic_logo%20horizontal-gradient.png',            dark: false },
-  { name: 'Capital Bank',   src: '/sponsors/logos/Capital%20Bank%20Full%20Color.jpg',                  dark: false },
-  { name: 'alanna.ai',      src: '/sponsors/logos/alanna-logo-horizontal%401x.png',                   dark: false },
-  { name: 'DataTrace',      src: '/sponsors/logos/DataTrace-logo-color.png',                           dark: false },
-  { name: 'Signature Xcel', src: '/sponsors/logos/Signature-Xcel-Logo-R-Tag-Lockup-Blue-v2.jpg',      dark: false },
-  { name: 'Connect',        src: '/sponsors/logos/Connect%20Powered%20by%20PLACE.png.svg',             dark: false },
-  { name: 'PalmAgent',      src: '/sponsors/logos/PalmAgent_white%20logo.png',                        dark: true  },
-];
 
 function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boolean }) {
   return (
     <div className={`lb-row-v7${highlight ? ' me' : ''}`}>
       <MedalCell rank={entry.rank} />
       <div className="lb-name-v7">{entry.name}</div>
-      <div className="lb-pts-v7">{entry.totalPoints.toLocaleString()} pts</div>
+      <div className="lb-pts-v7">
+        <span>{entry.totalPoints.toLocaleString()}</span>
+        <span className="lb-pts-label">PTS</span>
+      </div>
     </div>
   );
 }
@@ -341,8 +333,13 @@ export default function ProfilePage() {
         }
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 800; font-style: italic;
-          color: #B85E00; letter-spacing: -.02em;
+          font-size: 14px; font-weight: 800;
+          color: var(--blue); letter-spacing: -.02em;
+          display: flex; align-items: baseline; gap: 3px;
+        }
+        .lb-pts-label {
+          font-size: 9px; font-weight: 700; letter-spacing: .10em;
+          color: var(--blue); font-style: normal;
         }
 
         /* ── Feedback / Sponsor link rows ── */
@@ -389,6 +386,8 @@ export default function ProfilePage() {
           min-height: 68px;
           box-shadow: 0 1px 6px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.80);
           border: 1px solid rgba(0,0,0,.06);
+          text-decoration: none;
+          cursor: pointer;
         }
         .sponsor-tile.dark {
           background: #1C283C;
@@ -521,10 +520,10 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="sponsors-grid">
-              {SPONSORS.map((s) => (
-                <div key={s.name} className={`sponsor-tile${s.dark ? ' dark' : ''}`}>
-                  <img src={s.src} alt={s.name} className="sponsor-logo" />
-                </div>
+              {SPONSORS_DATA.map((s) => (
+                <Link key={s.slug} href={`/sponsors/${s.slug}`} className={`sponsor-tile${s.dark ? ' dark' : ''}`}>
+                  <img src={s.logo} alt={s.name} className="sponsor-logo" />
+                </Link>
               ))}
             </div>
           </div>

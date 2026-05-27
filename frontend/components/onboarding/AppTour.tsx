@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const TOUR_STEPS = [
-  { tab: 'nb-home',       title: 'Home',       desc: 'Your summit hub — live sessions, what\'s happening now, and your daily overview.' },
+  { tab: 'nb-home',       title: 'Home',       desc: 'Your summit hub: live sessions, what\'s happening now, and your daily overview.' },
   { tab: 'nb-agenda',     title: 'Agenda',     desc: 'Full 3-day schedule. Tap any session for details, location, and feedback.' },
   { tab: 'nb-explore',    title: 'Explore',    desc: 'Discover sponsors, ask Agent X anything, and navigate the summit.' },
   { tab: 'nb-activities', title: 'Activities', desc: 'Earn points through trivia, avatar creation, prompts, and more.' },

@@ -27,7 +27,7 @@ const TOUR_STEPS = [
   {
     targetId: 'owl-fab',
     title: 'Agent X',
-    desc: "Your AI summit companion. Ask anything — sessions, points, ATS initiatives.",
+    desc: "Your AI summit companion. Ask anything: sessions, points, ATS initiatives.",
   },
 ];
 

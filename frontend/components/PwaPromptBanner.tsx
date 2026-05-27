@@ -58,7 +58,7 @@ export function PwaPromptBanner() {
           font-family: 'Sora', sans-serif;
           font-size: 16px;
           font-weight: 700;
-          color: var(--t);
+          color: #fff;
           line-height: 1.3;
           margin-bottom: 4px;
         }
@@ -140,7 +140,7 @@ export function PwaPromptBanner() {
             <div className="pwa-banner-body">
               <div className="pwa-banner-title">Add AgentX to your home screen</div>
               <div className="pwa-banner-desc">
-                Install the app for faster access to your score, agenda, and activities — no browser needed.
+                Install the app for faster access to your score, agenda, and activities. No browser needed.
               </div>
               <div className="pwa-banner-actions">
                 <button className="pwa-btn-primary" onClick={installApp}>Install App</button>

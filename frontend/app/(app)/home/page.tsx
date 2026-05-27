@@ -269,46 +269,50 @@ export default function HomePage() {
           color: var(--amber);
           text-decoration: none;
         }
-        .sponsor-card {
-          background: var(--metallic);
+        .sponsor-card-pythonic {
           border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
-          padding: 18px;
           box-shadow: var(--shadow-card);
           display: flex;
-          align-items: center;
-          gap: 14px;
+          align-items: stretch;
+          overflow: hidden;
+          height: 80px;
           margin-bottom: 16px;
         }
-        .sponsor-logo-sq {
-          width: 52px; height: 52px;
-          border-radius: 12px;
-          background: rgba(255,255,255,.55);
-          border: 1.5px solid rgba(255,255,255,.40);
+        .scp-logo-panel {
+          width: 60%;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 12px 16px;
+          background: #fff;
           flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
         }
-        .sponsor-eyebrow {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .06em;
-          text-transform: uppercase;
-          color: var(--amber);
-          margin-bottom: 3px;
+        .scp-logo {
+          max-height: 48px;
+          max-width: 100%;
+          object-fit: contain;
         }
-        .sponsor-name {
+        .scp-gradient {
+          width: 5%;
+          background: linear-gradient(to right, #fff, var(--bg));
+          flex-shrink: 0;
+        }
+        .scp-text-panel {
+          flex: 1;
+          background: var(--bg);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 10px 14px;
+        }
+        .scp-name {
           font-family: 'Sora', sans-serif;
-          font-size: 17px;
-          font-weight: 700;
-          color: var(--t);
+          font-size: 14px; font-weight: 700;
+          color: var(--t); margin-bottom: 3px;
         }
-        .sponsor-tagline {
-          font-size: 15px;
-          color: var(--t3);
-          margin-top: 2px;
+        .scp-tagline {
+          font-size: 12px; color: var(--t3); line-height: 1.35;
         }
         /* ── Summit banner ── */
         .summit-banner {
@@ -416,20 +420,22 @@ export default function HomePage() {
 
           {/* Sponsor banner */}
           <div className="sec-label">Summit Sponsor</div>
-          <div className="sponsor-card">
-            <div className="sponsor-logo-sq">
-              <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-                <rect x="3" y="10" width="18" height="11" rx="1.5" stroke="#a67710" strokeWidth="1.6"/>
-                <path d="M8 21V14h4v7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 10l10-7 10 7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <Link href="/sponsors/pythonic" style={{ textDecoration: 'none', display: 'block' }}>
+            <div className="sponsor-card-pythonic">
+              <div className="scp-logo-panel">
+                <img
+                  src="/sponsors/logos/Pythonic_logo%20horizontal-gradient.png"
+                  alt="Pythonic"
+                  className="scp-logo"
+                />
+              </div>
+              <div className="scp-gradient" />
+              <div className="scp-text-panel">
+                <div className="scp-name">Pythonic</div>
+                <div className="scp-tagline">AI-driven document intelligence for title</div>
+              </div>
             </div>
-            <div>
-              <div className="sponsor-eyebrow">Official Summit Sponsor</div>
-              <div className="sponsor-name">WFG Title &amp; Escrow</div>
-              <div className="sponsor-tagline">Your trusted partner for every closing</div>
-            </div>
-          </div>
+          </Link>
         </div>
       </div>
     </>

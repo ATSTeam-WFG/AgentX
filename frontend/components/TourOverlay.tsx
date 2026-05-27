@@ -8,7 +8,7 @@ const STEPS = [
   {
     targetId: 'nb-home',
     title: 'Home',
-    desc: 'Your summit hub — greeting, sponsor, and what\'s coming up.',
+    desc: 'Your summit hub: greeting, sponsor, and what\'s coming up.',
   },
   {
     targetId: 'nb-agenda',
@@ -28,7 +28,7 @@ const STEPS = [
   {
     targetId: 'owl-fab',
     title: 'Agent X',
-    desc: 'Your AI summit companion — tap the owl anytime to ask about sessions, points, or ATS initiatives.',
+    desc: 'Your AI summit companion. Tap the owl anytime to ask about sessions, points, or ATS initiatives.',
   },
 ];
 

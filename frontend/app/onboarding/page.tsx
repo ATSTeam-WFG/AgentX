@@ -8,10 +8,10 @@ import { useAuthStore } from '@/store/auth';
 
 type RoleType = 'title_agent' | 'wfg_employee' | 'guest';
 
-const ROLES: { id: RoleType; title: string; sub: string }[] = [
-  { id: 'title_agent',   title: 'Title Agent',    sub: 'WFG Title & Escrow' },
-  { id: 'wfg_employee',  title: 'WFG Employee',   sub: 'World Financial Group' },
-  { id: 'guest',         title: 'Guest',           sub: 'Invited attendee' },
+const ROLES: { id: RoleType; title: string }[] = [
+  { id: 'title_agent',   title: 'Title Agent / Real Estate Services' },
+  { id: 'wfg_employee',  title: 'WFG Employee' },
+  { id: 'guest',         title: 'Guest' },
 ];
 
 export default function OnboardingPage() {
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
           font-family: 'Sora', sans-serif;
           font-size: 28px;
           font-weight: 700;
-          color: var(--navy);
+          color: #CCDEE7;
           letter-spacing: -.025em;
           margin: 0 0 8px;
         }
@@ -95,7 +95,7 @@ export default function OnboardingPage() {
           border-radius: 12px;
           padding: 13px 16px;
           font-size: 16px;
-          color: var(--t);
+          color: #1C283C;
           outline: none;
           font-family: 'DM Sans', sans-serif;
           transition: border-color var(--tr), box-shadow var(--tr);
@@ -135,15 +135,10 @@ export default function OnboardingPage() {
         .role-pill-title {
           font-size: 18px;
           font-weight: 700;
-          color: var(--navy);
+          color: #1C283C;
           line-height: 1.2;
         }
         .role-pill.sel .role-pill-title { color: var(--blue); }
-        .role-pill-sub {
-          font-size: 15px;
-          color: var(--t3);
-          margin-top: 2px;
-        }
         .error-msg {
           font-size: 14px;
           color: var(--rose);
@@ -197,7 +192,7 @@ export default function OnboardingPage() {
       <div className="onboard-page">
         <div className="onboard-scroll">
           <div className="onboard-logo">
-            <Image src="/ES26logo.png" alt="ES 26" width={120} height={48} style={{ objectFit: 'contain' }} />
+            <Image src="/ES26logo.png" alt="ES 26" width={120} height={48} style={{ objectFit: 'contain', mixBlendMode: 'screen' }} />
           </div>
 
           <h2 className="onboard-heading">Tell us about you</h2>
@@ -231,7 +226,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="role-label">I am attending as…</div>
-          {ROLES.map(({ id, title, sub }) => (
+          {ROLES.map(({ id, title }) => (
             <button
               key={id}
               className={`role-pill${role === id ? ' sel' : ''}`}
@@ -239,7 +234,6 @@ export default function OnboardingPage() {
               type="button"
             >
               <span className="role-pill-title">{title}</span>
-              <span className="role-pill-sub">{sub}</span>
             </button>
           ))}
 

@@ -222,17 +222,19 @@ export default function ActivitiesPage() {
           letter-spacing: -.01em; color: #1C283C;
           flex: 1; min-width: 0;
         }
-        .v7-act-pts-wrap { text-align: right; flex-shrink: 0; }
+        .v7-act-pts-wrap {
+          display: flex; align-items: baseline; gap: 3px;
+          flex-shrink: 0;
+        }
         .v7-act-pts {
           font-family: 'Sora', sans-serif;
           font-size: 20px; font-weight: 700; letter-spacing: -.03em;
-          color: #E39548; line-height: 1;
+          color: var(--blue); line-height: 1;
         }
         .v7-act-pts-label {
           font-family: 'Sora', sans-serif;
           font-size: 9px; font-weight: 700; letter-spacing: .10em;
-          text-transform: uppercase; color: rgba(227,149,72,.60);
-          text-align: right; margin-top: 2px;
+          text-transform: uppercase; color: var(--blue);
         }
         .v7-act-desc {
           font-size: 15px; color: #4a6080;
@@ -298,8 +300,8 @@ export default function ActivitiesPage() {
                   </div>
                   <div className="v7-act-name">{act.name}</div>
                   <div className="v7-act-pts-wrap">
-                    <div className="v7-act-pts">{act.pts}</div>
-                    <div className="v7-act-pts-label">pts</div>
+                    <span className="v7-act-pts">{act.pts}</span>
+                    <span className="v7-act-pts-label">PTS</span>
                   </div>
                 </div>
                 <div className="v7-act-desc">{act.desc}</div>
