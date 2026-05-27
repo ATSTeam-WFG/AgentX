@@ -238,9 +238,8 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await prisma.initiative.deleteMany({})
       await prisma.invitee.deleteMany({})
       await prisma.job.deleteMany({})
-      await prisma.adminUser.deleteMany({})
 
-      // Reseed
+      // Reseed reference data — AdminUser is never deleted
       const admin = await seedAdmin(prisma)
       await seedInvitees(prisma)
       await seedAgenda(prisma)
@@ -254,18 +253,17 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
 
       await prisma.auditLog.create({
         data: {
-          adminUserId: admin.id,
+          adminUserId: originalAdminId,
           action: 'reset_database',
           targetType: 'System',
           targetId: 'database',
-          payloadJson: { performedByOriginalAdminId: originalAdminId, timestamp: new Date().toISOString() },
+          payloadJson: { timestamp: new Date().toISOString() },
         },
       })
 
       return {
         ok: true,
-        message: 'Database wiped and reseeded. Your session has been invalidated — please log in again.',
-        requiresReauth: true,
+        message: 'Database wiped and reseeded. Admin accounts preserved.',
       }
     },
   )

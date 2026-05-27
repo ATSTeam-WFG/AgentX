@@ -456,7 +456,7 @@ export default function HomePage() {
             <div className="sponsor-card-pythonic">
               <div className="scp-logo-panel">
                 <img
-                  src="/sponsors/logos/Pythonic_logo%20horizontal-gradient.png"
+                  src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/sponsors/pythonic-logo.png"
                   alt="Pythonic"
                   className="scp-logo"
                 />

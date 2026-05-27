@@ -8,6 +8,7 @@ export default function WelcomePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -118,6 +119,16 @@ export default function WelcomePage() {
           background: transparent; border: none;
           display: flex; align-items: center; justify-content: center;
         }
+        .video-spinner {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(0,0,0,.45);
+          pointer-events: none;
+        }
+        .video-spinner svg {
+          animation: spin .9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .welcome-video-caption {
           font-size: 13px; color: rgba(204,222,231,.50);
           text-align: center; line-height: 1.45;
@@ -160,11 +171,11 @@ export default function WelcomePage() {
         {/* WFG + PRESENTS + ES26 brand row — equal gap between all three */}
         <div className="welcome-top">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/WFG NTIC Logo white.png" alt="WFG" className="welcome-wfg-logo" />
+          <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/wfg-ntic-logo-white.png" alt="WFG" className="welcome-wfg-logo" />
           <div className="welcome-presents">Presents</div>
           <div className="welcome-brand-row">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/ES26logo.png" alt="ES26" className="welcome-es26-logo" />
+            <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="welcome-es26-logo" />
             <div className="welcome-summit-title">EXECUTIVE<br />SUMMIT 2026</div>
           </div>
         </div>
@@ -176,10 +187,13 @@ export default function WelcomePage() {
             <video
               ref={videoRef}
               className="welcome-video"
-              src="/Gene%20Rebadow%20ES26_1080.mp4"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/videos/Gene%20Rebadow%20ES26_1080.mp4"
               playsInline
               preload="metadata"
-              onEnded={() => setPlaying(false)}
+              onEnded={() => { setPlaying(false); setBuffering(false); }}
+              onWaiting={() => setBuffering(true)}
+              onCanPlay={() => setBuffering(false)}
+              onPlaying={() => setBuffering(false)}
             />
             <div className={`video-overlay${playing ? ' playing' : ''}`}>
               <div className="video-play-btn">
@@ -188,6 +202,14 @@ export default function WelcomePage() {
                 </svg>
               </div>
             </div>
+            {buffering && (
+              <div className="video-spinner">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,.25)" strokeWidth="3"/>
+                  <path d="M20 4 a16 16 0 0 1 16 16" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+              </div>
+            )}
           </div>
           <div className="welcome-video-caption">
             Welcome Message from Gene Rebadow,<br />Chief Operating Officer, Agency Operations

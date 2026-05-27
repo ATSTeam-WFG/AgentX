@@ -48,7 +48,7 @@ All times stored as UTC. Event location: Delray Beach, FL (EDT = UTC−4).
 | seed-agenda-d2-agent30       | Agent 3.0: Amplify Your Edge                          | 9:50–10:00 AM      | Main Hall                   | Gene Rebadow                                                     |
 | seed-agenda-d2-beyond-faster | Beyond Faster: Turn AI from Commodity into Competitive Advantage | 10:05–10:50 AM | Main Hall            | Julie Holmes                                                     |
 | seed-agenda-d2-ats-team      | ATS Team: Custom AI Solutions for Title Agents        | 10:50–11:20 AM     | Main Hall                   | Ryan Ozonian · Vedant Upganlawar · Priyal Katudia · Anish Tatke · Wendy Lunt |
-| seed-agenda-d2-real-talk     | Real Talk: How Title Agents Actually Use AI Solutions | 11:25–11:45 AM     | Main Hall                   | Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Fousekis      |
+| seed-agenda-d2-real-talk     | Real Talk: How Title Agents Actually Use AI Solutions in Their Business | 11:25–11:45 AM     | Main Hall                   | Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Fousekis      |
 | seed-agenda-d2-networking-lunch | Networking Lunch                                   | 12:00–1:00 PM      | Main Hall                   | —                                                                |
 | seed-agenda-d2-ai-shift      | The AI Shift: What Title Agents Need to Know          | 1:00–1:30 PM       | Main Hall                   | Mo Choumli · Michael Ruder · Wendy Lunt                          |
 | seed-agenda-d2-ai-search     | AI Search: Helping You Get Found on AI Platforms      | 1:30–2:00 PM       | Main Hall                   | Jeff Lobb                                                        |
@@ -143,7 +143,8 @@ Body: `"Check the Agenda tab for today's sessions. Activities open at 8am. See y
 
 > Upsert strategy: deletes questions whose IDs are not in the seeded set, then `createMany` with `skipDuplicates: true`.
 >
-> **Note:** the vast majority have `correctIndex: 1`. Two exceptions:
+> **Note:** the vast majority have `correctIndex: 1`. Three exceptions:
+> - `seed-trivia-04` — "Who typically pays for the lender's title insurance policy?" → `correctIndex: 2`
 > - `seed-trivia-15` — "What is an abstract of title?" → `correctIndex: 0`
 > - `seed-trivia-24` — "What is a mechanic's lien?" → `correctIndex: 0`
 
