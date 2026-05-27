@@ -18,6 +18,38 @@ function getDayGreeting() {
   return 'Good evening';
 }
 
+function getSummitDayInfo(): { label: string; value: string; sub?: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+  const d = now.getDate();
+
+  const summit = [
+    new Date(2026, 5, 3), // June 3
+    new Date(2026, 5, 4), // June 4
+    new Date(2026, 5, 5), // June 5
+  ];
+
+  for (let i = 0; i < summit.length; i++) {
+    const s = summit[i];
+    if (y === s.getFullYear() && m === s.getMonth() && d === s.getDate()) {
+      return { label: 'Day', value: String(i + 1) };
+    }
+  }
+
+  const start = summit[0].getTime();
+  if (now.getTime() < start) {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysLeft = Math.ceil((start - now.getTime()) / msPerDay);
+    return { label: 'Days to go', value: String(daysLeft) };
+  }
+
+  return {
+    label: '',
+    value: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  };
+}
+
 function getActiveSession(events: AgendaEvent[]): AgendaEvent | undefined {
   const now = Date.now();
   return events.find((e) => {
@@ -83,6 +115,7 @@ export default function HomePage() {
   const rawName  = profile?.name ?? user?.name ?? '';
   const firstName = rawName ? rawName.split(' ')[0] : 'there';
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const summitDay = getSummitDayInfo();
 
   return (
     <>
@@ -373,15 +406,14 @@ export default function HomePage() {
             <div className="home-name">{firstName}</div>
           </div>
           <div className="home-day-wrap">
-            <div className="home-day-label">Day</div>
-            <div className="home-day-num">1</div>
+            {summitDay.label && <div className="home-day-label">{summitDay.label}</div>}
+            <div className="home-day-num">{summitDay.value}</div>
             <span className="home-date">{today}</span>
           </div>
         </div>
 
         {/* Scrollable content */}
         <div className="home-scroll" ref={scrollRef}>
-          <PwaPromptBanner />
 
           {/* Happening Now / Up Next */}
           <div className="sec-label">{current ? 'Happening Now' : 'Up Next'}</div>
@@ -436,6 +468,8 @@ export default function HomePage() {
               </div>
             </div>
           </Link>
+
+          <PwaPromptBanner />
         </div>
       </div>
     </>
