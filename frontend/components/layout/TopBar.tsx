@@ -2,19 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { getMe } from '@/lib/api/profile';
 
 export default function TopBar() {
-  const { data: profile } = useQuery({
-    queryKey: ['profile'],
-    queryFn: getMe,
-    staleTime: 60_000,
-    retry: false,
-  });
-
-  const pts = profile?.totalPoints ?? null;
-
   return (
     <>
       <style>{`
@@ -71,39 +60,6 @@ export default function TopBar() {
             inset 0 1px 0 rgba(255,255,255,.12);
         }
 
-        /* Center — points pill */
-        .tb-center {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .tb-pts-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: linear-gradient(
-            135deg,
-            rgba(212,160,23,.22) 0%,
-            rgba(194,103,28,.14) 100%
-          );
-          color: var(--gold-rich);
-          border-radius: 22px;
-          padding: 7px 14px;
-          font-size: 13px;
-          font-weight: 700;
-          font-family: 'Sora', sans-serif;
-          text-decoration: none;
-          border: 1px solid rgba(212,160,23,.32);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.08),
-            0 2px 8px rgba(212,160,23,.18);
-          min-height: 34px;
-          transition: box-shadow var(--tr), transform var(--tr);
-          white-space: nowrap;
-        }
-        .tb-pts-pill:active { transform: scale(.96); }
-
         /* WFG right */
         .tb-wfg {
           display: inline-flex;
@@ -112,6 +68,8 @@ export default function TopBar() {
           flex-shrink: 0;
         }
         .tb-wfg-logo {
+          height: 34px;
+          width: auto;
           object-fit: contain;
         }
 
@@ -123,7 +81,7 @@ export default function TopBar() {
           {/* ES26 left */}
           <Link href="/home" className="tb-es26" aria-label="Go to home">
             <Image
-              src="/ES26logo.png"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png"
               alt="ES 26"
               width={42}
               height={42}
@@ -133,27 +91,15 @@ export default function TopBar() {
             />
           </Link>
 
-          {/* Points pill center */}
-          <div className="tb-center">
-            {pts !== null && (
-              <Link href="/profile" className="tb-pts-pill" aria-label={`${pts} points — view leaderboard`}>
-                <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-                  <polygon points="8,1 10,6 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6,6" fill="currentColor" />
-                </svg>
-                {pts.toLocaleString()} pts
-              </Link>
-            )}
-          </div>
-
           {/* WFG right */}
           <div className="tb-wfg">
             <Image
-              src="/WFG NTIC Logo white.png"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/wfg-ntic-logo-white.png"
               alt="WFG National Title Insurance Company"
               width={80}
               height={34}
               className="tb-wfg-logo"
-              style={{ height: 34, width: 'auto', objectFit: 'contain' }}
+              style={{ objectFit: 'contain' }}
               priority
             />
           </div>

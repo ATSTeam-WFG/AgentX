@@ -12,7 +12,7 @@ async function adminLogin() {
   const res = await app.inject({
     method: 'POST',
     url: '/v1/admin/auth/login',
-    payload: { email: 'admin@wfg.com', password: 'AdminPass123!' },
+    payload: { email: 'admin@es26.com', password: 'executiveSum@26' },
   })
   return res
 }
@@ -23,7 +23,7 @@ describe('POST /v1/admin/auth/login', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.token).toBeTruthy()
-    expect(body.admin.email).toBe('admin@wfg.com')
+    expect(body.admin.email).toBe('admin@es26.com')
     expect(body.admin.role).toBe('super_admin')
 
     // Decode payload to verify aud claim
@@ -36,7 +36,7 @@ describe('POST /v1/admin/auth/login', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/v1/admin/auth/login',
-      payload: { email: 'admin@wfg.com', password: 'wrong' },
+      payload: { email: 'admin@es26.com', password: 'wrong' },
     })
     expect(res.statusCode).toBe(401)
   })
@@ -45,12 +45,12 @@ describe('POST /v1/admin/auth/login', () => {
     const resUnknown = await app.inject({
       method: 'POST',
       url: '/v1/admin/auth/login',
-      payload: { email: 'nobody@wfg.com', password: 'AdminPass123!' },
+      payload: { email: 'nobody@es26.com', password: 'executiveSum@26' },
     })
     const resWrong = await app.inject({
       method: 'POST',
       url: '/v1/admin/auth/login',
-      payload: { email: 'admin@wfg.com', password: 'wrong' },
+      payload: { email: 'admin@es26.com', password: 'wrong' },
     })
     expect(resUnknown.statusCode).toBe(401)
     expect(resWrong.statusCode).toBe(401)
@@ -82,7 +82,7 @@ describe('POST /v1/admin/auth/login', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/v1/admin/auth/login',
-      payload: { email: 'admin@wfg.com' },
+      payload: { email: 'admin@es26.com' },
     })
     expect(res.statusCode).toBe(400)
   })

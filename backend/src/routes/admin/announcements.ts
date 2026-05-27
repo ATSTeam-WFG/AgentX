@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { badRequest, notFound } from '../../lib/errors'
+import { broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 const CreateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -37,6 +39,10 @@ export async function adminAnnouncementsRoutes(fastify: FastifyInstance) {
       return a
     })
 
+    broadcastAll(makeWsMessage({
+      event: 'announcements.new',
+      data: { id: announcement.id, title: announcement.title, body: announcement.body },
+    }))
     return reply.status(201).send({
       id: announcement.id,
       title: announcement.title,

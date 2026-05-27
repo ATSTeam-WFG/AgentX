@@ -43,14 +43,13 @@ describe('GET /v1/sponsors', () => {
     expect(res.statusCode).toBe(200)
     const sponsors = res.json().sponsors
     expect(sponsors.length).toBeGreaterThanOrEqual(4)
-    const tiers = sponsors.map((s: { tier: string }) => s.tier)
-    const titleIdx = tiers.indexOf('title')
-    const goldIdx = tiers.indexOf('gold')
-    const silverIdx = tiers.indexOf('silver')
-    const partnerIdx = tiers.indexOf('partner')
-    expect(titleIdx).toBeLessThan(goldIdx)
-    expect(goldIdx).toBeLessThan(silverIdx)
-    expect(silverIdx).toBeLessThan(partnerIdx)
+    // Verify tier ordering invariant: no sponsor of a lower tier appears before one of a higher tier
+    const TIER_ORDER: Record<string, number> = { title: 0, gold: 1, silver: 2, partner: 3 }
+    for (let i = 1; i < sponsors.length; i++) {
+      const prev = TIER_ORDER[sponsors[i - 1].tier] ?? 99
+      const curr = TIER_ORDER[sponsors[i].tier] ?? 99
+      expect(prev).toBeLessThanOrEqual(curr)
+    }
   })
 
   it('POST /v1/sponsors/:id/impression records impression (requires auth + surface)', async () => {

@@ -12,9 +12,9 @@ async function uploadAndGenerate(_file: File): Promise<{ jobId: string }> {
   return { jobId: crypto.randomUUID() };
 }
 
-async function pollAvatarJob(_jobId: string): Promise<{ status: 'generating' | 'done'; resultUrl: string }> {
+async function pollAvatarJob(_jobId: string, photoUrl: string): Promise<{ status: 'generating' | 'done'; resultUrl: string }> {
   await new Promise((r) => setTimeout(r, 15000));
-  return { status: 'done', resultUrl: '/Gene_Avatar.png' };
+  return { status: 'done', resultUrl: photoUrl };
 }
 
 export default function AvatarStudioPage() {
@@ -39,7 +39,7 @@ export default function AvatarStudioPage() {
     if (phase !== 'generating' || !jobId) return;
     const t = setInterval(async () => {
       try {
-        const res = await pollAvatarJob(jobId);
+        const res = await pollAvatarJob(jobId, photoUrl ?? '');
         if (res.status === 'done') {
           clearInterval(t);
           setResultUrl(res.resultUrl);
@@ -305,7 +305,7 @@ export default function AvatarStudioPage() {
               Activities
             </button>
             <div className="intro-logo-wrap">
-              <img src="/ES26logo.png" alt="ES26" className="intro-logo" />
+              <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="intro-logo" />
             </div>
             <h1 className="page-title">Avatar Studio</h1>
             <p className="page-sub">Your AI-generated executive portrait</p>

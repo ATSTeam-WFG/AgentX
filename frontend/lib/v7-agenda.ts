@@ -16,9 +16,17 @@ export const V7_EVENTS: AgendaEvent[] = [
   {
     id: 'ev1', day: 0,
     name: "Women's Leadership Seminar",
-    location: 'Opal Grand Resort & Spa · Delray Beach, FL',
+    location: 'Opal Grand Resort & Spa, Delray Beach, FL',
+    speakerName: 'Amy Franko',
     startsAt: toISO('wed', 13, 0), endsAt: toISO('wed', 17, 15),
     description: "Women's Executive Leadership Session\n\nA premier, half-day experience dedicated to empowering women leading the future of title and settlement services.\n\nParticipants will:\n• Engage in advanced discussions on leadership, innovation, and influence.\n• Learn to leverage technology as a catalyst for personal and organizational transformation.\n• Build a strong community of high-impact female leaders championing progress in the industry.",
+    speakers: [
+      {
+        name: 'Amy Franko',
+        title: 'Growth Strategist | Keynote Speaker | Author | Board Director | Angel Investor',
+        bio: 'Amy Franko is a recognized growth strategist, keynote speaker, and author who helps organizations and leaders accelerate growth through modern sales, leadership, and innovation strategies.',
+      },
+    ],
     version: 1,
   },
 
@@ -60,7 +68,7 @@ export const V7_EVENTS: AgendaEvent[] = [
   {
     id: 'ev7', day: 1,
     name: "What's Next: The Q2 Economic Perspective",
-    speakerName: 'Patrick F. Stone · Bill Conerly',
+    speakerName: 'Patrick F. Stone, Bill Conerly',
     startsAt: toISO('thu', 9, 0), endsAt: toISO('thu', 9, 45),
     version: 1,
   },
@@ -81,14 +89,14 @@ export const V7_EVENTS: AgendaEvent[] = [
   {
     id: 'evA', day: 1,
     name: 'ATS Team: Custom AI Solutions for Title Agents',
-    speakerName: 'Ryan Ozonian, Vedant Upganlawar & Team',
+    speakerName: 'Ryan Ozonian, Vedant Upganlawar, Priyal Katudia, Anish Tatke, Wendy Lunt',
     startsAt: toISO('thu', 10, 50), endsAt: toISO('thu', 11, 20),
     version: 1,
   },
   {
     id: 'evB', day: 1,
     name: 'Real Talk: How Title Agents Actually Use AI Solutions in Their Business',
-    speakerName: 'Roxanne Kos, Jaime Kosofsky & Panel',
+    speakerName: 'Roxanne Kos, Jaime Kosofsky, Hope Ottovini, Leo Fousekis',
     startsAt: toISO('thu', 11, 25), endsAt: toISO('thu', 11, 45),
     version: 1,
   },
@@ -103,7 +111,7 @@ export const V7_EVENTS: AgendaEvent[] = [
   {
     id: 'evD', day: 1,
     name: 'The AI Shift: What Title Agents Need to Know',
-    speakerName: 'Mo Choumil · Michael Ruder · Wendy Lunt',
+    speakerName: 'Mo Choumli, Michael Ruder, Wendy Lunt',
     startsAt: toISO('thu', 13, 0), endsAt: toISO('thu', 13, 30),
     version: 1,
   },
@@ -133,7 +141,7 @@ export const V7_EVENTS: AgendaEvent[] = [
   {
     id: 'evH', day: 1,
     name: 'ATS Demo Room',
-    speakerName: 'Vedant Upganlawar · Priyal Katudia · Anish Tatke',
+    speakerName: 'Vedant Upganlawar, Priyal Katudia, Anish Tatke',
     startsAt: toISO('thu', 14, 15), endsAt: toISO('thu', 15, 35),
     version: 1,
   },

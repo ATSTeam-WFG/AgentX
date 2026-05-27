@@ -51,6 +51,7 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
 
   return {
     token,
+    isNewUser: true,
     user: {
       id: user.id,
       name: user.name,
@@ -97,6 +98,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     return reply.send({
       token,
+      isNewUser: false,
       user: {
         id: user.id,
         name: user.name,

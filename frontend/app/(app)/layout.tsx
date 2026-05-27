@@ -1,17 +1,32 @@
 'use client';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import TopBar from '@/components/layout/TopBar';
 import TabBar from '@/components/layout/TabBar';
 import OwlFab from '@/components/layout/OwlFab';
 import AgentXSheet from '@/components/AgentXSheet';
+import PointsToast from '@/components/PointsToast';
+import AppTour from '@/components/onboarding/AppTour';
 import { useAuthStore } from '@/store/auth';
 import { readToken, isTokenExpired, decodeToken } from '@/lib/auth';
 import type { User } from '@/lib/api/auth';
 import { initOutboxListeners, flushOutbox } from '@/lib/outbox';
 import OfflineBanner from '@/components/OfflineBanner';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  useWebSocket();
+  const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('tour_done')) setShowTour(true);
+  }, []);
+
+  function completeTour() {
+    localStorage.setItem('tour_done', '1');
+    setShowTour(false);
+  }
+
   const setAuth = useAuthStore((s) => s.setAuth);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const user = useAuthStore((s) => s.user);
@@ -59,6 +74,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <TabBar />
       <OwlFab />
       <AgentXSheet />
+      <PointsToast />
+      {showTour && <AppTour onComplete={completeTour} />}
     </>
   );
 }

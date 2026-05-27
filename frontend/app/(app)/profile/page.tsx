@@ -1,10 +1,14 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getMe } from '@/lib/api/profile';
 import { getLeaderboard, type LeaderboardEntry } from '@/lib/api/leaderboard';
 import { useAuthStore } from '@/store/auth';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
+import { SPONSORS_DATA } from '@/lib/sponsors-data';
 
 function MedalCell({ rank }: { rank: number }) {
   if (rank === 1) return <div className="lb-medal gold">{rank}</div>;
@@ -13,12 +17,16 @@ function MedalCell({ rank }: { rank: number }) {
   return <div className="lb-rank-num">#{rank}</div>;
 }
 
+
 function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boolean }) {
   return (
     <div className={`lb-row-v7${highlight ? ' me' : ''}`}>
       <MedalCell rank={entry.rank} />
       <div className="lb-name-v7">{entry.name}</div>
-      <div className="lb-pts-v7">{entry.totalPoints.toLocaleString()} pts</div>
+      <div className="lb-pts-v7">
+        <span>{entry.totalPoints.toLocaleString()}</span>
+        <span className="lb-pts-label">PTS</span>
+      </div>
     </div>
   );
 }
@@ -26,6 +34,15 @@ function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boole
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['me'] }),
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+    ]);
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -41,7 +58,7 @@ export default function ProfilePage() {
     retry: false,
   });
 
-  const name       = profile?.name ?? user?.name ?? 'Gene Rebadow';
+  const name       = profile?.name ?? user?.name ?? 'Attendee';
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
@@ -121,6 +138,16 @@ export default function ProfilePage() {
           );
         }
 
+        /* Stub shown when no AI avatar has been generated yet */
+        .hero-photo-stub {
+          width: 100%; height: 100%;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Sora', sans-serif;
+          font-size: 96px; font-weight: 800; letter-spacing: -.04em;
+          color: rgba(255,255,255,.10);
+          user-select: none;
+        }
+
         /* Text content — above image layers */
         .hero-content {
           position: relative; z-index: 2;
@@ -177,32 +204,19 @@ export default function ProfilePage() {
           letter-spacing: .08em; text-transform: uppercase;
         }
 
-        /* Bottom stats strip */
-        .hero-strip {
-          position: relative; z-index: 2;
-          display: flex;
-          background: rgba(14,22,38,.80);
-          border-top: 1px solid rgba(255,255,255,.07);
-          backdrop-filter: blur(4px);
-          -webkit-backdrop-filter: blur(4px);
+        .hero-stats-row {
+          display: flex; gap: 20px; margin-top: 14px;
         }
-        .hero-strip-stat {
-          flex: 1; text-align: center;
-          padding: 14px 8px;
-        }
-        .hero-strip-stat + .hero-strip-stat {
-          border-left: 1px solid rgba(255,255,255,.07);
-        }
-        .hero-strip-val {
+        .hero-stat-item { display: flex; flex-direction: column; }
+        .hero-stat-val {
           font-family: 'Sora', sans-serif;
-          font-size: 20px; font-weight: 800; letter-spacing: -.03em;
-          color: #CCDEE7; line-height: 1;
-          display: block;
+          font-size: 17px; font-weight: 700; letter-spacing: -.02em;
+          color: rgba(204,222,231,.80); line-height: 1;
         }
-        .hero-strip-label {
-          font-size: 10px; font-weight: 700; letter-spacing: .09em;
-          text-transform: uppercase; color: rgba(204,222,231,.40);
-          display: block; margin-top: 5px;
+        .hero-stat-label {
+          font-size: 9px; font-weight: 700; letter-spacing: .10em;
+          text-transform: uppercase; color: rgba(204,222,231,.38);
+          margin-top: 3px;
         }
 
         /* ── Section cards ── */
@@ -241,6 +255,7 @@ export default function ProfilePage() {
           display: flex; align-items: center;
           gap: 12px; padding: 13px 18px;
           border-bottom: 1px solid rgba(0,0,0,.06);
+          background: rgba(28,40,60,.04);
         }
         .lb-row-v7:last-child { border-bottom: none; }
         .lb-row-v7.me {
@@ -318,8 +333,13 @@ export default function ProfilePage() {
         }
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 800; font-style: italic;
-          color: #E39548; letter-spacing: -.02em;
+          font-size: 14px; font-weight: 800;
+          color: var(--blue); letter-spacing: -.02em;
+          display: flex; align-items: baseline; gap: 3px;
+        }
+        .lb-pts-label {
+          font-size: 9px; font-weight: 700; letter-spacing: .10em;
+          color: var(--blue); font-style: normal;
         }
 
         /* ── Feedback / Sponsor link rows ── */
@@ -348,15 +368,55 @@ export default function ProfilePage() {
           margin-top: 2px;
         }
         .prof-chevron { color: rgba(28,40,60,.35); flex-shrink: 0; }
+
+        /* ── Sponsor logo grid ── */
+        .sponsors-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 14px 16px 18px;
+        }
+        .sponsor-tile {
+          background: #fff;
+          border-radius: 14px;
+          padding: 14px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 68px;
+          box-shadow: 0 1px 6px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.80);
+          border: 1px solid rgba(0,0,0,.06);
+          text-decoration: none;
+          cursor: pointer;
+        }
+        .sponsor-tile.dark {
+          background: #1C283C;
+          border-color: rgba(255,255,255,.10);
+          box-shadow: 0 1px 6px rgba(0,0,0,.30);
+        }
+        .sponsor-logo {
+          width: 100%;
+          height: 44px;
+          object-fit: contain;
+          object-position: center;
+          display: block;
+        }
       `}</style>
 
       <div className="profile-page">
-        <div className="profile-scroll">
+        <PullIndicator ref={indicatorRef} />
+        <div className="profile-scroll" ref={scrollRef}>
 
           {/* ── F1-style hero ── */}
           <div className="profile-hero-v7">
             <div className="hero-photo-wrap">
-              <img src={profile?.avatarUrl ?? '/Gene_Avatar.png'} alt="" className="hero-photo" />
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="hero-photo" />
+              ) : (
+                <div className="hero-photo-stub" aria-hidden="true">
+                  {firstName[0]}{lastName?.[0] ?? ''}
+                </div>
+              )}
             </div>
             <div className="hero-content">
               <div className="hero-first">{firstName}</div>
@@ -371,16 +431,15 @@ export default function ProfilePage() {
                 <span className="hero-rank-badge">#{rank}</span>
                 <span className="hero-rank-label">Summit Rank</span>
               </div>
-            </div>
-
-            <div className="hero-strip">
-              <div className="hero-strip-stat">
-                <span className="hero-strip-val">{activities}/5</span>
-                <span className="hero-strip-label">Activities</span>
-              </div>
-              <div className="hero-strip-stat">
-                <span className="hero-strip-val">{touchpts}/5</span>
-                <span className="hero-strip-label">Touchpoints</span>
+              <div className="hero-stats-row">
+                <div className="hero-stat-item">
+                  <span className="hero-stat-val">{activities}/5</span>
+                  <span className="hero-stat-label">Activities</span>
+                </div>
+                <div className="hero-stat-item">
+                  <span className="hero-stat-val">{touchpts}/5</span>
+                  <span className="hero-stat-label">Touchpoints</span>
+                </div>
               </div>
             </div>
           </div>
@@ -460,11 +519,12 @@ export default function ProfilePage() {
                 <span className="prof-section-title">Our Sponsors</span>
               </div>
             </div>
-            <div className="section-static-row">
-              <div className="section-static-body">
-                <div className="section-name">WFG Title &amp; Escrow</div>
-                <div className="section-link-sub">Your trusted partner for every closing</div>
-              </div>
+            <div className="sponsors-grid">
+              {SPONSORS_DATA.map((s) => (
+                <Link key={s.slug} href={`/sponsors/${s.slug}`} className={`sponsor-tile${s.dark ? ' dark' : ''}`}>
+                  <img src={s.logo} alt={s.name} className="sponsor-logo" />
+                </Link>
+              ))}
             </div>
           </div>
 

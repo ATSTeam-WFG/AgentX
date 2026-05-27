@@ -19,95 +19,85 @@ export function PwaPromptBanner() {
     <>
       <style>{`
         .pwa-banner {
-          background: var(--metallic);
-          border: 1.5px solid rgba(255,255,255,.45);
-          border-radius: var(--r-lg);
-          box-shadow: var(--shadow-card);
-          padding: 16px;
-          margin-bottom: 16px;
-          position: relative;
-          overflow: hidden;
+          background: rgba(255,255,255,.97);
+          border: 1px solid rgba(227,149,72,.18);
+          border-left: 3px solid var(--amber);
+          border-radius: 14px;
+          box-shadow: 0 6px 28px rgba(0,0,0,.16), 0 1px 4px rgba(0,0,0,.08);
+          padding: 10px 12px;
+          margin-bottom: 14px;
         }
-        .pwa-banner::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 3px;
-          border-radius: var(--r-lg) var(--r-lg) 0 0;
-        }
-        .pwa-banner-install::before  { background: var(--amber); }
-        .pwa-banner-ios::before      { background: rgba(204,222,231,.30); }
-        .pwa-banner-notif::before    { background: var(--amber); }
+        .pwa-banner-ios { border-left-color: rgba(28,40,60,.22); border-color: rgba(28,40,60,.12); }
         .pwa-banner-inner {
           display: flex;
-          gap: 13px;
+          gap: 10px;
           align-items: flex-start;
         }
         .pwa-banner-icon {
-          width: 40px; height: 40px;
-          border-radius: 12px;
+          width: 30px; height: 30px;
+          border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
           margin-top: 1px;
         }
         .pwa-banner-install .pwa-banner-icon,
-        .pwa-banner-notif   .pwa-banner-icon { background: rgba(240,165,90,.14); }
-        .pwa-banner-ios     .pwa-banner-icon { background: rgba(204,222,231,.10); }
+        .pwa-banner-notif   .pwa-banner-icon { background: rgba(227,149,72,.12); }
+        .pwa-banner-ios     .pwa-banner-icon { background: rgba(28,40,60,.07); }
         .pwa-banner-body { flex: 1; min-width: 0; }
         .pwa-banner-title {
           font-family: 'Sora', sans-serif;
-          font-size: 16px;
+          font-size: 13px;
           font-weight: 700;
-          color: var(--t);
+          color: #1C283C;
           line-height: 1.3;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
         }
         .pwa-banner-desc {
-          font-size: 14px;
-          color: var(--t3);
-          line-height: 1.5;
-          margin-bottom: 14px;
+          font-size: 12px;
+          color: rgba(28,40,60,.65);
+          line-height: 1.4;
+          margin-bottom: 10px;
         }
         .pwa-banner-ios-steps {
-          margin: 6px 0 14px;
+          margin: 5px 0 10px;
           padding: 0;
           list-style: none;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 5px;
         }
         .pwa-banner-ios-steps li {
-          font-size: 14px;
-          color: var(--t3);
+          font-size: 12px;
+          color: rgba(28,40,60,.62);
           display: flex;
-          gap: 8px;
+          gap: 7px;
           align-items: flex-start;
           line-height: 1.4;
         }
         .pwa-banner-ios-steps .step-num {
           flex-shrink: 0;
-          width: 20px; height: 20px;
+          width: 18px; height: 18px;
           border-radius: 50%;
-          background: rgba(204,222,231,.12);
-          border: 1px solid rgba(204,222,231,.20);
-          font-size: 11px;
+          background: rgba(28,40,60,.08);
+          border: 1px solid rgba(28,40,60,.14);
+          font-size: 10px;
           font-weight: 700;
-          color: var(--t3);
+          color: rgba(28,40,60,.55);
           display: flex; align-items: center; justify-content: center;
           margin-top: 1px;
         }
         .pwa-banner-actions {
           display: flex;
-          gap: 10px;
+          gap: 8px;
           align-items: center;
         }
         .pwa-btn-primary {
-          padding: 9px 16px;
+          padding: 7px 14px;
           background: var(--amber);
           color: #06090f;
           border: none;
-          border-radius: 10px;
-          font-size: 14px;
+          border-radius: 8px;
+          font-size: 13px;
           font-weight: 700;
           cursor: pointer;
           font-family: inherit;
@@ -115,18 +105,18 @@ export function PwaPromptBanner() {
         }
         .pwa-btn-primary:active { opacity: .85; }
         .pwa-btn-ghost {
-          padding: 9px 12px;
+          padding: 7px 10px;
           background: transparent;
-          color: var(--t3);
+          color: rgba(28,40,60,.45);
           border: none;
-          border-radius: 10px;
-          font-size: 14px;
+          border-radius: 8px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           font-family: inherit;
           white-space: nowrap;
         }
-        .pwa-btn-ghost:active { background: rgba(255,255,255,.06); }
+        .pwa-btn-ghost:active { background: rgba(28,40,60,.06); }
       `}</style>
 
       {showInstallPrompt && (
@@ -138,9 +128,9 @@ export function PwaPromptBanner() {
               </svg>
             </div>
             <div className="pwa-banner-body">
-              <div className="pwa-banner-title">Add AgentX to your home screen</div>
+              <div className="pwa-banner-title">Install AgentX</div>
               <div className="pwa-banner-desc">
-                Install the app for faster access to your score, agenda, and activities — no browser needed.
+                Faster access to your score, agenda, and activities.
               </div>
               <div className="pwa-banner-actions">
                 <button className="pwa-btn-primary" onClick={installApp}>Install App</button>
@@ -160,13 +150,13 @@ export function PwaPromptBanner() {
               </svg>
             </div>
             <div className="pwa-banner-body">
-              <div className="pwa-banner-title">Install to get score notifications</div>
+              <div className="pwa-banner-title">Install for notifications</div>
               <div className="pwa-banner-desc">
-                iPhone requires the app to be installed before push notifications can be enabled.
+                iPhone needs the app installed before push alerts work.
               </div>
               <ol className="pwa-banner-ios-steps">
-                <li><span className="step-num">1</span>Tap the <strong style={{ color: 'var(--t2)' }}>Share</strong> button at the bottom of Safari</li>
-                <li><span className="step-num">2</span>Scroll down and tap <strong style={{ color: 'var(--t2)' }}>"Add to Home Screen"</strong></li>
+                <li><span className="step-num">1</span>Tap the <strong style={{ color: 'rgba(28,40,60,.85)' }}>Share</strong> button at the bottom of Safari</li>
+                <li><span className="step-num">2</span>Scroll down and tap <strong style={{ color: 'rgba(28,40,60,.85)' }}>"Add to Home Screen"</strong></li>
                 <li><span className="step-num">3</span>Open AgentX from your home screen and enable notifications</li>
               </ol>
               <div className="pwa-banner-actions">
@@ -186,12 +176,12 @@ export function PwaPromptBanner() {
               </svg>
             </div>
             <div className="pwa-banner-body">
-              <div className="pwa-banner-title">Get notified when you're scored</div>
+              <div className="pwa-banner-title">Get Notified Instantly</div>
               <div className="pwa-banner-desc">
-                Enable notifications and we'll alert you the moment AI finishes scoring your Golden Points response.
+                Do not miss any key moment at the Executive Summit 2026.
               </div>
               <div className="pwa-banner-actions">
-                <button className="pwa-btn-primary" onClick={enableNotifications}>Enable Notifications</button>
+                <button className="pwa-btn-primary" onClick={enableNotifications}>Enable</button>
                 <button className="pwa-btn-ghost" onClick={dismissNotif}>Not now</button>
               </div>
             </div>

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 interface Initiative {
   name: string;
@@ -47,7 +49,7 @@ const INITIATIVES: Initiative[] = [
     color: '#1d4dd9',
     bg: '#d0e2ff',
     shortDesc: 'AI-guided support for homebuyers through every step of a real estate transaction.',
-    what: 'Gives homebuyers and real estate agents AI-guided assistance through the full transaction lifecycle — from offer to close.',
+    what: 'Gives homebuyers and real estate agents AI-guided assistance through the full transaction lifecycle, from offer to close.',
     audience: 'Homebuyers, real estate agents, and title companies using WFG.',
     why: 'The homebuying process is confusing. My Home Prompt makes it transparent, guided, and human.',
     rollout: 'In development. Launching 2026.',
@@ -59,9 +61,14 @@ const ALSO_IN_WORKS = [
   'Intelligence Briefs',
   'AI Toolkit',
   'Title Survey Processing',
+  'FAR/BAR Deadline Tracker',
 ];
 
 export default function ExplorePage() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {}, []);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
+
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
@@ -231,14 +238,6 @@ export default function ExplorePage() {
           color: var(--steel);
           display: flex; align-items: center; gap: 8px;
         }
-        .init-notes-private {
-          font-size: 12px; font-weight: 600;
-          color: var(--t3);
-          background: var(--bg3);
-          border-radius: 6px;
-          padding: 3px 8px;
-          display: inline-flex; align-items: center; gap: 4px;
-        }
         .init-notes-textarea {
           width: 100%;
           background: rgba(255,255,255,.62);
@@ -260,21 +259,25 @@ export default function ExplorePage() {
           background: rgba(255,255,255,.80);
           box-shadow: 0 0 0 4px rgba(227,149,72,.12);
         }
-        .init-notes-row {
-          display: flex; justify-content: space-between; align-items: center;
-          margin-top: 10px; gap: 10px;
+        .init-notes-submit-wrap {
+          display: flex; flex-direction: column; align-items: center;
+          margin-top: 10px; gap: 6px;
         }
-        .init-notes-hint { font-size: 15px; color: var(--t3); flex: 1; }
         .init-notes-submit {
-          padding: 10px 18px;
+          width: 100%;
+          padding: 12px 18px;
           border-radius: 10px;
           background: linear-gradient(180deg, #F0A55A, #E39548, #D07B38);
           color: #1C283C; border: none; cursor: pointer;
           font-family: inherit; font-size: 14px; font-weight: 700;
-          min-height: 42px;
+          min-height: 44px;
           box-shadow: 0 4px 14px rgba(227,149,72,.40);
         }
         .init-notes-submit:active { opacity: .88; }
+        .init-notes-disclaimer {
+          font-size: 11px; color: var(--t2);
+          text-align: center; margin: 0;
+        }
         .init-notes-saved {
           display: flex; align-items: center; gap: 8px;
           background: linear-gradient(135deg, var(--green-lt), #c8efd9);
@@ -316,12 +319,13 @@ export default function ExplorePage() {
       `}</style>
 
       <div className="explore-page">
+        <PullIndicator ref={indicatorRef} />
         <div className="explore-header">
           <h1 className="page-title">Explore</h1>
           <p className="explore-subtitle">Discover what ATS is building for the title industry.</p>
         </div>
 
-        <div className="explore-scroll">
+        <div className="explore-scroll" ref={scrollRef}>
           <div className="sec-label">ATS AI Initiatives</div>
 
           {INITIATIVES.map((it, i) => (
@@ -382,13 +386,6 @@ export default function ExplorePage() {
                         </svg>
                         Live Notes for ATS
                       </div>
-                      <span className="init-notes-private">
-                        <svg viewBox="0 0 14 14" fill="none" width="11" height="11">
-                          <rect x="3" y="6" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                          <path d="M5 6V4.5a2 2 0 014 0V6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                        </svg>
-                        Private
-                      </span>
                     </div>
 
                     {saved[i] ? (
@@ -403,13 +400,13 @@ export default function ExplorePage() {
                       <>
                         <textarea
                           className="init-notes-textarea"
-                          placeholder={`Share thoughts, ideas, or questions about ${it.name}. Only the ATS team will see this — not other attendees.`}
+                          placeholder="Share thoughts, ideas or questions about this product"
                           value={notes[i] || ''}
                           onChange={(e) => setNotes((prev) => ({ ...prev, [i]: e.target.value }))}
                         />
-                        <div className="init-notes-row">
-                          <div className="init-notes-hint">Only the ATS team sees this. Not visible to other attendees.</div>
+                        <div className="init-notes-submit-wrap">
                           <button className="init-notes-submit" onClick={() => submitNote(i)}>Send to ATS</button>
+                          <p className="init-notes-disclaimer">Only the ATS team reads this!</p>
                         </div>
                       </>
                     )}

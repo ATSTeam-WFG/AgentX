@@ -1,22 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { readToken, isTokenExpired } from '@/lib/auth';
 
 export default function WelcomePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const token = readToken();
     if (token && !isTokenExpired(token)) {
-      // Already authed — skip welcome
       router.replace('/home');
       return;
     }
     setReady(true);
   }, [router]);
+
+  function togglePlay() {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) { v.play(); setPlaying(true); }
+    else          { v.pause(); setPlaying(false); }
+  }
 
   if (!ready) return null;
 
@@ -27,131 +36,183 @@ export default function WelcomePage() {
           position: fixed; inset: 0;
           display: flex; flex-direction: column;
           align-items: center; justify-content: space-between;
-          background: var(--navy);
+          background: var(--bg);
           overflow: hidden;
-          padding: calc(40px + env(safe-area-inset-top, 0px)) 24px
-                   calc(40px + env(safe-area-inset-bottom, 0px));
+          padding: calc(28px + env(safe-area-inset-top, 0px)) 24px
+                   calc(28px + env(safe-area-inset-bottom, 0px));
         }
-        /* Subtle background gradient */
         .welcome-page::before {
           content: '';
           position: absolute; inset: 0;
           background:
-            radial-gradient(ellipse 80% 60% at 50% -10%, rgba(27,79,196,.35), transparent 60%),
-            radial-gradient(ellipse 60% 50% at 90% 80%, rgba(10,184,222,.12), transparent 60%);
+            radial-gradient(ellipse 80% 55% at 50% -5%, rgba(42,92,212,.28), transparent 60%),
+            radial-gradient(ellipse 50% 40% at 90% 85%, rgba(6,182,212,.08), transparent 60%);
           pointer-events: none;
         }
+
+        /* ── Top branding: WFG logo + PRESENTS + brand row ── */
         .welcome-top {
-          display: flex; flex-direction: column; align-items: center; gap: 10px;
+          display: flex; flex-direction: column;
+          align-items: center; gap: 14px;
           position: relative; z-index: 1;
-        }
-        .welcome-logo-mark {
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue-deep));
-          border-radius: 18px; padding: 12px 18px;
-          font-size: 13px; font-weight: 800; color: #fff; letter-spacing: .10em;
-          box-shadow: 0 4px 20px rgba(27,79,196,.40);
-          margin-bottom: 4px;
-        }
-        .welcome-app-name {
-          font-family: 'Sora', 'DM Sans', sans-serif;
-          font-size: 42px; font-weight: 800;
-          color: #fff; letter-spacing: -.04em; line-height: 1;
-        }
-        .welcome-subtitle {
-          font-size: 15px; color: rgba(255,255,255,.60);
-          font-weight: 500; text-align: center; line-height: 1.5;
-        }
-        /* Video area (poster) */
-        .welcome-video-wrap {
-          position: relative; flex: 1;
-          display: flex; align-items: center; justify-content: center;
           width: 100%;
-          max-height: 340px; z-index: 1;
         }
-        .welcome-video-bg {
-          width: 100%; max-width: 360px; aspect-ratio: 16/9;
-          border-radius: var(--r-xl);
-          background: linear-gradient(135deg, #0e1f3a 0%, #1a3060 50%, #0a1830 100%);
-          box-shadow: 0 20px 60px rgba(0,0,0,.50);
-          display: flex; align-items: center; justify-content: center;
-          overflow: hidden; position: relative;
-          border: 1px solid rgba(255,255,255,.08);
+        .welcome-wfg-logo {
+          height: 53px; width: auto; object-fit: contain;
         }
-        .welcome-video-bg::before {
-          content: ''; position: absolute; inset: 0;
-          background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(27,79,196,.22), transparent 70%);
-        }
-        .play-btn {
-          width: 70px; height: 70px; border-radius: 50%;
-          background: rgba(255,255,255,.12);
-          backdrop-filter: blur(8px);
-          border: 2px solid rgba(255,255,255,.25);
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all .2s;
-          position: relative; z-index: 1;
-          box-shadow: 0 8px 30px rgba(0,0,0,.30);
-        }
-        .play-btn:active { transform: scale(.93); }
-        .welcome-video-label {
-          position: absolute; bottom: 14px; left: 16px; right: 16px;
-          font-size: 13px; font-weight: 600; color: rgba(255,255,255,.60);
-          text-align: center;
+        .welcome-presents {
           font-family: 'Sora', sans-serif;
+          font-size: 11px; font-weight: 700;
+          letter-spacing: .22em; text-transform: uppercase;
+          color: rgba(204,222,231,.45);
         }
-        /* CTAs */
+
+        /* ── ES26 logo + title side-by-side ── */
+        .welcome-brand-row {
+          display: flex; align-items: center;
+          gap: 14px; width: 100%;
+          justify-content: center;
+        }
+        .welcome-es26-logo {
+          width: 68px; height: 68px;
+          object-fit: cover;
+          mix-blend-mode: screen;
+          border-radius: 18px;
+          flex-shrink: 0;
+        }
+        .welcome-summit-title {
+          font-family: 'Sora', sans-serif;
+          font-size: 30px; font-weight: 800;
+          letter-spacing: .03em; line-height: 1.08;
+          color: #CCDEE7; text-align: left;
+        }
+
+        /* ── Video section ── */
+        .welcome-video-section {
+          flex: 1; width: 100%;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          z-index: 1; padding: 10px 0 4px;
+        }
+        .welcome-video-container {
+          position: relative;
+          max-height: 320px; height: 100%;
+          aspect-ratio: 9 / 16;
+          border-radius: var(--r-xl);
+          overflow: hidden;
+          cursor: pointer;
+          box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07);
+        }
+        .welcome-video {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+        }
+        .video-overlay {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(0,0,0,.18);
+          transition: opacity .25s;
+        }
+        .video-overlay.playing { opacity: 0; pointer-events: none; }
+        .video-play-btn {
+          width: 64px; height: 64px; border-radius: 50%;
+          background: transparent; border: none;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .video-spinner {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(0,0,0,.45);
+          pointer-events: none;
+        }
+        .video-spinner svg {
+          animation: spin .9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .welcome-video-caption {
+          font-size: 13px; color: rgba(204,222,231,.50);
+          text-align: center; line-height: 1.45;
+          margin-top: 10px;
+        }
+
+        /* ── CTAs ── */
         .welcome-ctas {
-          width: 100%; display: flex; flex-direction: column; gap: 12px;
+          width: 100%; display: flex; flex-direction: column; gap: 10px;
           position: relative; z-index: 1;
         }
         .btn-get-started {
-          width: 100%; height: 58px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff; font-size: 17px; font-weight: 700;
-          font-family: 'Sora', sans-serif;
+          width: 100%; height: 54px; border-radius: 14px;
+          background: var(--amber); color: #1C283C;
           border: none; cursor: pointer;
-          box-shadow: 0 6px 24px rgba(27,79,196,.45);
-          transition: opacity .15s, transform .15s;
+          font-size: 16px; font-weight: 700; font-family: 'Sora', sans-serif;
           display: flex; align-items: center; justify-content: center; gap: 8px;
+          box-shadow: 0 4px 20px rgba(227,149,72,.35);
+          transition: opacity .15s, transform .15s;
         }
         .btn-get-started:active { opacity: .88; transform: scale(.98); }
         .btn-skip {
-          width: 100%; height: 50px;
-          border-radius: 14px;
-          background: transparent;
-          color: rgba(255,255,255,.55);
-          font-size: 15px; font-weight: 600;
-          font-family: 'Sora', sans-serif;
-          border: 1px solid rgba(255,255,255,.14);
+          width: 100%; height: 50px; border-radius: 14px;
+          background: var(--bg2); color: var(--amber);
+          border: 1px solid rgba(227,149,72,.18);
+          font-size: 15px; font-weight: 700; font-family: 'Sora', sans-serif;
           cursor: pointer;
-          transition: color .15s;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: background .15s;
         }
-        .btn-skip:active { color: rgba(255,255,255,.80); }
+        .btn-skip:active { background: #1a2945; }
         .welcome-bottom-note {
-          font-size: 12px; color: rgba(255,255,255,.30);
-          text-align: center; margin-top: 6px;
+          font-size: 12px; color: rgba(255,255,255,.28);
+          text-align: center; margin-top: 4px;
         }
       `}</style>
 
       <div className="welcome-page">
-        {/* Top branding */}
+
+        {/* WFG + PRESENTS + ES26 brand row — equal gap between all three */}
         <div className="welcome-top">
-          <div className="welcome-logo-mark">WFG</div>
-          <div className="welcome-app-name">AgentX</div>
-          <div className="welcome-subtitle">
-            Your official companion for<br />WFG Executive Summit 2026
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/wfg-ntic-logo-white.png" alt="WFG" className="welcome-wfg-logo" />
+          <div className="welcome-presents">Presents</div>
+          <div className="welcome-brand-row">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="welcome-es26-logo" />
+            <div className="welcome-summit-title">EXECUTIVE<br />SUMMIT 2026</div>
           </div>
         </div>
 
-        {/* Video poster area */}
-        <div className="welcome-video-wrap">
-          <div className="welcome-video-bg">
-            <button className="play-btn" aria-label="Play intro video">
-              <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
-                <polygon points="6,3 20,12 6,21" fill="#fff" opacity=".9" />
-              </svg>
-            </button>
-            <div className="welcome-video-label">Executive Summit 2026 · Official Recap</div>
+        {/* Video + caption */}
+        <div className="welcome-video-section">
+          <div className="welcome-video-container" onClick={togglePlay}>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              ref={videoRef}
+              className="welcome-video"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/videos/Gene%20Rebadow%20ES26_1080.mp4"
+              playsInline
+              preload="metadata"
+              onEnded={() => { setPlaying(false); setBuffering(false); }}
+              onWaiting={() => setBuffering(true)}
+              onCanPlay={() => setBuffering(false)}
+              onPlaying={() => setBuffering(false)}
+            />
+            <div className={`video-overlay${playing ? ' playing' : ''}`}>
+              <div className="video-play-btn">
+                <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
+                  <polygon points="6,3 20,12 6,21" fill="white" opacity=".9"/>
+                </svg>
+              </div>
+            </div>
+            {buffering && (
+              <div className="video-spinner">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,.25)" strokeWidth="3"/>
+                  <path d="M20 4 a16 16 0 0 1 16 16" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+              </div>
+            )}
+          </div>
+          <div className="welcome-video-caption">
+            Welcome Message from Gene Rebadow,<br />Chief Operating Officer, Agency Operations
           </div>
         </div>
 
@@ -164,12 +225,11 @@ export default function WelcomePage() {
             </svg>
           </button>
           <button className="btn-skip" onClick={() => router.push('/onboarding')}>
-            Skip intro
+            Skip Intro
           </button>
-          <div className="welcome-bottom-note">
-            WFG Executive Summit 2026 · Powered by ATS
-          </div>
+          <div className="welcome-bottom-note">WFG Executive Summit 2026 · Powered by ATS</div>
         </div>
+
       </div>
     </>
   );

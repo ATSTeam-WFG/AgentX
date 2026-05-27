@@ -38,6 +38,7 @@ import { adminActivitiesRoutes } from './routes/admin/activities'
 import { adminAnnouncementsRoutes } from './routes/admin/announcements'
 import { adminAuditLogRoutes } from './routes/admin/audit-log'
 import { adminDashboardRoutes } from './routes/admin/dashboard'
+import { adminSystemRoutes } from './routes/admin/system'
 
 export async function buildApp() {
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
@@ -149,6 +150,7 @@ export async function buildApp() {
       adminApp.register(adminAnnouncementsRoutes, { prefix: '/announcements' })
       adminApp.register(adminAuditLogRoutes, { prefix: '/audit-log' })
       adminApp.register(adminDashboardRoutes, { prefix: '/dashboard' })
+      adminApp.register(adminSystemRoutes, { prefix: '/system' })
     },
     { prefix: '/v1/admin' },
   )

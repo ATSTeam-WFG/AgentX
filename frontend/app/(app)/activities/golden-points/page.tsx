@@ -265,7 +265,7 @@ export default function GoldenPointsPage() {
           <div className="gp-scroll">
             <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
             <h1 className="page-title">Golden Points</h1>
-            <p className="page-sub">Write a thoughtful response to earn up to 100 points</p>
+            <p className="page-sub">Share a real insight. AI evaluates quality and awards up to 100 pts.</p>
 
             <div className="prompt-card">
               <div className="prompt-label">Your Prompt</div>

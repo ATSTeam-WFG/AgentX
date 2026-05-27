@@ -56,15 +56,14 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
           font-family: 'Sora', sans-serif;
           font-size: 24px; font-weight: 700; color: #CCDEE7; margin: 0 0 14px; line-height: 1.2;
         }
-        .meta-row {
-          display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+        .event-meta {
+          display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
         }
-        .meta-chip {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(204,222,231,.10); border: 1px solid rgba(204,222,231,.18);
-          border-radius: 20px; padding: 6px 12px;
-          font-size: 13px; font-weight: 600; color: rgba(204,222,231,.70);
+        .event-meta-row {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 14px; font-weight: 600; color: rgba(204,222,231,.70);
         }
+        .event-meta-icon { flex-shrink: 0; color: var(--amber); }
         .desc-card {
           background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg); padding: 18px; margin-bottom: 20px;
@@ -172,11 +171,17 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
           {event ? (
             <>
               <h1 className="session-title">{event.name}</h1>
-              <div className="meta-row">
-                <span className="meta-chip">🕐 {formatTime(event.startsAt)} – {formatTime(event.endsAt)}</span>
-                {event.location && <span className="meta-chip">📍 {event.location}</span>}
-                {event.speakerName && <span className="meta-chip">👤 {event.speakerName}</span>}
-                <span className="meta-chip">📅 Day {event.day}</span>
+              <div className="event-meta">
+                <div className="event-meta-row">
+                  <svg className="event-meta-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {formatTime(event.startsAt)} – {formatTime(event.endsAt)}
+                </div>
+                {event.location && (
+                  <div className="event-meta-row">
+                    <svg className="event-meta-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {event.location}
+                  </div>
+                )}
               </div>
 
               {event.description && (

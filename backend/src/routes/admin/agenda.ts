@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { badRequest, notFound } from '../../lib/errors'
+import { broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 const CreateSchema = z.object({
   day: z.number().int().min(1).max(3),
@@ -63,6 +65,7 @@ export async function adminAgendaRoutes(fastify: FastifyInstance) {
       return e
     })
 
+    broadcastAll(makeWsMessage({ event: 'agenda.changed', data: { action: 'created', eventId: event.id } }))
     return reply.status(201).send(mapEvent(event))
   })
 
@@ -103,6 +106,7 @@ export async function adminAgendaRoutes(fastify: FastifyInstance) {
       return e
     })
 
+    broadcastAll(makeWsMessage({ event: 'agenda.changed', data: { action: 'updated', eventId: id } }))
     return reply.send(mapEvent(event))
   })
 
@@ -126,6 +130,7 @@ export async function adminAgendaRoutes(fastify: FastifyInstance) {
       })
     })
 
+    broadcastAll(makeWsMessage({ event: 'agenda.changed', data: { action: 'deleted', eventId: id } }))
     return reply.send({ ok: true })
   })
 }

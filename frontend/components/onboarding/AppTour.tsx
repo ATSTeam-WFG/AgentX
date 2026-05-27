@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const TOUR_STEPS = [
-  { tab: 'nb-home',       title: 'Home',       desc: 'Your summit hub — live sessions, what\'s happening now, and your daily overview.' },
+  { tab: 'nb-home',       title: 'Home',       desc: 'Your summit hub: live sessions, what\'s happening now, and your daily overview.' },
   { tab: 'nb-agenda',     title: 'Agenda',     desc: 'Full 3-day schedule. Tap any session for details, location, and feedback.' },
   { tab: 'nb-explore',    title: 'Explore',    desc: 'Discover sponsors, ask Agent X anything, and navigate the summit.' },
   { tab: 'nb-activities', title: 'Activities', desc: 'Earn points through trivia, avatar creation, prompts, and more.' },
@@ -158,7 +158,7 @@ export default function AppTour({ onComplete }: Props) {
           <div className="tour-card-header">
             <div className="tour-owl-row">
               <div className="tour-owl-circle">
-                <img src="/AgentX.png" alt="Agent X" />
+                <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png" alt="Agent X" />
               </div>
               <span className="tour-agent-label">Agent X</span>
             </div>

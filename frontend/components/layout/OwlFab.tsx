@@ -86,14 +86,13 @@ export default function OwlFab() {
         @keyframes fabDotPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
       `}</style>
       <button
-        id="owl-fab"
         className="owl-fab-wrap"
         aria-label="Open Agent X assistant"
         onClick={openSheet}
         style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none' }}
       >
         <Image
-          src="/AgentX.png"
+          src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png"
           alt="Agent X"
           width={48}
           height={48}

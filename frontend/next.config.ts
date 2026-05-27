@@ -2,8 +2,15 @@ import type { NextConfig } from "next";
 import withSerwist from "@serwist/next";
 
 const nextConfig: NextConfig = {
-  // Service worker needs to be excluded from static export in development
-  // but compiled in production builds
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pub-9849080621014a8e9c12e5989f01a96e.r2.dev',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default withSerwist({

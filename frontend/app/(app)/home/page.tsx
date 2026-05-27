@@ -1,17 +1,53 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
+import { getMe } from '@/lib/api/profile';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
 import { PwaPromptBanner } from '@/components/PwaPromptBanner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 function getDayGreeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
   return 'Good evening';
+}
+
+function getSummitDayInfo(): { label: string; value: string; sub?: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+  const d = now.getDate();
+
+  const summit = [
+    new Date(2026, 5, 3), // June 3
+    new Date(2026, 5, 4), // June 4
+    new Date(2026, 5, 5), // June 5
+  ];
+
+  for (let i = 0; i < summit.length; i++) {
+    const s = summit[i];
+    if (y === s.getFullYear() && m === s.getMonth() && d === s.getDate()) {
+      return { label: 'Day', value: String(i + 1) };
+    }
+  }
+
+  const start = summit[0].getTime();
+  if (now.getTime() < start) {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysLeft = Math.ceil((start - now.getTime()) / msPerDay);
+    return { label: 'Days to go', value: String(daysLeft) };
+  }
+
+  return {
+    label: '',
+    value: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  };
 }
 
 function getActiveSession(events: AgendaEvent[]): AgendaEvent | undefined {
@@ -48,21 +84,38 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['agenda'] }),
+      queryClient.invalidateQueries({ queryKey: ['me'] }),
+    ]);
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
-  const { data: agenda, isLoading: agendaLoading } = useQuery({
+  const { data: agenda } = useQuery({
     queryKey: ['agenda'],
     queryFn: () => getAgenda(),
     staleTime: 30_000,
   });
 
-  // While fetching: show skeleton. Once settled: use live data or fall back to V7_EVENTS (real schedule).
-  const events   = agendaLoading ? [] : (agenda?.events ?? V7_EVENTS);
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getMe,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const events   = agenda?.events ?? V7_EVENTS;
   const current  = getActiveSession(events);
   const upcoming = getNextSession(events);
   const featured = current ?? upcoming;
 
-  const firstName = (user?.name ?? 'Summit Guest').split(' ')[0];
+  const rawName  = profile?.name ?? user?.name ?? '';
+  const firstName = rawName ? rawName.split(' ')[0] : 'there';
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const summitDay = getSummitDayInfo();
 
   return (
     <>
@@ -83,7 +136,7 @@ export default function HomePage() {
         .home-name {
           font-family: 'Sora', sans-serif;
           font-size: 34px;
-          font-weight: 800;
+          font-weight: 700;
           color: var(--t);
           letter-spacing: -.03em;
           line-height: 1.1;
@@ -111,7 +164,7 @@ export default function HomePage() {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 16px 22px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
           overscroll-behavior: contain;
         }
         .sec-label {
@@ -249,46 +302,50 @@ export default function HomePage() {
           color: var(--amber);
           text-decoration: none;
         }
-        .sponsor-card {
-          background: var(--metallic);
+        .sponsor-card-pythonic {
           border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg);
-          padding: 18px;
           box-shadow: var(--shadow-card);
           display: flex;
-          align-items: center;
-          gap: 14px;
+          align-items: stretch;
+          overflow: hidden;
+          height: 80px;
           margin-bottom: 16px;
         }
-        .sponsor-logo-sq {
-          width: 52px; height: 52px;
-          border-radius: 12px;
-          background: rgba(255,255,255,.55);
-          border: 1.5px solid rgba(255,255,255,.40);
+        .scp-logo-panel {
+          width: 60%;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 12px 16px;
+          background: #fff;
           flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
         }
-        .sponsor-eyebrow {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .06em;
-          text-transform: uppercase;
-          color: var(--amber);
-          margin-bottom: 3px;
+        .scp-logo {
+          max-height: 48px;
+          max-width: 100%;
+          object-fit: contain;
         }
-        .sponsor-name {
+        .scp-gradient {
+          width: 5%;
+          background: linear-gradient(to right, #fff, var(--bg));
+          flex-shrink: 0;
+        }
+        .scp-text-panel {
+          flex: 1;
+          background: var(--bg);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 10px 14px;
+        }
+        .scp-name {
           font-family: 'Sora', sans-serif;
-          font-size: 17px;
-          font-weight: 700;
-          color: var(--t);
+          font-size: 14px; font-weight: 700;
+          color: var(--t); margin-bottom: 3px;
         }
-        .sponsor-tagline {
-          font-size: 15px;
-          color: var(--t3);
-          margin-top: 2px;
+        .scp-tagline {
+          font-size: 12px; color: var(--t3); line-height: 1.35;
         }
         /* ── Summit banner ── */
         .summit-banner {
@@ -333,19 +390,10 @@ export default function HomePage() {
           color: var(--t3);
           font-size: 15px;
         }
-        @keyframes home-shimmer {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
-        }
-        .home-skel {
-          border-radius: 8px;
-          background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.06) 75%);
-          background-size: 200% 100%;
-          animation: home-shimmer 1.4s ease-in-out infinite;
-        }
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0 }}>
+        <PullIndicator ref={indicatorRef} />
         {/* Summit identity banner */}
         <div className="summit-banner">
           <span className="summit-banner-text">Executive Summit 2026</span>
@@ -358,29 +406,19 @@ export default function HomePage() {
             <div className="home-name">{firstName}</div>
           </div>
           <div className="home-day-wrap">
-            <div className="home-day-label">Day</div>
-            <div className="home-day-num">1</div>
+            {summitDay.label && <div className="home-day-label">{summitDay.label}</div>}
+            <div className="home-day-num">{summitDay.value}</div>
             <span className="home-date">{today}</span>
           </div>
         </div>
 
         {/* Scrollable content */}
-        <div className="home-scroll">
-          <PwaPromptBanner />
+        <div className="home-scroll" ref={scrollRef}>
 
-          {/* Happening Now */}
-          <div className="sec-label">Happening Now</div>
+          {/* Happening Now / Up Next */}
+          <div className="sec-label">{current ? 'Happening Now' : 'Up Next'}</div>
 
-          {agendaLoading ? (
-            <div className="whats-next-card">
-              <div className="home-skel" style={{ width: '40%', height: 11, marginBottom: 14 }} />
-              <div className="home-skel" style={{ width: '85%', height: 22, marginBottom: 10 }} />
-              <div style={{ display: 'flex', gap: 10 }}>
-                <div className="home-skel" style={{ width: '28%', height: 13 }} />
-                <div className="home-skel" style={{ width: '35%', height: 13 }} />
-              </div>
-            </div>
-          ) : featured ? (
+          {featured ? (
             <div className="whats-next-card">
               <div className="wn-eyebrow">
                 {current ? <><span className="live-dot" /> Live Now</> : 'Coming Up'}
@@ -414,20 +452,24 @@ export default function HomePage() {
 
           {/* Sponsor banner */}
           <div className="sec-label">Summit Sponsor</div>
-          <div className="sponsor-card">
-            <div className="sponsor-logo-sq">
-              <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-                <rect x="3" y="10" width="18" height="11" rx="1.5" stroke="#a67710" strokeWidth="1.6"/>
-                <path d="M8 21V14h4v7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 10l10-7 10 7" stroke="#a67710" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <Link href="/sponsors/pythonic" style={{ textDecoration: 'none', display: 'block' }}>
+            <div className="sponsor-card-pythonic">
+              <div className="scp-logo-panel">
+                <img
+                  src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/sponsors/pythonic-logo.png"
+                  alt="Pythonic"
+                  className="scp-logo"
+                />
+              </div>
+              <div className="scp-gradient" />
+              <div className="scp-text-panel">
+                <div className="scp-name">Pythonic</div>
+                <div className="scp-tagline">AI-driven document intelligence for title</div>
+              </div>
             </div>
-            <div>
-              <div className="sponsor-eyebrow">Official Summit Sponsor</div>
-              <div className="sponsor-name">WFG Title &amp; Escrow</div>
-              <div className="sponsor-tagline">Your trusted partner for every closing</div>
-            </div>
-          </div>
+          </Link>
+
+          <PwaPromptBanner />
         </div>
       </div>
     </>

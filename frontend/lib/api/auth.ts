@@ -13,6 +13,7 @@ export interface User {
 
 export interface AuthResponse {
   token: string;
+  isNewUser: boolean;
   user: User;
   status: 'active' | 'pending_approval';
 }
