@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getActivities } from '@/lib/api/activities';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
+import { useFeaturesStore } from '@/store/features';
 
 const ACTIVITIES = [
   {
@@ -112,6 +113,7 @@ function PtsRing({ pts, max }: { pts: number; max: number }) {
 }
 
 export default function ActivitiesPage() {
+  const isActivitiesOpen = useFeaturesStore((s) => s.isEnabled('activities_open'));
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {
@@ -272,9 +274,42 @@ export default function ActivitiesPage() {
           transform: scale(.97);
           box-shadow: 0 1px 6px rgba(0,0,0,.16);
         }
+        /* Locked state */
+        .acts-locked {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 32px;
+          text-align: center;
+        }
+        .acts-locked-icon {
+          font-size: 52px; margin-bottom: 24px;
+          opacity: .75;
+        }
+        .acts-locked-title {
+          font-family: 'Sora', sans-serif;
+          font-size: 22px; font-weight: 700;
+          color: var(--t); letter-spacing: -.01em;
+          margin: 0 0 10px;
+        }
+        .acts-locked-body {
+          font-size: 15px; color: rgba(200,215,230,.55);
+          line-height: 1.55; max-width: 280px;
+          margin: 0;
+        }
       `}</style>
 
       <div className="acts-page">
+        {!isActivitiesOpen ? (
+          <div className="acts-locked">
+            <div className="acts-locked-icon">🔒</div>
+            <h2 className="acts-locked-title">Activities open soon</h2>
+            <p className="acts-locked-body">
+              Check back right before the summit kicks off — activities will go live then.
+            </p>
+          </div>
+        ) : (
+        <>
         <PullIndicator ref={indicatorRef} />
         <div className="acts-header">
           <div className="acts-title-row">
@@ -325,6 +360,8 @@ export default function ActivitiesPage() {
           })}
           <div style={{ height: 28 }} />
         </div>
+        </>
+        )}
       </div>
     </>
   );

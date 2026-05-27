@@ -5,5 +5,6 @@ export type WsEvent =
   | { event: 'scores.update';      data: { userId: string; totalPoints: number } }
   | { event: 'leaderboard.update'; data: null }
   | { event: 'jobs.done';          data: { jobId: string; type: string; userId: string } }
+  | { event: 'features.updated';   data: { key: string; value: boolean } }
 
 export const makeWsMessage = (ev: WsEvent): string => JSON.stringify(ev)

@@ -608,6 +608,57 @@ export async function seedTouchpoints(prisma: PrismaClient) {
   return results
 }
 
+// ── App Config (Feature Flags) ─────────────────────────────────────────────
+
+export async function seedAppConfig(prisma: PrismaClient) {
+  const configs = [
+    {
+      key: 'activities_open',
+      label: 'Activities',
+      description: 'Master switch — enables the entire Activities tab and all 5 activities. Flip on ~1 hour before the event.',
+      value: false,
+    },
+    {
+      key: 'leaderboard_open',
+      label: 'Leaderboard',
+      description: 'Show or hide the leaderboard rankings in the Explore tab. Open once there is meaningful score data.',
+      value: false,
+    },
+    {
+      key: 'checkin_open',
+      label: 'Check-in / Walk-ins',
+      description: 'Allow walk-in attendees to self-register. Close after doors close on Day 1.',
+      value: true,
+    },
+    {
+      key: 'feedback_open',
+      label: 'Session Feedback',
+      description: 'Enable session feedback submission cards on the Home screen. Open after the first session concludes.',
+      value: false,
+    },
+    {
+      key: 'explore_open',
+      label: 'Explore Section',
+      description: 'Kill-switch for the entire Explore tab — initiatives, sponsors, and leaderboard.',
+      value: true,
+    },
+    {
+      key: 'golden_points_open',
+      label: 'Golden Points',
+      description: 'Whether Golden Points submissions are accepted. Independent of the activities master switch.',
+      value: false,
+    },
+  ]
+  for (const cfg of configs) {
+    await prisma.appConfig.upsert({
+      where: { key: cfg.key },
+      update: { label: cfg.label, description: cfg.description },
+      create: cfg,
+    })
+  }
+  return configs.length
+}
+
 // ── Full Seed ──────────────────────────────────────────────────────────────
 
 export async function runFullSeed(prisma: PrismaClient) {
@@ -621,5 +672,6 @@ export async function runFullSeed(prisma: PrismaClient) {
   const trivia = await seedTriviaQuestions(prisma)
   const pc = await seedPromptChallengeQuestions(prisma)
   const touchpoints = await seedTouchpoints(prisma)
-  return { admin: 1, invitees, agenda, sponsors, initiatives, announcements: 1, activities, trivia, promptChallenge: pc, touchpoints: touchpoints.length }
+  const appConfig = await seedAppConfig(prisma)
+  return { admin: 1, invitees, agenda, sponsors, initiatives, announcements: 1, activities, trivia, promptChallenge: pc, touchpoints: touchpoints.length, appConfig }
 }

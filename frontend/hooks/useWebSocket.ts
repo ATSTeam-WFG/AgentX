@@ -8,6 +8,7 @@ import { useWsStore } from '@/store/ws';
 import { useUiStore } from '@/store/ui';
 import { flushOutbox } from '@/lib/outbox';
 import type { JobsDoneData } from '@/lib/ws-events';
+import { useFeaturesStore } from '@/store/features';
 
 export function useWebSocket() {
   const token = useAuthStore(s => s.token);
@@ -15,6 +16,7 @@ export function useWebSocket() {
   const setLastEvent = useWsStore(s => s.setLastEvent);
   const pushToast = useUiStore(s => s.pushToast);
   const queryClient = useQueryClient();
+  const setFlag = useFeaturesStore(s => s.setFlag);
 
   useEffect(() => {
     if (!token) return;
@@ -57,6 +59,11 @@ export function useWebSocket() {
             pushToast({ message: 'Your Golden Points score is in!' });
           else if (d.type === 'avatar_generation')
             pushToast({ message: 'Your AI avatar is ready!' });
+          break;
+        }
+        case 'features.updated': {
+          const d = data as { key: string; value: boolean };
+          setFlag(d.key, d.value);
           break;
         }
       }

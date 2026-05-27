@@ -116,7 +116,7 @@ export default function SystemPage() {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
-          'Content-Type': 'application/json',
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
       });
@@ -212,8 +212,8 @@ export default function SystemPage() {
         .sys-section-title { font-size: 13px; font-weight: 700; color: var(--t2); margin: 0 0 10px; letter-spacing: -.01em; }
         .sys-action-grid { display: flex; flex-direction: column; gap: 8px; }
         .sys-action-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: var(--surface); border: 1px solid rgba(28,40,60,.10); border-radius: 10px; padding: 14px 16px; }
-        .sys-action-card.danger { border-color: rgba(224,92,92,.25); background: rgba(224,92,92,.04); }
-        .sys-action-card.warning { border-color: rgba(218,138,35,.22); background: rgba(218,138,35,.04); }
+        .sys-action-card.danger  { border-color: rgba(224,92,92,.25);  background: rgba(224,92,92,.06);  --t: #CCDEE7; --t2: #A8BECB; --t3: #8aa8c8; --t4: #5c7590; }
+        .sys-action-card.warning { border-color: rgba(218,138,35,.22); background: rgba(218,138,35,.06); --t: #CCDEE7; --t2: #A8BECB; --t3: #8aa8c8; --t4: #5c7590; }
         .sys-action-info { flex: 1; min-width: 0; }
         .sys-action-name { font-size: 13px; font-weight: 700; color: var(--t); margin: 0 0 2px; }
         .sys-action-desc { font-size: 12px; color: var(--t3); line-height: 1.45; margin: 0; }

@@ -5,6 +5,10 @@ import { broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
 
 export async function adminActivitiesRoutes(fastify: FastifyInstance) {
+  fastify.get('/activities', async () => {
+    return prisma.activity.findMany({ orderBy: { createdAt: 'asc' } })
+  })
+
   fastify.post('/:id/toggle', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
     const { id } = request.params
     const adminId = request.user.sub

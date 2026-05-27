@@ -18,10 +18,11 @@ interface Activity {
 }
 
 async function fetchActivities(): Promise<Activity[]> {
-  const res = await fetch(`${API_URL}/v1/activities`);
+  const res = await fetch(`${API_URL}/v1/admin/activities`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
   if (!res.ok) throw new Error('Failed');
-  const data = await res.json() as { activities: Activity[] };
-  return data.activities;
+  return res.json() as Promise<Activity[]>;
 }
 
 async function toggleActivity(id: string): Promise<{ id: string; isOpen: boolean }> {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useFeaturesStore } from '@/store/features';
 
 const TABS = [
   {
@@ -68,6 +69,13 @@ const TABS = [
 
 export default function TabBar() {
   const pathname = usePathname();
+  const isActivitiesOpen = useFeaturesStore((s) => s.isEnabled('activities_open'));
+  const isExploreOpen = useFeaturesStore((s) => s.isEnabled('explore_open', true));
+
+  const HIDDEN_HREFS = new Set<string>([
+    ...(!isActivitiesOpen ? ['/activities'] : []),
+    ...(!isExploreOpen    ? ['/explore']    : []),
+  ]);
 
   return (
     <>
@@ -147,7 +155,7 @@ export default function TabBar() {
         }
       `}</style>
       <nav className="tab-nav" role="navigation" aria-label="Main navigation">
-        {TABS.map(({ href, id, label, svg }) => {
+        {TABS.filter(({ href }) => !HIDDEN_HREFS.has(href)).map(({ href, id, label, svg }) => {
           const active = pathname.startsWith(href);
           return (
             <Link

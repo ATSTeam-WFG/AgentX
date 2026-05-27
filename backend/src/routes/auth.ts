@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db'
 import { authenticate } from '../plugins/auth'
-import { conflict, unauthorized, badRequest } from '../lib/errors'
+import { conflict, unauthorized, badRequest, forbidden } from '../lib/errors'
 
 const AuthBodySchema = z.object({
   name: z.string().min(1).max(200).trim(),
@@ -37,6 +37,11 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
       return created
     }, { maxWait: 10000, timeout: 15000 })
   } else {
+    // Walk-in path — check the checkin_open feature flag
+    const checkinConfig = await prisma.appConfig.findUnique({ where: { key: 'checkin_open' } })
+    if (checkinConfig && !checkinConfig.value) {
+      throw forbidden('Walk-in registration is currently closed. Please contact an administrator.')
+    }
     user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: { name, email, attendeeType: 'walk_in', pendingAdminApproval: true },

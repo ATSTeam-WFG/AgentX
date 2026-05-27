@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { readAdminToken, isTokenExpired, clearAdminToken } from '@/lib/auth';
 
 const NAV_ITEMS = [
+  { href: '/admin/features',        label: '⚡ Control'  },
   { href: '/admin',                 label: 'Dashboard'  },
   { href: '/admin/golden-points',   label: 'Golden Pts' },
   { href: '/admin/users',           label: 'Users'      },

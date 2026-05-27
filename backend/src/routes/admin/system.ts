@@ -6,7 +6,7 @@ import { makeWsMessage } from '../../ws-events'
 import {
   seedAdmin, seedInvitees, seedAgenda, seedSponsors, seedInitiatives,
   seedAnnouncements, seedActivities, seedTriviaQuestions,
-  seedPromptChallengeQuestions, seedTouchpoints,
+  seedPromptChallengeQuestions, seedTouchpoints, seedAppConfig,
 } from '../../lib/seeder'
 
 function requireSuperAdmin(request: FastifyRequest) {
@@ -63,6 +63,7 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
     await seedTriviaQuestions(prisma)
     await seedPromptChallengeQuestions(prisma)
     await seedTouchpoints(prisma)
+    await seedAppConfig(prisma)
 
     await prisma.auditLog.create({
       data: {
@@ -250,6 +251,7 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await seedTriviaQuestions(prisma)
       await seedPromptChallengeQuestions(prisma)
       await seedTouchpoints(prisma)
+      await seedAppConfig(prisma)
 
       await prisma.auditLog.create({
         data: {

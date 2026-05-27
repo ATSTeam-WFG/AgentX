@@ -404,6 +404,19 @@ model AppFeedback {
 }
 
 // ============================================================
+// Configuration
+// ============================================================
+
+model AppConfig {
+  key              String   @id
+  label            String
+  description      String
+  value            Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+  updatedByAdminId String?
+}
+
+// ============================================================
 // Operational
 // ============================================================
 

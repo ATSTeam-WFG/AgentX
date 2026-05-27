@@ -13,6 +13,8 @@ import type { User } from '@/lib/api/auth';
 import { initOutboxListeners, flushOutbox } from '@/lib/outbox';
 import OfflineBanner from '@/components/OfflineBanner';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { fetchFeatures } from '@/lib/api/features';
+import { useFeaturesStore } from '@/store/features';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   useWebSocket();
@@ -63,6 +65,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const cleanup = initOutboxListeners();
     return cleanup;
   }, []);
+
+  // Fetch feature flags on mount — populates the features store so all pages
+  // can gate content without individual fetches.
+  const setFlags = useFeaturesStore((s) => s.setFlags);
+  useEffect(() => {
+    fetchFeatures().then(setFlags).catch(() => {});
+  }, [setFlags]);
 
   return (
     <>
