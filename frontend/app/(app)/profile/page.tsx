@@ -1,10 +1,13 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getMe } from '@/lib/api/profile';
 import { getLeaderboard, type LeaderboardEntry } from '@/lib/api/leaderboard';
 import { useAuthStore } from '@/store/auth';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 function MedalCell({ rank }: { rank: number }) {
   if (rank === 1) return <div className="lb-medal gold">{rank}</div>;
@@ -39,6 +42,15 @@ function LbRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: boole
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['me'] }),
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+    ]);
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -54,7 +66,7 @@ export default function ProfilePage() {
     retry: false,
   });
 
-  const name       = profile?.name ?? user?.name ?? 'Gene Rebadow';
+  const name       = profile?.name ?? user?.name ?? 'Attendee';
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
@@ -132,6 +144,16 @@ export default function ProfilePage() {
             rgba(31,45,69,.75) 40%,
             transparent 100%
           );
+        }
+
+        /* Stub shown when no AI avatar has been generated yet */
+        .hero-photo-stub {
+          width: 100%; height: 100%;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Sora', sans-serif;
+          font-size: 96px; font-weight: 800; letter-spacing: -.04em;
+          color: rgba(255,255,255,.10);
+          user-select: none;
         }
 
         /* Text content — above image layers */
@@ -383,12 +405,19 @@ export default function ProfilePage() {
       `}</style>
 
       <div className="profile-page">
-        <div className="profile-scroll">
+        <PullIndicator ref={indicatorRef} />
+        <div className="profile-scroll" ref={scrollRef}>
 
           {/* ── F1-style hero ── */}
           <div className="profile-hero-v7">
             <div className="hero-photo-wrap">
-              <img src={profile?.avatarUrl ?? '/Gene_Avatar.png'} alt="" className="hero-photo" />
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="hero-photo" />
+              ) : (
+                <div className="hero-photo-stub" aria-hidden="true">
+                  {firstName[0]}{lastName?.[0] ?? ''}
+                </div>
+              )}
             </div>
             <div className="hero-content">
               <div className="hero-first">{firstName}</div>

@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { prisma } from '../../db'
 import { notFound } from '../../lib/errors'
+import { broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 export async function adminActivitiesRoutes(fastify: FastifyInstance) {
   fastify.post('/:id/toggle', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
@@ -25,6 +27,7 @@ export async function adminActivitiesRoutes(fastify: FastifyInstance) {
       })
     })
 
+    broadcastAll(makeWsMessage({ event: 'activity.changed', data: { id, isOpen: newIsOpen } }))
     return reply.send({ id, isOpen: newIsOpen })
   })
 }

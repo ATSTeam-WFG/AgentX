@@ -12,8 +12,10 @@ import { readToken, isTokenExpired, decodeToken } from '@/lib/auth';
 import type { User } from '@/lib/api/auth';
 import { initOutboxListeners, flushOutbox } from '@/lib/outbox';
 import OfflineBanner from '@/components/OfflineBanner';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  useWebSocket();
   const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {

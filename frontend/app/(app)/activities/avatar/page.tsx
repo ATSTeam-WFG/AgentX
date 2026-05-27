@@ -12,9 +12,9 @@ async function uploadAndGenerate(_file: File): Promise<{ jobId: string }> {
   return { jobId: crypto.randomUUID() };
 }
 
-async function pollAvatarJob(_jobId: string): Promise<{ status: 'generating' | 'done'; resultUrl: string }> {
+async function pollAvatarJob(_jobId: string, photoUrl: string): Promise<{ status: 'generating' | 'done'; resultUrl: string }> {
   await new Promise((r) => setTimeout(r, 15000));
-  return { status: 'done', resultUrl: '/Gene_Avatar.png' };
+  return { status: 'done', resultUrl: photoUrl };
 }
 
 export default function AvatarStudioPage() {
@@ -39,7 +39,7 @@ export default function AvatarStudioPage() {
     if (phase !== 'generating' || !jobId) return;
     const t = setInterval(async () => {
       try {
-        const res = await pollAvatarJob(jobId);
+        const res = await pollAvatarJob(jobId, photoUrl ?? '');
         if (res.status === 'done') {
           clearInterval(t);
           setResultUrl(res.resultUrl);

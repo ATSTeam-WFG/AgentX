@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/auth';
 import { useWsStore } from '@/store/ws';
 import { useUiStore } from '@/store/ui';
 import { flushOutbox } from '@/lib/outbox';
+import type { JobsDoneData } from '@/lib/ws-events';
 
 export function useWebSocket() {
   const token = useAuthStore(s => s.token);
@@ -42,6 +43,22 @@ export function useWebSocket() {
         case 'agenda.changed':
           queryClient.invalidateQueries({ queryKey: ['agenda'] });
           break;
+        case 'activity.changed':
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+          break;
+        case 'scores.update':
+          queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+          queryClient.invalidateQueries({ queryKey: ['me'] });
+          break;
+        case 'jobs.done': {
+          const d = data as JobsDoneData;
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+          if (d.type === 'golden_points_scoring')
+            pushToast({ message: 'Your Golden Points score is in!' });
+          else if (d.type === 'avatar_generation')
+            pushToast({ message: 'Your AI avatar is ready!' });
+          break;
+        }
       }
     });
 

@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { notFound, conflict } from '../../lib/errors'
+import { broadcastAll, broadcastUser } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 const ListUsersQuerySchema = z.object({
   search: z.string().optional(),
@@ -86,6 +88,12 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
         },
       })
     }, { maxWait: 10000, timeout: 15000 })
+
+    const updated = await prisma.userScore.findUnique({ where: { userId: id }, select: { totalPoints: true } })
+    if (updated) {
+      broadcastUser(id, makeWsMessage({ event: 'scores.update', data: { userId: id, totalPoints: updated.totalPoints } }))
+      broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
+    }
 
     return reply.send({ ok: true })
   })

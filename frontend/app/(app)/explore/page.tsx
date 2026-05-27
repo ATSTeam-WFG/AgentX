@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 interface Initiative {
   name: string;
@@ -62,6 +64,10 @@ const ALSO_IN_WORKS = [
 ];
 
 export default function ExplorePage() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {}, []);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
+
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
@@ -316,12 +322,13 @@ export default function ExplorePage() {
       `}</style>
 
       <div className="explore-page">
+        <PullIndicator ref={indicatorRef} />
         <div className="explore-header">
           <h1 className="page-title">Explore</h1>
           <p className="explore-subtitle">Discover what ATS is building for the title industry.</p>
         </div>
 
-        <div className="explore-scroll">
+        <div className="explore-scroll" ref={scrollRef}>
           <div className="sec-label">ATS AI Initiatives</div>
 
           {INITIATIVES.map((it, i) => (

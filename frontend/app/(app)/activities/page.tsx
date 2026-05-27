@@ -1,8 +1,11 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getActivities } from '@/lib/api/activities';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 const ACTIVITIES = [
   {
@@ -109,6 +112,13 @@ function PtsRing({ pts, max }: { pts: number; max: number }) {
 }
 
 export default function ActivitiesPage() {
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['activities'] });
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
+
   const { data: apiActivities } = useQuery({
     queryKey: ['activities'],
     queryFn: getActivities,
@@ -263,6 +273,7 @@ export default function ActivitiesPage() {
       `}</style>
 
       <div className="acts-page">
+        <PullIndicator ref={indicatorRef} />
         <div className="acts-header">
           <div className="acts-title-row">
             <h1 className="acts-title">Activities</h1>
@@ -274,7 +285,7 @@ export default function ActivitiesPage() {
           </div>
         </div>
 
-        <div className="acts-scroll">
+        <div className="acts-scroll" ref={scrollRef}>
           {ACTIVITIES.map((act) => {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;

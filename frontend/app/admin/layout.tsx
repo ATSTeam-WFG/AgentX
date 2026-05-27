@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/agenda',          label: 'Agenda'     },
   { href: '/admin/invitees',        label: 'Invitees'   },
   { href: '/admin/audit-log',       label: 'Audit Log'  },
+  { href: '/admin/system',          label: 'System'     },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

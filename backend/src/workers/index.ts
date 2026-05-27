@@ -1,6 +1,8 @@
 import { prisma } from '../db'
 import { handleAvatarGeneration } from './avatar'
 import { handleGoldenPointsScoring } from './golden-points'
+import { broadcastUser } from '../ws-connections'
+import { makeWsMessage } from '../ws-events'
 
 const POLL_INTERVAL_MS = 5000
 const LOCK_DURATION_MS = 60000
@@ -16,6 +18,10 @@ async function processSingleJob(id: string, type: string, payload: Record<string
     } else {
       console.warn(`[worker] unknown job type: ${type}`)
       await prisma.job.update({ where: { id }, data: { status: 'done', completedAt: new Date() } })
+    }
+    const userId = payload.userId as string | undefined
+    if (userId) {
+      broadcastUser(userId, makeWsMessage({ event: 'jobs.done', data: { jobId: id, type, userId } }))
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

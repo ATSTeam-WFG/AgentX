@@ -1,12 +1,15 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
 import { getMe } from '@/lib/api/profile';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
 import { PwaPromptBanner } from '@/components/PwaPromptBanner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 function getDayGreeting() {
   const h = new Date().getHours();
@@ -49,6 +52,15 @@ function SessionProgress({ event }: { event: AgendaEvent }) {
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['agenda'] }),
+      queryClient.invalidateQueries({ queryKey: ['me'] }),
+    ]);
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
   const { data: agenda } = useQuery({
     queryKey: ['agenda'],
@@ -344,6 +356,7 @@ export default function HomePage() {
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0 }}>
+        <PullIndicator ref={indicatorRef} />
         {/* Summit identity banner */}
         <div className="summit-banner">
           <span className="summit-banner-text">Executive Summit 2026</span>
@@ -363,7 +376,7 @@ export default function HomePage() {
         </div>
 
         {/* Scrollable content */}
-        <div className="home-scroll">
+        <div className="home-scroll" ref={scrollRef}>
           <PwaPromptBanner />
 
           {/* Happening Now / Up Next */}

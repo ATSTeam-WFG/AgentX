@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
 import { V7_EVENTS } from '@/lib/v7-agenda';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullIndicator } from '@/components/PullIndicator';
 
 const DAY_TABS = [
   { day: 0, label: 'Wed · Jun 3',  title: 'Arrivals & Welcome Dinner',    badge: 'Pre-Summit' },
@@ -83,6 +85,12 @@ function SessionCard({ event, hideTime }: { event: AgendaEvent; hideTime?: boole
 
 export default function AgendaPage() {
   const [activeDay, setActiveDay] = useState(1);
+  const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['agenda'] });
+  }, [queryClient]);
+  const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
   const { data, isLoading } = useQuery({
     queryKey: ['agenda'],
@@ -231,6 +239,7 @@ export default function AgendaPage() {
       `}</style>
 
       <div className="agenda-page">
+        <PullIndicator ref={indicatorRef} />
         <div className="agenda-header">
           <h1 className="page-title">Agenda</h1>
           <div className="agenda-dates">June 3 – 5 · 2026</div>
@@ -247,7 +256,7 @@ export default function AgendaPage() {
           </div>
         </div>
 
-        <div className="agenda-scroll">
+        <div className="agenda-scroll" ref={scrollRef}>
           {isLoading
             ? [60, 45, 70, 50, 55].map((w, i) => (
               <div key={i} className="session-skel">
