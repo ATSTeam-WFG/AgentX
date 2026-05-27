@@ -6,7 +6,7 @@ import { makeWsMessage } from '../ws-events'
 
 const POLL_INTERVAL_MS = 5000
 const LOCK_DURATION_MS = 60000
-const BATCH_SIZE = 5
+const BATCH_SIZE = 20
 const WORKER_ID = `worker-${process.pid}`
 
 async function processSingleJob(id: string, type: string, payload: Record<string, unknown>) {

@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db'
+import { redis } from '../redis'
+import { config } from '../config'
 
 const LeaderboardQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(5),
@@ -21,18 +23,31 @@ export async function leaderboardRoutes(fastify: FastifyInstance) {
       // unauthenticated — fine
     }
 
-    const topScores = await prisma.userScore.findMany({
-      orderBy: { totalPoints: 'desc' },
-      take: limit,
-      include: { user: { select: { name: true, avatarUrl: true } } },
-    })
+    const cacheKey = `lb:top:${limit}`
+    let leaderboard: Array<{ rank: number; name: string; totalPoints: number; avatarUrl: string | null }>
 
-    const leaderboard = topScores.map((s, i) => ({
-      rank: i + 1,
-      name: s.user.name,
-      totalPoints: s.totalPoints,
-      avatarUrl: s.user.avatarUrl ?? null,
-    }))
+    const cached = config.NODE_ENV !== 'test'
+      ? await redis.get(cacheKey).catch(() => null)
+      : null
+
+    if (cached) {
+      leaderboard = JSON.parse(cached) as typeof leaderboard
+    } else {
+      const topScores = await prisma.userScore.findMany({
+        orderBy: { totalPoints: 'desc' },
+        take: limit,
+        include: { user: { select: { name: true, avatarUrl: true } } },
+      })
+      leaderboard = topScores.map((s, i) => ({
+        rank: i + 1,
+        name: s.user.name,
+        totalPoints: s.totalPoints,
+        avatarUrl: s.user.avatarUrl ?? null,
+      }))
+      if (config.NODE_ENV !== 'test') {
+        await redis.setex(cacheKey, 10, JSON.stringify(leaderboard)).catch(() => {})
+      }
+    }
 
     let currentUser: { rank: number; totalPoints: number } | null = null
     if (currentUserId) {
