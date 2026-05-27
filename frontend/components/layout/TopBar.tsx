@@ -81,7 +81,7 @@ export default function TopBar() {
           {/* ES26 left */}
           <Link href="/home" className="tb-es26" aria-label="Go to home">
             <Image
-              src="/ES26logo.png"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png"
               alt="ES 26"
               width={42}
               height={42}
@@ -94,7 +94,7 @@ export default function TopBar() {
           {/* WFG right */}
           <div className="tb-wfg">
             <Image
-              src="/WFG NTIC Logo white.png"
+              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/wfg-ntic-logo-white.png"
               alt="WFG National Title Insurance Company"
               width={80}
               height={34}

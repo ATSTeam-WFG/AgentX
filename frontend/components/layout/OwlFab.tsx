@@ -92,7 +92,7 @@ export default function OwlFab() {
         style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none' }}
       >
         <Image
-          src="/AgentX.png"
+          src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png"
           alt="Agent X"
           width={48}
           height={48}

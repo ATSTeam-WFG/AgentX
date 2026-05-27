@@ -158,7 +158,7 @@ export default function AppTour({ onComplete }: Props) {
           <div className="tour-card-header">
             <div className="tour-owl-row">
               <div className="tour-owl-circle">
-                <img src="/AgentX.png" alt="Agent X" />
+                <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png" alt="Agent X" />
               </div>
               <span className="tour-agent-label">Agent X</span>
             </div>

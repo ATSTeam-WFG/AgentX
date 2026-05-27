@@ -1,6 +1,24 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { CacheFirst, ExpirationPlugin, Serwist } from "serwist";
+
+// Cache CDN images (Cloudflare R2) with CacheFirst so they survive offline.
+// Next.js proxies remote images through /_next/image?url=<encoded-CDN-url>, so
+// we match on the same-origin proxy path rather than the CDN hostname directly.
+const r2ImageCache = {
+  matcher: ({ url }: { url: URL }) =>
+    url.pathname === '/_next/image' &&
+    (url.searchParams.get('url') ?? '').includes('r2.dev'),
+  handler: new CacheFirst({
+    cacheName: 'agentx-cdn-images',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 200,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      }),
+    ],
+  }),
+};
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -16,7 +34,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [r2ImageCache, ...defaultCache],
 });
 
 // ── Offline fallback ─────────────────────────────────────────────────────────

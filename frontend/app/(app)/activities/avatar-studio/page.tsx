@@ -7,9 +7,11 @@ import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint } from '../.
 
 type Status = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
+const CDN = 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev'
+
 const BACKDROPS = [
-  { id: '1' as const, label: 'Backdrop 1', src: '/backdrops/backdrop1.png' },
-  { id: '2' as const, label: 'Backdrop 2', src: '/backdrops/backdrop2.png' },
+  { id: '1' as const, label: 'Backdrop 1', src: `${CDN}/brand/backdrop1.png` },
+  { id: '2' as const, label: 'Backdrop 2', src: `${CDN}/brand/backdrop2.png` },
 ];
 
 export default function AvatarStudioPage() {

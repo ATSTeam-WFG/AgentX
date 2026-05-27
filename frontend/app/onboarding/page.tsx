@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signup } from '@/lib/api/auth';
+import Image from 'next/image';
+import { login } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/auth';
 
 type RoleType = 'title_agent' | 'wfg_employee' | 'guest';
@@ -31,9 +32,11 @@ export default function OnboardingPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await signup(name.trim(), email.trim());
+      const res = await login(name.trim(), email.trim());
       setAuth(res.user, res.token);
-      router.push('/onboarding/interests');
+      // New users go through the interests onboarding step.
+      // Returning users (re-installed PWA, lost token) skip straight to home.
+      router.push(res.isNewUser ? '/onboarding/interests' : '/home');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Try again.');
     } finally {
@@ -192,9 +195,7 @@ export default function OnboardingPage() {
       <div className="onboard-page">
         <div className="onboard-scroll">
           <div className="onboard-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/ES26logo.png" alt="ES26" className="onboard-logo-img" />
-            <div className="onboard-logo-sub">Executive Summit 2026</div>
+            <Image src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES 26" width={120} height={48} style={{ objectFit: 'contain', mixBlendMode: 'screen' }} />
           </div>
 
           <h2 className="onboard-heading">Tell us about you</h2>

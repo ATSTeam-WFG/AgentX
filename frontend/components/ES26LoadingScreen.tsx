@@ -44,7 +44,7 @@ export default function ES26LoadingScreen({ label = 'Loading…' }: Props) {
         }
       `}</style>
       <div className="es26-ls">
-        <img src="/ES26logo.png" alt="ES26" className="es26-ls-logo" />
+        <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="es26-ls-logo" />
         <div className="es26-ls-label">{label}</div>
         <div className="es26-ls-dots">
           <div className="es26-ls-dot" />

@@ -252,7 +252,7 @@ export default function AgentXSheet() {
           <div className="ax-handle" />
 
           <div className="ax-header">
-            <Image src="/AgentX.png" alt="Agent X" width={64} height={64} className="ax-avatar" />
+            <Image src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png" alt="Agent X" width={64} height={64} className="ax-avatar" />
             <div className="ax-header-info">
               <div className="ax-name">Agent X</div>
               <div className="ax-status">

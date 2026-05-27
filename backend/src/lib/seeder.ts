@@ -256,42 +256,99 @@ export async function seedAgenda(prisma: PrismaClient) {
 }
 
 // ── Sponsors ───────────────────────────────────────────────────────────────
+// Tiers are all 'partner' by default — update individually in the DB or via
+// admin once tier assignments are confirmed.
+// Logos are served from Cloudflare R2 CDN. Run scripts/upload-sponsor-logos.ts
+// to upload assets before seeding in production.
+
+const CDN = 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev'
 
 export async function seedSponsors(prisma: PrismaClient) {
   const sponsors = [
     {
-      id: 'seed-sponsor-title',
-      name: 'WFG Financial Partners',
-      tier: 'title' as const,
-      logoUrl: 'https://placehold.co/400x200?text=Title+Sponsor',
-      description: 'Our premier event partner',
-      displayOrder: 1,
-    },
-    {
-      id: 'seed-sponsor-gold',
-      name: 'Summit Gold Co.',
-      tier: 'gold' as const,
-      logoUrl: 'https://placehold.co/400x200?text=Gold+Sponsor',
-      description: 'Gold-level event partner',
-      displayOrder: 1,
-    },
-    {
-      id: 'seed-sponsor-silver',
-      name: 'Silver Solutions Inc.',
-      tier: 'silver' as const,
-      logoUrl: 'https://placehold.co/400x200?text=Silver+Sponsor',
-      description: 'Silver-level event partner',
-      displayOrder: 1,
-    },
-    {
-      id: 'seed-sponsor-partner',
-      name: 'Community Partners LLC',
+      id: 'seed-sponsor-qualia',
+      name: 'Qualia',
       tier: 'partner' as const,
-      logoUrl: 'https://placehold.co/400x200?text=Partner',
-      description: 'Supporting partner',
+      logoUrl: `${CDN}/sponsors/qualia-logo.png`,
+      description: 'Qualia is the leading comprehensive digital closing platform used by title, escrow, real estate and mortgage lending professionals to transform home buying and selling into simple, secure, enjoyable experiences for millions of homeowners each year.',
       displayOrder: 1,
+    },
+    {
+      id: 'seed-sponsor-closinglock',
+      name: 'Closinglock',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/closinglock-logo.jpg`,
+      description: 'Closinglock is building the trusted infrastructure for how money moves in real estate, providing insured digital payments, identity verification, and secure escrow management tools for title companies and law firms in all 50 states.',
+      displayOrder: 2,
+    },
+    {
+      id: 'seed-sponsor-bear-printing',
+      name: 'Bear Printing',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/bear-printing-logo.png`,
+      description: 'Bear Printing is a marketing platform built for agents and the title, escrow, and lending professionals who support them. We combine automated MLS-linked print marketing, AI-powered content creation, and national listing data into one seamless workflow.',
+      displayOrder: 3,
+    },
+    {
+      id: 'seed-sponsor-pythonic',
+      name: 'Pythonic',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/pythonic-logo.png`,
+      description: "Pythonic Corporation is at the forefront of AI-driven document understanding technology. With our focus on the title insurance industry, Pythonic's mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.",
+      displayOrder: 4,
+    },
+    {
+      id: 'seed-sponsor-capital-bank',
+      name: 'Capital Bank, N.A.',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/capital-bank-logo.jpg`,
+      description: 'Capital Bank, N.A. understands the challenges of your market landscape and meets those challenges head-on with a customized approach — late wire room hours, protecting your accounts from unauthorized transactions, and customized reporting.',
+      displayOrder: 5,
+    },
+    {
+      id: 'seed-sponsor-alanna',
+      name: 'alanna.ai',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/alanna-logo.png`,
+      description: "alanna.ai is the developer of the title industry's only conversational AI technology capable of holding complex conversations with clients in 133 languages via SMS text or web chat, resolving up to 97% of inbound emails and phone calls without human involvement.",
+      displayOrder: 6,
+    },
+    {
+      id: 'seed-sponsor-datatrace',
+      name: 'DataTrace',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/datatrace-logo.png`,
+      description: "DataTrace Information Services LLC, the nation's largest provider of property and ownership data and title automation solutions, enables title and settlement companies to streamline their processes, increase efficiency and drive growth.",
+      displayOrder: 7,
+    },
+    {
+      id: 'seed-sponsor-signature-xcel',
+      name: 'Signature Xcel',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/signature-xcel-logo.jpg`,
+      description: 'Signature Xcel is the premier national notary signing agency with 70k+ approved and vetted notary signing agents providing nationwide coverage. ALTA Elite Provider, winner of the BBB Torch Award for Ethics and HousingWire Vanguard 100.',
+      displayOrder: 8,
+    },
+    {
+      id: 'seed-sponsor-connect',
+      name: 'Connect Services',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/connect-logo.svg`,
+      description: 'Connect Services helps title agencies support clients during the move-in process by coordinating utilities and home services. It extends the client experience beyond closing while creating a no-lift revenue opportunity for partner agencies.',
+      displayOrder: 9,
+    },
+    {
+      id: 'seed-sponsor-palmagent',
+      name: 'PalmAgent',
+      tier: 'partner' as const,
+      logoUrl: `${CDN}/sponsors/palmagent-logo.png`,
+      description: "PalmAgent is real estate's #1 title sales tool — a white-label platform built for title sales reps and the realtors they work with, giving your team the calculators, estimates, and agent-facing tools they use every day, branded as your company.",
+      displayOrder: 10,
     },
   ]
+
+  const ids = sponsors.map((s) => s.id)
+  await prisma.sponsor.deleteMany({ where: { id: { notIn: ids } } })
   for (const sponsor of sponsors) {
     await prisma.sponsor.upsert({ where: { id: sponsor.id }, update: {}, create: sponsor })
   }
@@ -303,34 +360,51 @@ export async function seedSponsors(prisma: PrismaClient) {
 export async function seedInitiatives(prisma: PrismaClient) {
   const initiatives = [
     {
-      id: 'seed-initiative-1',
-      name: 'AgentX Platform',
-      team: 'Technology',
-      shortDescription: 'AI-powered agent productivity suite',
-      whatItDoes: 'Streamlines client management, compliance workflows, and document processing',
-      audience: 'Title agents and brokers across the WFG network',
-      whyBuilt: 'To reduce manual work by 60% and improve accuracy on high-volume transactions',
-      rolloutNotes: 'Piloting with 50 agents in Q3 2026',
+      id: 'seed-initiative-eremit',
+      name: 'eRemit',
+      team: 'Payments · Built with Verndale',
+      shortDescription: 'Digital remittance payments for title agents. No manual steps, no back-and-forth.',
+      whatItDoes: 'A platform that lets title agents pay their remittances directly to WFG, eliminating manual wire transfers and reducing errors.',
+      audience: 'Title agents and office managers processing monthly remittances.',
+      whyBuilt: 'Manual remittance processes are error-prone, time-consuming, and frustrating. eRemit automates the entire workflow.',
+      rolloutNotes: 'Live and in use. Visit the ATS kiosk for a walkthrough demo.',
       demoUrl: null,
-      kioskLocation: 'Kiosk A — Main Lobby',
+      kioskLocation: null,
       splashUrl: null,
       displayOrder: 1,
     },
     {
-      id: 'seed-initiative-2',
-      name: 'Smart Closing Portal',
-      team: 'Product',
-      shortDescription: 'Digital closing experience for buyers and sellers',
-      whatItDoes: 'Allows fully remote closings with e-signatures and real-time status updates',
-      audience: 'Homebuyers, sellers, and real estate agents',
-      whyBuilt: 'Remote closings grew 3x post-2020; current process requires 12 manual steps',
-      rolloutNotes: 'Available in 8 states, expanding nationwide by end of 2026',
+      id: 'seed-initiative-fieldiq',
+      name: 'FieldIQ',
+      team: 'Field Sales Intelligence · Live',
+      shortDescription: 'AI-powered tracking for every field activity: lunches, pop-bys, CE classes, and more.',
+      whatItDoes: 'Captures and analyzes every field activity that title agents perform. Relationship work that never got tracked before now becomes actionable data.',
+      audience: 'Title agents and sales representatives doing field business development.',
+      whyBuilt: 'Field sales activities are invisible to management and hard to correlate with results. FieldIQ changes that.',
+      rolloutNotes: 'Live. Ask the ATS team for a demo at the Innovation Hub kiosk.',
       demoUrl: null,
-      kioskLocation: 'Kiosk B — Exhibit Hall',
+      kioskLocation: null,
       splashUrl: null,
       displayOrder: 2,
     },
+    {
+      id: 'seed-initiative-myhomeprompt',
+      name: 'My Home Prompt',
+      team: 'WFG Advisory · AI Homebuyer Guide',
+      shortDescription: 'AI-guided support for homebuyers through every step of a real estate transaction.',
+      whatItDoes: 'Gives homebuyers and real estate agents AI-guided assistance through the full transaction lifecycle, from offer to close.',
+      audience: 'Homebuyers, real estate agents, and title companies using WFG.',
+      whyBuilt: 'The homebuying process is confusing. My Home Prompt makes it transparent, guided, and human.',
+      rolloutNotes: 'In development. Launching 2026.',
+      demoUrl: null,
+      kioskLocation: null,
+      splashUrl: null,
+      displayOrder: 3,
+    },
   ]
+
+  const ids = initiatives.map((i) => i.id)
+  await prisma.initiative.deleteMany({ where: { id: { notIn: ids } } })
   for (const initiative of initiatives) {
     await prisma.initiative.upsert({ where: { id: initiative.id }, update: {}, create: initiative })
   }

@@ -77,7 +77,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   return (
     <div className="pts-toast">
       <div className="pts-toast-owl">
-        <img src="/AgentX.png" alt="Agent X" />
+        <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png" alt="Agent X" />
       </div>
       <div className="pts-toast-body">
         <div className="pts-toast-agent">Agent X</div>

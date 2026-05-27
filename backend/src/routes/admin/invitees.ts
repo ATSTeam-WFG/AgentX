@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { parse } from 'csv-parse/sync'
 import { prisma } from '../../db'
-import { badRequest, conflict } from '../../lib/errors'
+import { badRequest, conflict, notFound } from '../../lib/errors'
 
 const ListQuerySchema = z.object({
   search: z.string().optional(),
@@ -16,6 +16,12 @@ const CreateInviteeSchema = z.object({
   attendeeType: z.enum(['invited', 'walk_in']).default('invited'),
 })
 
+const EditInviteeSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().toLowerCase().trim().optional(),
+  attendeeType: z.enum(['invited', 'walk_in']).optional(),
+}).refine((d) => Object.keys(d).length > 0, { message: 'No fields to update' })
+
 const RowSchema = z.object({
   name: z.string().min(1),
   email: z.string().email().toLowerCase().trim(),
@@ -23,6 +29,7 @@ const RowSchema = z.object({
 })
 
 export async function adminInviteesRoutes(fastify: FastifyInstance) {
+  // ── CSV upload ──────────────────────────────────────────────────────────────
   fastify.post('/upload', async (request, reply) => {
     const file = await request.file()
     if (!file) throw badRequest('No file uploaded')
@@ -71,6 +78,7 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
     return reply.send({ imported, skipped, errors })
   })
 
+  // ── List ────────────────────────────────────────────────────────────────────
   fastify.get('/', async (request, reply) => {
     const { search, limit, offset } = ListQuerySchema.parse(request.query)
 
@@ -97,6 +105,7 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
     return reply.send({ invitees, total, limit, offset })
   })
 
+  // ── Create single ───────────────────────────────────────────────────────────
   fastify.post('/', async (request: FastifyRequest, reply) => {
     const parsed = CreateInviteeSchema.safeParse(request.body)
     if (!parsed.success) throw badRequest(parsed.error.issues[0].message)
@@ -107,5 +116,42 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
 
     const invitee = await prisma.invitee.create({ data: { name, email, attendeeType } })
     return reply.status(201).send({ invitee })
+  })
+
+  // ── Edit ────────────────────────────────────────────────────────────────────
+  fastify.patch('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const { id } = request.params
+
+    const parsed = EditInviteeSchema.safeParse(request.body)
+    if (!parsed.success) throw badRequest(parsed.error.issues[0].message)
+
+    const invitee = await prisma.invitee.findUnique({ where: { id } })
+    if (!invitee) throw notFound('Invitee not found')
+
+    if (parsed.data.email && parsed.data.email !== invitee.email) {
+      const existing = await prisma.invitee.findUnique({ where: { email: parsed.data.email } })
+      if (existing) throw conflict('Email already in use by another invitee')
+    }
+
+    const updated = await prisma.invitee.update({ where: { id }, data: parsed.data })
+    return reply.send({ invitee: updated })
+  })
+
+  // ── Delete ──────────────────────────────────────────────────────────────────
+  fastify.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const { id } = request.params
+
+    const invitee = await prisma.invitee.findUnique({
+      where: { id },
+      include: { user: { select: { id: true } } },
+    })
+    if (!invitee) throw notFound('Invitee not found')
+
+    if (invitee.user) {
+      throw conflict('Cannot delete invitee with a registered user. Delete the user account first.')
+    }
+
+    await prisma.invitee.delete({ where: { id } })
+    return reply.send({ ok: true })
   })
 }

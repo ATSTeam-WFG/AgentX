@@ -1,17 +1,19 @@
+const CDN = 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev'
+
 export interface SponsorEntry {
-  slug: string;
-  name: string;
-  logo: string;
-  dark: boolean;
-  website?: string;
-  description: string;
+  slug: string
+  name: string
+  logo: string
+  dark: boolean
+  website?: string
+  description: string
 }
 
 export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'qualia',
     name: 'Qualia',
-    logo: '/sponsors/logos/Qualia-logo-dark.png',
+    logo: `${CDN}/sponsors/qualia-logo.png`,
     dark: false,
     website: 'https://qualia.com',
     description:
@@ -20,7 +22,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'closinglock',
     name: 'Closinglock',
-    logo: '/sponsors/logos/Closinglock_Logo_Horizontal_Orange_CMYK%20(1).jpg',
+    logo: `${CDN}/sponsors/closinglock-logo.jpg`,
     dark: false,
     website: 'https://www.closinglock.com',
     description:
@@ -29,7 +31,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'bear-printing',
     name: 'Bear Printing',
-    logo: '/sponsors/logos/Bear%20Printing%20Logo%20-%20Bricks%20-%20Wide.png',
+    logo: `${CDN}/sponsors/bear-printing-logo.png`,
     dark: false,
     website: 'https://www.bearprinting.com',
     description:
@@ -38,15 +40,15 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'pythonic',
     name: 'Pythonic',
-    logo: '/sponsors/logos/Pythonic_logo%20horizontal-gradient.png',
+    logo: `${CDN}/sponsors/pythonic-logo.png`,
     dark: false,
     description:
-      'Pythonic Corporation is at the forefront of AI-driven document understanding technology. We have developed innovative solutions to tackle the unique challenges of processing scanned documents and PDFs. With our focus on the title insurance industry, Pythonic’s mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.',
+      "Pythonic Corporation is at the forefront of AI-driven document understanding technology. We have developed innovative solutions to tackle the unique challenges of processing scanned documents and PDFs. With our focus on the title insurance industry, Pythonic’s mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.",
   },
   {
     slug: 'capital-bank',
     name: 'Capital Bank, N.A.',
-    logo: '/sponsors/logos/Capital%20Bank%20Full%20Color.jpg',
+    logo: `${CDN}/sponsors/capital-bank-logo.jpg`,
     dark: false,
     website: 'https://capitalbankmd.com',
     description:
@@ -55,7 +57,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'alanna',
     name: 'alanna.ai',
-    logo: '/sponsors/logos/alanna-logo-horizontal%401x.png',
+    logo: `${CDN}/sponsors/alanna-logo.png`,
     dark: false,
     website: 'https://alanna.ai',
     description:
@@ -64,16 +66,16 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'datatrace',
     name: 'DataTrace',
-    logo: '/sponsors/logos/DataTrace-logo-color.png',
+    logo: `${CDN}/sponsors/datatrace-logo.png`,
     dark: false,
     website: 'https://www.datatracetitle.com',
     description:
-      'DataTrace Information Services LLC, the nation’s largest provider of property and ownership data and title automation solutions, enables title and settlement companies to streamline their processes, increase efficiency and drive growth. The company’s solutions are powered by the industry’s most complete network of geographic title plants and most comprehensive property information data set, including nearly 8.6 billion recorded document images.',
+      "DataTrace Information Services LLC, the nation’s largest provider of property and ownership data and title automation solutions, enables title and settlement companies to streamline their processes, increase efficiency and drive growth. The company’s solutions are powered by the industry’s most complete network of geographic title plants and most comprehensive property information data set, including nearly 8.6 billion recorded document images.",
   },
   {
     slug: 'signature-xcel',
     name: 'Signature Xcel',
-    logo: '/sponsors/logos/Signature-Xcel-Logo-R-Tag-Lockup-Blue-v2.jpg',
+    logo: `${CDN}/sponsors/signature-xcel-logo.jpg`,
     dark: false,
     website: 'https://www.signaturexcel.com',
     description:
@@ -82,7 +84,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'connect',
     name: 'Connect Services',
-    logo: '/sponsors/logos/Connect%20Powered%20by%20PLACE.png.svg',
+    logo: `${CDN}/sponsors/connect-logo.svg`,
     dark: false,
     website: 'https://connectservices.com',
     description:
@@ -91,10 +93,10 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'palmagent',
     name: 'PalmAgent',
-    logo: '/sponsors/logos/PalmAgent_white%20logo.png',
+    logo: `${CDN}/sponsors/palmagent-logo.png`,
     dark: true,
     website: 'https://palmagent.com',
     description:
-      "PalmAgent is real estate's #1 title sales tool, a white-label platform built for title sales reps and the realtors they work with. We give your team the calculators, estimates, and agent-facing tools they use every day, branded as your company in the realtor's pocket. After 25 years and a 94% client retention rate, we've built the leverage your sales team needs to flip realtors off competitors, keep top producers loyal, and turn passive users into active referrers, all on one platform, priced per market.",
+      "PalmAgent is real estate’s #1 title sales tool, a white-label platform built for title sales reps and the realtors they work with. We give your team the calculators, estimates, and agent-facing tools they use every day, branded as your company in the realtor’s pocket. After 25 years and a 94% client retention rate, we’ve built the leverage your sales team needs to flip realtors off competitors, keep top producers loyal, and turn passive users into active referrers, all on one platform, priced per market.",
   },
-];
+]

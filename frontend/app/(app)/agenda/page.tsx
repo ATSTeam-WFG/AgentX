@@ -9,9 +9,9 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
 
 const DAY_TABS = [
-  { day: 0, label: 'Wed · Jun 3',  title: 'Arrivals & Welcome Dinner',    badge: 'Pre-Summit' },
-  { day: 1, label: 'Thu · Jun 4',  title: 'Summit Day',                   badge: 'Day 1'      },
-  { day: 2, label: 'Fri · Jun 5',  title: 'Departures',                   badge: 'Day 2'      },
+  { day: 1, label: 'Wed · Jun 3',  title: "Women's Leadership Seminar",   badge: 'Pre-Summit' },
+  { day: 2, label: 'Thu · Jun 4',  title: 'Summit Day',                   badge: 'Day 1'      },
+  { day: 3, label: 'Fri · Jun 5',  title: 'Departures',                   badge: 'Day 2'      },
 ];
 
 function formatTime(iso: string) {
@@ -84,7 +84,7 @@ function SessionCard({ event, hideTime }: { event: AgendaEvent; hideTime?: boole
 }
 
 export default function AgendaPage() {
-  const [activeDay, setActiveDay] = useState(1);
+  const [activeDay, setActiveDay] = useState(2);
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {

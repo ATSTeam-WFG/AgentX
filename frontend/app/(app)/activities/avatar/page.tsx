@@ -305,7 +305,7 @@ export default function AvatarStudioPage() {
               Activities
             </button>
             <div className="intro-logo-wrap">
-              <img src="/ES26logo.png" alt="ES26" className="intro-logo" />
+              <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="intro-logo" />
             </div>
             <h1 className="page-title">Avatar Studio</h1>
             <p className="page-sub">Your AI-generated executive portrait</p>
