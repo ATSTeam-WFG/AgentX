@@ -117,16 +117,16 @@ export default function AvatarStudioPage() {
         .as-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .as-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800;
           color: #CCDEE7; letter-spacing: .02em; text-transform: uppercase; margin: 0 0 8px;
@@ -300,11 +300,11 @@ export default function AvatarStudioPage() {
       {/* ── INTRO ── */}
       {phase === 'intro' && (
         <div className="as-page">
+          <button className="back-btn" onClick={() => router.back()}>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Activities
+          </button>
           <div className="as-scroll">
-            <button className="back-btn" onClick={() => router.back()}>
-              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Activities
-            </button>
             <div className="intro-logo-wrap">
               <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES26" className="intro-logo" />
             </div>
@@ -326,11 +326,11 @@ export default function AvatarStudioPage() {
       {/* ── CAMERA ── */}
       {phase === 'camera' && (
         <div className="as-page">
+          <button className="back-btn" onClick={() => setPhase('intro')}>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Back
+          </button>
           <div className="as-scroll">
-            <button className="back-btn" onClick={() => setPhase('intro')}>
-              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Back
-            </button>
             <h1 className="page-title">Your Photo</h1>
             <p className="page-sub">Position your face clearly in frame</p>
 
@@ -386,12 +386,11 @@ export default function AvatarStudioPage() {
       {phase === 'result' && (
         <>
           <div className="as-page">
+            <button className="back-btn" onClick={() => router.push('/activities')}>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Activities
+            </button>
             <div className="as-scroll">
-              <button className="back-btn" onClick={() => router.push('/activities')}>
-                <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Activities
-              </button>
-
               <div className="result-header-row">
                 <h1 className="page-title" style={{ marginBottom: 0 }}>Your Portrait</h1>
                 <span className="result-pts-chip">

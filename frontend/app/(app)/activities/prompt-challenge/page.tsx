@@ -74,13 +74,6 @@ const STATIC_PROMPT_QUESTIONS: PromptQuestion[] = [
   },
 ];
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Underwriting: '#E39548',
-  'Client Communication': '#5B8DB8',
-  'Fraud Detection': '#C45E5E',
-  'Operational Efficiency': '#4A9070',
-  'Business Development': '#7B6EB8',
-};
 
 type ViewState = 'list' | { question: PromptQuestion };
 
@@ -141,32 +134,29 @@ export default function PromptChallengePage() {
   if (isQuestion(view)) {
     const q   = view.question;
     const ans = answered.get(q.id);
-    const catColor = CATEGORY_COLORS[q.category] ?? '#E39548';
-
     return (
       <>
         <style>{`
           .pc-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+          .back-btn {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 15px; font-weight: 600; color: var(--amber);
+            background: none; border: none; cursor: pointer;
+            padding: 10px 18px 6px; flex-shrink: 0;
+          }
+          .back-btn:active { opacity: .75; }
           .pc-scroll {
             flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
-          }
-          .back-btn {
-            display: flex; align-items: center; gap: 6px; width: 100%;
-            font-size: 15px; font-weight: 600; color: var(--amber);
-            background: var(--bg); border: none; cursor: pointer;
-            padding: 10px 0 8px; margin-bottom: 8px;
-            position: sticky; top: 0; z-index: 10;
+            padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           }
           .q-cat-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 700; letter-spacing: .08em;
-            text-transform: uppercase; border-radius: 20px; padding: 5px 12px;
-            margin-bottom: 14px; border-width: 1px; border-style: solid;
-          }
-          .q-cat-chip::before {
-            content: ''; width: 5px; height: 5px; border-radius: 50%;
-            background: currentColor; flex-shrink: 0; opacity: .85;
+            display: inline-block;
+            font-size: 10px; font-weight: 800; letter-spacing: .09em;
+            text-transform: uppercase; border-radius: 6px; padding: 3px 8px;
+            margin-bottom: 14px;
+            color: rgba(204,222,231,.55);
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(255,255,255,.12);
           }
           .q-card {
             background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
@@ -220,11 +210,9 @@ export default function PromptChallengePage() {
           }
         `}</style>
         <div className="pc-page">
+          <button className="back-btn" onClick={() => { setView('list'); setSel(null); }}>‹ All Prompts</button>
           <div className="pc-scroll">
-            <button className="back-btn" onClick={() => { setView('list'); setSel(null); }}>‹ All Prompts</button>
-            <div className="q-cat-chip" style={{ background: `${catColor}18`, color: catColor, border: `1px solid ${catColor}40` }}>
-              {q.category}
-            </div>
+            <div className="q-cat-chip">{q.category}</div>
             <div className="q-card">
               <div className="q-text">{q.scenarioText}</div>
             </div>
@@ -278,16 +266,16 @@ export default function PromptChallengePage() {
     <>
       <style>{`
         .pc-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .back-btn {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 15px; font-weight: 600; color: var(--amber);
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
+        }
+        .back-btn:active { opacity: .75; }
         .pc-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
-        }
-        .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
-          font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
         }
         .page-title {
           font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 700;
@@ -315,14 +303,13 @@ export default function PromptChallengePage() {
         .pc-card:active { transform: scale(.98); }
         .pc-card.done { opacity: .75; }
         .pc-cat-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 10px; font-weight: 700; letter-spacing: .07em;
-          text-transform: uppercase; border-radius: 20px; padding: 4px 10px;
-          border: 1px solid; flex-shrink: 0; width: fit-content;
-        }
-        .pc-cat-chip::before {
-          content: ''; width: 4px; height: 4px; border-radius: 50%;
-          background: currentColor; flex-shrink: 0; opacity: .85;
+          display: inline-block;
+          font-size: 10px; font-weight: 800; letter-spacing: .09em;
+          text-transform: uppercase; border-radius: 6px; padding: 3px 8px;
+          color: rgba(28,40,60,.50);
+          background: rgba(28,40,60,.07);
+          border: 1px solid rgba(28,40,60,.12);
+          flex-shrink: 0; width: fit-content;
         }
         .pc-card-text { flex: 1; min-width: 0; }
         .pc-card-title { font-size: 15px; font-weight: 700; color: #1C283C; margin-bottom: 4px; line-height: 1.35; }
@@ -331,8 +318,8 @@ export default function PromptChallengePage() {
         .pc-chev { flex-shrink: 0; color: var(--t4); }
       `}</style>
       <div className="pc-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
         <div className="pc-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Prompt Challenge</h1>
           <p className="pc-intro">Five real-world title industry scenarios. Each question presents four AI prompt options. Select the most effective one for the situation. Every answer earns points; the sharpest choice earns the most.</p>
           <p className="page-sub">{totalPts} / 100 pts · {answered.size} of {questions.length} answered</p>
@@ -341,11 +328,10 @@ export default function PromptChallengePage() {
           </div>
           {questions.map((q) => {
             const ans = answered.get(q.id);
-            const catColor = CATEGORY_COLORS[q.category] ?? '#E39548';
             return (
               <div key={q.id} className={`pc-card${ans ? ' done' : ''}`} onClick={() => { if (!ans) { setView({ question: q }); setSel(null); } }}>
                 <div className="pc-card-text">
-                  <div className="pc-cat-chip" style={{ color: catColor, borderColor: `${catColor}40`, background: `${catColor}10` }}>{q.category}</div>
+                  <div className="pc-cat-chip">{q.category}</div>
                   <div className="pc-card-title" style={{ marginTop: 6 }}>{q.scenarioText.slice(0, 85)}{q.scenarioText.length > 85 ? '…' : ''}</div>
                   {ans && <div className="pc-card-sub">{ans.isCorrect ? `Correct! +${ans.pointsAwarded} pts earned` : `Answered, +${ans.pointsAwarded} pts`}</div>}
                 </div>

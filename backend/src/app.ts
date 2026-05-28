@@ -42,6 +42,7 @@ import { adminSystemRoutes } from './routes/admin/system'
 import { adminFeaturesRoutes } from './routes/admin/features'
 import { adminAnalyticsRoutes } from './routes/admin/analytics'
 import { featuresRoutes } from './routes/features'
+import { chatRoutes } from './routes/chat'
 
 export async function buildApp() {
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
@@ -136,6 +137,7 @@ export async function buildApp() {
   app.register(avatarRoutes, { prefix: '/v1/activities/avatar' })
   app.register(touchpointsRoutes, { prefix: '/v1/touchpoints' })
   app.register(pushRoutes, { prefix: '/v1/push' })
+  app.register(chatRoutes, { prefix: '/v1/chat' })
 
   // Admin auth (no preHandler — login is public)
   app.register(adminAuthRoutes, { prefix: '/v1/admin/auth' })

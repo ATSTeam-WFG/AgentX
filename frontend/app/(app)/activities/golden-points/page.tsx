@@ -89,16 +89,16 @@ export default function GoldenPointsPage() {
         }
         .gp-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif;
           font-size: 28px; font-weight: 700; color: var(--t);
@@ -123,14 +123,15 @@ export default function GoldenPointsPage() {
         .textarea-wrap { position: relative; margin-bottom: 10px; }
         .gp-textarea {
           width: 100%; min-height: 180px;
-          background: var(--surface);
-          border: 1.5px solid var(--border-metal);
+          background: rgba(255,255,255,.06);
+          border: 1.5px solid rgba(255,255,255,.12);
           border-radius: var(--r); padding: 14px 16px;
-          font-size: 16px; color: var(--t);
+          font-size: 16px; color: #CCDEE7;
           font-family: 'DM Sans', sans-serif;
           line-height: 1.55; resize: none; outline: none;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
+        .gp-textarea::placeholder { color: rgba(204,222,231,.32); }
         .gp-textarea:focus {
           border-color: var(--amber);
           box-shadow: 0 0 0 3px rgba(227,149,72,.12);
@@ -237,8 +238,9 @@ export default function GoldenPointsPage() {
             <button className="btn-back" onClick={() => router.push('/activities')}>← Back to Activities</button>
           </div>
         ) : (
-          <div className="gp-scroll">
+          <>
             <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
+            <div className="gp-scroll">
             <h1 className="page-title">Golden Points</h1>
             <p className="page-sub">Share a real insight. AI evaluates quality and awards up to 100 pts.</p>
 
@@ -267,6 +269,7 @@ export default function GoldenPointsPage() {
             </button>
             {status === 'error' && <div className="error-msg">{error}</div>}
           </div>
+          </>
         )}
       </div>
     </>

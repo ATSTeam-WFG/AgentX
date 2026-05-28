@@ -39,16 +39,16 @@ export default function FeedbackPage() {
         }
         .fb-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 20px calc(40px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
+          padding: 8px 20px calc(40px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .fb-heading {
           font-family: 'Sora', sans-serif;
           font-size: 26px; font-weight: 700;
@@ -150,9 +150,8 @@ export default function FeedbackPage() {
       `}</style>
 
       <div className="fb-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Profile</button>
         <div className="fb-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Profile</button>
-
           {status === 'done' ? (
             <div className="fb-success">
               <div className="fb-success-check">

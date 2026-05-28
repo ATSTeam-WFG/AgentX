@@ -143,16 +143,16 @@ export default function TriviaPage() {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif;
           font-size: 32px;
@@ -377,8 +377,9 @@ export default function TriviaPage() {
       <div className="trivia-page">
         {/* Hub */}
         {phase === 'hub' && (
-          <div className="trivia-scroll">
+          <>
             <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
+            <div className="trivia-scroll">
             <h1 className="page-title">Title Trivia</h1>
             <p className="page-sub">Test your title &amp; escrow knowledge</p>
             <div className="rules-card">
@@ -393,7 +394,8 @@ export default function TriviaPage() {
                 {loading ? 'Loading…' : 'Start Quiz →'}
               </button>
             </div>
-          </div>
+            </div>
+          </>
         )}
 
         {/* Play */}

@@ -118,16 +118,16 @@ export default function AvatarStudioPage() {
         .av-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .av-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--blue);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif;
           font-size: 28px; font-weight: 700; color: var(--t);
@@ -268,8 +268,8 @@ export default function AvatarStudioPage() {
       `}</style>
 
       <div className="av-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
         <div className="av-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Avatar Studio</h1>
           <p className="page-sub">Create your personalized summit avatar</p>
 

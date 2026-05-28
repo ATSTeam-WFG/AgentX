@@ -68,16 +68,16 @@ export default function TouchpointsPage() {
         .tp-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .tp-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: flex; align-items: center; gap: 6px; width: 100%;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: var(--bg); border: none; cursor: pointer;
-          padding: 10px 0 8px; margin-bottom: 8px;
-          position: sticky; top: 0; z-index: 10;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800;
           color: #CCDEE7; letter-spacing: .02em; text-transform: uppercase; margin: 0 0 8px;
@@ -102,12 +102,12 @@ export default function TouchpointsPage() {
         .tp-card-top { display: flex; align-items: center; gap: 12px; }
         .tp-zone-chip {
           display: inline-flex; align-items: center;
-          font-size: 11px; font-weight: 700; letter-spacing: .06em;
-          text-transform: uppercase; color: #E39548;
-          background: rgba(227,149,72,.10); border: 1px solid rgba(227,149,72,.30);
-          border-radius: 8px; padding: 3px 8px; flex-shrink: 0;
+          font-size: 10px; font-weight: 800; letter-spacing: .09em;
+          text-transform: uppercase; color: rgba(28,40,60,.60);
+          background: rgba(28,40,60,.07); border: 1px solid rgba(28,40,60,.12);
+          border-radius: 5px; padding: 3px 8px; flex-shrink: 0;
         }
-        .tp-card.tp-done .tp-zone-chip { color: var(--green); background: rgba(20,102,54,.08); border-color: rgba(20,102,54,.25); }
+        .tp-card.tp-done .tp-zone-chip { color: #0f5028; background: rgba(20,102,54,.10); border-color: rgba(20,102,54,.22); }
         .tp-prompt-text {
           font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
           color: #1C283C; line-height: 1.35; flex: 1;
@@ -160,8 +160,8 @@ export default function TouchpointsPage() {
       `}</style>
 
       <div className="tp-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
         <div className="tp-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Touchpoints</h1>
           <p className="page-sub">{doneCount} / 5 responses · {totalPts} / 150 pts</p>
           <div className="progress-bar-wrap">
