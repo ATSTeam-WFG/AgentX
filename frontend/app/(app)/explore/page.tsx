@@ -109,9 +109,6 @@ export default function ExplorePage() {
     }
   }
 
-  function editNote(i: number) {
-    setSaved((prev) => ({ ...prev, [i]: false }));
-  }
 
   return (
     <>
@@ -314,11 +311,10 @@ export default function ExplorePage() {
           padding: 12px 14px;
           font-size: 15px; font-weight: 600;
         }
-        .edit-note-btn {
-          margin-left: auto; background: none; border: none;
-          color: var(--green); font-family: inherit;
-          font-size: 14px; font-weight: 700;
-          cursor: pointer; text-decoration: underline;
+        .init-notes-lock {
+          margin-left: auto; display: flex; align-items: center;
+          gap: 4px; font-size: 12px; font-weight: 600;
+          color: var(--green); opacity: .7;
         }
 
         /* ── Also in the works card ───────── */
@@ -420,8 +416,14 @@ export default function ExplorePage() {
                         <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
                           <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                        Saved · You can update anytime.
-                        <button className="edit-note-btn" onClick={() => editNote(i)}>Edit</button>
+                        Sent to ATS · Submitted
+                        <span className="init-notes-lock">
+                          <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+                            <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                            <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                          </svg>
+                          Locked
+                        </span>
                       </div>
                     ) : (
                       <>

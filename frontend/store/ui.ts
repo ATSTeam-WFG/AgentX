@@ -5,6 +5,7 @@ export interface Toast {
   message: string;
   points?: number;
   duration?: number;
+  type?: 'success' | 'warn';
 }
 
 interface UiState {

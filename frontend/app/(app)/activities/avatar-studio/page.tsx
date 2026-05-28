@@ -122,9 +122,11 @@ export default function AvatarStudioPage() {
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 6px; width: 100%;
           font-size: 15px; font-weight: 600; color: var(--blue);
-          background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
+          background: var(--bg); border: none; cursor: pointer;
+          padding: 10px 0 8px; margin-bottom: 8px;
+          position: sticky; top: 0; z-index: 10;
         }
         .page-title {
           font-family: 'Sora', sans-serif;

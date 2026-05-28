@@ -42,6 +42,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     name: 'Pythonic',
     logo: `${CDN}/sponsors/pythonic-logo.png`,
     dark: false,
+    website: 'https://blog.pythonic.ai/',
     description:
       "Pythonic Corporation is at the forefront of AI-driven document understanding technology. We have developed innovative solutions to tackle the unique challenges of processing scanned documents and PDFs. With our focus on the title insurance industry, Pythonic’s mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.",
   },

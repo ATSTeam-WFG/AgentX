@@ -7,21 +7,7 @@ import { submitGoldenPoints, getGoldenPointsStatus, getActivities } from '@/lib/
 import { getPushState, requestAndSubscribe } from '@/lib/push';
 
 type Status = 'idle' | 'submitting' | 'scoring' | 'done' | 'error';
-const MIN_WORDS = 50;
-
-const CUE_CHIPS = [
-  'Reducing closing delays',
-  'Wire fraud prevention',
-  'Client communication gaps',
-  'Escrow reconciliation issues',
-  'Remote notarization workflows',
-  'Title search automation',
-  'Agent onboarding friction',
-];
-
-function wordCount(text: string) {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
+const MIN_CHARS = 100;
 
 export default function GoldenPointsPage() {
   const router = useRouter();
@@ -33,8 +19,8 @@ export default function GoldenPointsPage() {
   const [feedback, setFeedback] = useState('');
   const [error, setError]     = useState('');
   const [pushState, setPushState] = useState<'idle' | 'asking' | 'granted' | 'denied' | 'unsupported'>('idle');
-  const wc = wordCount(text);
-  const canSubmit = wc >= MIN_WORDS && (status === 'idle' || status === 'error');
+  const cc = text.length;
+  const canSubmit = cc >= MIN_CHARS && (status === 'idle' || status === 'error');
 
   const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
   const gpActivity = activities?.find((a) => a.type === 'golden_points');
@@ -93,13 +79,6 @@ export default function GoldenPointsPage() {
     setPushState(result);
   }
 
-  function appendChip(chip: string) {
-    setText((prev) => {
-      const trimmed = prev.trimEnd();
-      return trimmed ? `${trimmed} ${chip} ` : `${chip} `;
-    });
-  }
-
   return (
     <>
       <style>{`
@@ -114,9 +93,11 @@ export default function GoldenPointsPage() {
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 15px; font-weight: 600; color: var(--blue);
-          background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
+          display: flex; align-items: center; gap: 6px; width: 100%;
+          font-size: 15px; font-weight: 600; color: var(--amber);
+          background: var(--bg); border: none; cursor: pointer;
+          padding: 10px 0 8px; margin-bottom: 8px;
+          position: sticky; top: 0; z-index: 10;
         }
         .page-title {
           font-family: 'Sora', sans-serif;
@@ -125,39 +106,20 @@ export default function GoldenPointsPage() {
         }
         .page-sub { font-size: 15px; color: var(--t3); margin: 0 0 24px; }
         .prompt-card {
-          background: var(--surface);
-          border: 1px solid var(--border-metal);
+          background: rgba(255,255,255,.05);
+          border: 1.5px solid rgba(255,255,255,.10);
           border-radius: var(--r-lg);
           padding: 18px; margin-bottom: 16px;
           box-shadow: var(--shadow-card);
         }
         .prompt-label {
           font-size: 11px; font-weight: 800; letter-spacing: .08em;
-          text-transform: uppercase; color: var(--t3); margin-bottom: 8px;
+          text-transform: uppercase; color: var(--amber); margin-bottom: 8px;
         }
         .prompt-text {
           font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700; color: var(--t); line-height: 1.35;
+          font-size: 17px; font-weight: 600; color: rgba(204,222,231,.90); line-height: 1.45;
         }
-        .cue-section-label {
-          font-size: 12px; font-weight: 700; letter-spacing: .06em;
-          text-transform: uppercase; color: var(--t3); margin-bottom: 10px;
-        }
-        .gp-cue-chips {
-          display: flex; gap: 8px; overflow-x: auto;
-          -webkit-overflow-scrolling: touch; scrollbar-width: none;
-          padding-bottom: 4px; margin-bottom: 14px;
-        }
-        .gp-cue-chips::-webkit-scrollbar { display: none; }
-        .gp-cue-chip {
-          white-space: nowrap; font-size: 13px; font-weight: 600;
-          color: var(--blue); background: var(--blue-lt);
-          border: 1px solid rgba(27,79,196,.22);
-          border-radius: 20px; padding: 7px 14px;
-          cursor: pointer; flex-shrink: 0;
-          font-family: inherit; transition: all var(--tr);
-        }
-        .gp-cue-chip:active { background: var(--blue-lt2); }
         .textarea-wrap { position: relative; margin-bottom: 10px; }
         .gp-textarea {
           width: 100%; min-height: 180px;
@@ -170,21 +132,21 @@ export default function GoldenPointsPage() {
           transition: border-color var(--tr), box-shadow var(--tr);
         }
         .gp-textarea:focus {
-          border-color: var(--blue);
-          box-shadow: 0 0 0 3px rgba(27,79,196,.08);
+          border-color: var(--amber);
+          box-shadow: 0 0 0 3px rgba(227,149,72,.12);
         }
-        .word-count {
+        .char-count {
           text-align: right; font-size: 13px;
           color: var(--t4); margin-bottom: 18px;
         }
-        .word-count.ok { color: var(--green); font-weight: 600; }
+        .char-count.ok { color: var(--green); font-weight: 600; }
         .btn-submit {
           width: 100%; height: 54px; border-radius: 14px;
-          background: linear-gradient(135deg, var(--blue-mid), var(--blue));
-          color: #fff; font-size: 17px; font-weight: 700;
+          background: var(--amber);
+          color: #1C283C; font-size: 17px; font-weight: 700;
           font-family: 'Sora', sans-serif;
           border: none; cursor: pointer;
-          box-shadow: var(--shadow-blue); transition: opacity var(--tr);
+          box-shadow: 0 4px 20px rgba(227,149,72,.35); transition: opacity var(--tr);
         }
         .btn-submit:disabled { opacity: .45; cursor: not-allowed; }
         .scoring-wrap {
@@ -264,10 +226,13 @@ export default function GoldenPointsPage() {
           </div>
         ) : status === 'done' ? (
           <div className="done-wrap">
-            <span className="done-icon">🏆</span>
-            <div className="done-title">Points Awarded!</div>
+            <span className="done-icon">{points > 0 ? '🏆' : '💡'}</span>
+            <div className="done-title">{points > 0 ? 'Points Awarded!' : 'No Points This Time'}</div>
             <div className="done-pts">+{points}</div>
-            <div className="done-sub">Your response was scored by Agent X.</div>
+            {points === 0
+              ? <div className="done-sub">Your response scored 0 — try a more relevant answer next time.</div>
+              : <div className="done-sub">Your response was scored by Agent X.</div>
+            }
             {feedback && <div className="done-feedback">&ldquo;{feedback}&rdquo;</div>}
             <button className="btn-back" onClick={() => router.push('/activities')}>← Back to Activities</button>
           </div>
@@ -284,26 +249,17 @@ export default function GoldenPointsPage() {
               </div>
             </div>
 
-            <div className="cue-section-label">Quick suggestions</div>
-            <div className="gp-cue-chips">
-              {CUE_CHIPS.map((chip) => (
-                <button key={chip} className="gp-cue-chip" onClick={() => appendChip(chip)} type="button">
-                  {chip}
-                </button>
-              ))}
-            </div>
-
             <div className="textarea-wrap">
               <textarea
                 className="gp-textarea"
-                placeholder={`Share your thoughts here (min. ${MIN_WORDS} words)…`}
+                placeholder={`Share your thoughts here (min. ${MIN_CHARS} characters)…`}
                 value={text}
                 onChange={(e) => { setText(e.target.value); if (status === 'error') setStatus('idle'); }}
                 disabled={status === 'submitting'}
               />
             </div>
-            <div className={`word-count${wc >= MIN_WORDS ? ' ok' : ''}`}>
-              {wc} / {MIN_WORDS} words minimum {wc >= MIN_WORDS ? '✓' : ''}
+            <div className={`char-count${cc >= MIN_CHARS ? ' ok' : ''}`}>
+              {cc} / {MIN_CHARS} characters minimum {cc >= MIN_CHARS ? '✓' : ''}
             </div>
 
             <button className="btn-submit" onClick={handleSubmit} disabled={!canSubmit}>

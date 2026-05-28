@@ -2,8 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function TopBar() {
+  const pathname = usePathname();
   return (
     <>
       <style>{`
@@ -78,18 +80,20 @@ export default function TopBar() {
       <header className="top-bar" role="banner">
         <div className="tb-brand-row">
 
-          {/* ES26 left */}
-          <Link href="/home" className="tb-es26" aria-label="Go to home">
-            <Image
-              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png"
-              alt="ES 26"
-              width={42}
-              height={42}
-              className="tb-es26-img"
-              style={{ width: 42, height: 42, objectFit: 'cover' }}
-              priority
-            />
-          </Link>
+          {/* ES26 left — hidden on avatar studio */}
+          {pathname !== '/activities/avatar-studio' && (
+            <Link href="/home" className="tb-es26" aria-label="Go to home">
+              <Image
+                src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png"
+                alt="ES 26"
+                width={42}
+                height={42}
+                className="tb-es26-img"
+                style={{ width: 42, height: 42, objectFit: 'cover' }}
+                priority
+              />
+            </Link>
+          )}
 
           {/* WFG right */}
           <div className="tb-wfg">

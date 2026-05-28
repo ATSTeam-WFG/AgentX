@@ -102,6 +102,12 @@ export default function PromptChallengePage() {
   const questions = apiQuestions?.length ? apiQuestions : STATIC_PROMPT_QUESTIONS;
   const totalPts = [...answered.values()].reduce((s, a) => s + a.pointsAwarded, 0);
 
+  function goToNext(currentId: string) {
+    const next = questions.find((q) => !answered.has(q.id) && q.id !== currentId);
+    if (next) { setView({ question: next }); setSel(null); }
+    else { setView('list'); setSel(null); }
+  }
+
   async function handleAnswer(q: PromptQuestion, idx: number) {
     if (submitting || answered.has(q.id)) return;
     setSel(idx);
@@ -110,8 +116,9 @@ export default function PromptChallengePage() {
       const res = await answerPrompt(q.id, idx, crypto.randomUUID());
       setAns((prev) => new Map(prev).set(q.id, { isCorrect: res.isCorrect, pointsAwarded: res.pointsAwarded, explanation: res.explanation }));
       pushToast({
-        message: res.isCorrect ? `Correct! Great prompt instinct.` : `Best prompt selected. Keep going!`,
+        message: res.isCorrect ? 'Best prompt selected' : 'Good choice — not the best prompt',
         points: res.pointsAwarded,
+        type: res.isCorrect ? 'success' : 'warn',
       });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
@@ -119,7 +126,11 @@ export default function PromptChallengePage() {
       const isCorrect = q.correctIndex != null && idx === q.correctIndex;
       const pts = isCorrect ? 20 : 10;
       setAns((prev) => new Map(prev).set(q.id, { isCorrect, pointsAwarded: pts, explanation: q.explanation ?? undefined }));
-      pushToast({ message: isCorrect ? 'Correct! Great prompt instinct.' : 'Best prompt selected. Keep going!', points: pts });
+      pushToast({
+        message: isCorrect ? 'Best prompt selected' : 'Good choice — not the best prompt',
+        points: pts,
+        type: isCorrect ? 'success' : 'warn',
+      });
     } finally {
       setSub(false);
     }
@@ -141,9 +152,11 @@ export default function PromptChallengePage() {
             padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           }
           .back-btn {
-            display: inline-flex; align-items: center; gap: 6px;
+            display: flex; align-items: center; gap: 6px; width: 100%;
             font-size: 15px; font-weight: 600; color: var(--amber);
-            background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
+            background: var(--bg); border: none; cursor: pointer;
+            padding: 10px 0 8px; margin-bottom: 8px;
+            position: sticky; top: 0; z-index: 10;
           }
           .q-cat-chip {
             display: inline-flex; align-items: center; gap: 6px;
@@ -179,8 +192,15 @@ export default function PromptChallengePage() {
             display: flex; align-items: center; gap: 10px;
             font-size: 15px; font-weight: 700;
           }
-          .result-badge.win { background: rgba(20,102,54,.08); color: #146636; border: 1.5px solid rgba(20,102,54,.20); border-radius: 12px; }
-          .result-badge.lose { background: rgba(192,50,50,.08); color: #C03232; border: 1.5px solid rgba(192,50,50,.20); border-radius: 12px; }
+          .result-badge.win  { background: rgba(20,102,54,.08); color: #146636; border: 1.5px solid rgba(20,102,54,.20); border-radius: 12px; }
+          .result-badge.warn { background: rgba(227,149,72,.08); color: #C47A1A; border: 1.5px solid rgba(227,149,72,.28); border-radius: 12px; }
+          .btn-next {
+            margin-top: 16px; width: 100%; height: 52px; border-radius: 14px;
+            background: var(--amber); color: #1C283C;
+            font-size: 15px; font-weight: 700; font-family: 'Sora', sans-serif;
+            border: none; cursor: pointer;
+            box-shadow: 0 4px 20px rgba(227,149,72,.30);
+          }
           .result-explanation {
             margin-top: 14px; padding: 14px 16px;
             background: rgba(28,40,60,.04); border-radius: 12px;
@@ -228,10 +248,10 @@ export default function PromptChallengePage() {
 
             {ans && (
               <div className="result-block">
-                <div className={`result-badge ${ans.isCorrect ? 'win' : 'lose'}`}>
+                <div className={`result-badge ${ans.isCorrect ? 'win' : 'warn'}`}>
                   {ans.isCorrect
-                    ? <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> Correct! +{ans.pointsAwarded} pts</>
-                    : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Best prompt selected! +{ans.pointsAwarded} pts</>
+                    ? <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> Best prompt selected! +{ans.pointsAwarded} pts</>
+                    : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg> Good choice — not the best prompt. +{ans.pointsAwarded} pts</>
                   }
                 </div>
                 {(ans.explanation ?? q.explanation) && (
@@ -240,8 +260,11 @@ export default function PromptChallengePage() {
                     <div className="result-exp-text">{ans.explanation ?? q.explanation}</div>
                   </div>
                 )}
+                <button className="btn-next" onClick={() => goToNext(q.id)}>
+                  Next Prompt →
+                </button>
                 <button className="btn-back-list" onClick={() => { setView('list'); setSel(null); }}>
-                  See all prompts
+                  Back to All Prompts
                 </button>
               </div>
             )}
@@ -260,9 +283,11 @@ export default function PromptChallengePage() {
           padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 6px; width: 100%;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
+          background: var(--bg); border: none; cursor: pointer;
+          padding: 10px 0 8px; margin-bottom: 8px;
+          position: sticky; top: 0; z-index: 10;
         }
         .page-title {
           font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 700;

@@ -56,9 +56,11 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
           padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 6px; width: 100%;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: none; border: none; cursor: pointer; margin-bottom: 20px; padding: 0;
+          background: var(--bg); border: none; cursor: pointer;
+          padding: 10px 0 8px; margin-bottom: 8px;
+          position: sticky; top: 0; z-index: 10;
         }
         .session-title {
           font-family: 'Sora', sans-serif;

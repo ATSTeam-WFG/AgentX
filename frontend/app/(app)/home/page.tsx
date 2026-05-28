@@ -450,7 +450,7 @@ export default function HomePage() {
           )}
 
           {/* Sponsor banner */}
-          <div className="sec-label">Summit Sponsor</div>
+          <div className="sec-label">Official Summit Sponsor</div>
           <Link href="/sponsors/pythonic" style={{ textDecoration: 'none', display: 'block' }}>
             <div className="sponsor-card-pythonic">
               <div className="scp-logo-panel">
