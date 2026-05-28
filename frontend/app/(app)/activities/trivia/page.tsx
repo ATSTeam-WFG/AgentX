@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { startTrivia, completeTrivia, type TriviaQuestion } from '@/lib/api/activities';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { startTrivia, completeTrivia, getActivities, type TriviaQuestion } from '@/lib/api/activities';
 
 type Phase = 'hub' | 'play' | 'result';
 
@@ -39,6 +40,7 @@ function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
 
 export default function TriviaPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [phase, setPhase]           = useState<Phase>('hub');
   const [attemptId, setAttemptId]   = useState('');
   const [questions, setQuestions]   = useState<TriviaQuestion[]>([]);
@@ -48,6 +50,16 @@ export default function TriviaPage() {
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
   const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
+
+  const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
+  const triviaActivity = activities?.find((a) => a.type === 'trivia');
+
+  useEffect(() => {
+    if (triviaActivity?.isCompleted && phase === 'hub') {
+      setResult({ pointsAwarded: triviaActivity.pointsEarned, correctCount: 0, totalQuestions: 0 });
+      setPhase('result');
+    }
+  }, [triviaActivity, phase]);
 
   const current = questions[qIdx];
 
@@ -64,7 +76,12 @@ export default function TriviaPage() {
     } else {
       // Submit
       completeTrivia(attemptId, ans, crypto.randomUUID())
-        .then((r) => { setResult(r); setPhase('result'); })
+        .then((r) => {
+          setResult(r);
+          setPhase('result');
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+        })
         .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
     }
   }, [answers, attemptId, questions]);

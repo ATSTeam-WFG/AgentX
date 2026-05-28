@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { requireMinRole } from '../../lib/role-guard'
 import { z } from 'zod'
 import { prisma } from '../../db'
 
@@ -10,6 +11,7 @@ const QuerySchema = z.object({
 
 export async function adminAuditLogRoutes(fastify: FastifyInstance) {
   fastify.get('/', async (request, reply) => {
+    requireMinRole('moderator', request)
     const parsed = QuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'BAD_REQUEST', message: parsed.error.issues[0].message })

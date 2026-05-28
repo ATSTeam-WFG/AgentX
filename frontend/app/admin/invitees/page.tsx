@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -85,8 +87,23 @@ async function deleteInvitee(id: string) {
   return res.json();
 }
 
+function LockNotice({ text }: { text: string }) {
+  return (
+    <div className="adm-lock-notice" style={{ marginBottom: 12 }}>
+      <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+        <rect x="3" y="6" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+        <path d="M5 6V4.5a2 2 0 0 1 4 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      </svg>
+      {text}
+    </div>
+  );
+}
+
 export default function AdminInviteesPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canEdit = canDo(role, 'moderator');
+  const canDelete = canDo(role, 'super_admin');
   const fileRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
@@ -109,7 +126,7 @@ export default function AdminInviteesPage() {
   // Delete confirm
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
 
-  const { data: page, isLoading, isFetching } = useQuery({
+  const { data: page, isLoading, isFetching, isError } = useQuery({
     queryKey: ['admin-invitees', submittedSearch, offset],
     queryFn: () => fetchInvitees(submittedSearch, offset),
     staleTime: 30_000,
@@ -378,9 +395,10 @@ export default function AdminInviteesPage() {
 
       <h1 className="inv-title">Invitees</h1>
 
-      <div className="inv-section-card">
+      <div className="inv-section-card" style={canEdit ? {} : { position: 'relative' }}>
+        {!canEdit && <LockNotice text="Requires Moderator access to upload CSV" />}
         <div className="inv-section-heading">CSV Upload</div>
-        <div className="inv-upload-row">
+        <div className={`inv-upload-row${canEdit ? '' : ' adm-locked'}`}>
           <input
             ref={fileRef}
             className="inv-file-input"
@@ -406,8 +424,10 @@ export default function AdminInviteesPage() {
         )}
       </div>
 
-      <div className="inv-section-card">
+      <div className="inv-section-card" style={canEdit ? {} : { position: 'relative' }}>
+        {!canEdit && <LockNotice text="Requires Moderator access to add invitees" />}
         <div className="inv-section-heading">Add Single Invitee</div>
+        <div className={canEdit ? undefined : 'adm-locked'}>
         <form className="inv-add-form" onSubmit={handleAdd}>
           <div className="inv-add-row">
             <div className="inv-add-group" style={{ flex: 1 }}>
@@ -431,6 +451,7 @@ export default function AdminInviteesPage() {
             {addMutation.isPending ? 'Adding…' : 'Add Invitee'}
           </button>
         </form>
+        </div>
       </div>
 
       <form className="inv-search-form" onSubmit={handleSearch}>
@@ -446,14 +467,15 @@ export default function AdminInviteesPage() {
 
       {page && <div className="inv-count">{page.total} invitee{page.total !== 1 ? 's' : ''} total</div>}
       {isLoading && <div className="inv-empty">Loading…</div>}
-      {!isLoading && combined.length === 0 && (
+      {isError && <div className="inv-empty" style={{ color: '#ba1818' }}>Failed to load invitees — check your connection and reload.</div>}
+      {!isLoading && !isError && combined.length === 0 && (
         <div className="inv-empty">
           {submittedSearch ? 'No invitees found.' : 'No invitees yet. Upload a CSV or add one above.'}
         </div>
       )}
 
       {combined.map((inv) => {
-        const initials = inv.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+        const initials = (inv.name ?? '').split(' ').map((n) => n[0] ?? '').join('').slice(0, 2).toUpperCase();
         const isOpen = expandedId === inv.id;
         return (
           <div key={inv.id} className={`inv-invitee-card${isOpen ? ' open' : ''}`}>
@@ -476,7 +498,7 @@ export default function AdminInviteesPage() {
 
             {isOpen && (
               <div className="inv-expanded">
-                <div className="inv-edit-row">
+                <div className={`inv-edit-row${canEdit ? '' : ' adm-locked'}`}>
                   <input className="inv-edit-input" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" />
                   <input className="inv-edit-input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email" />
                   <select className="inv-edit-select" value={editType} onChange={(e) => setEditType(e.target.value as 'invited' | 'walk_in')}>
@@ -486,15 +508,16 @@ export default function AdminInviteesPage() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <button className="inv-save-btn"
-                    disabled={!editName.trim() || !editEmail.trim() || editMutation.isPending}
+                    disabled={!editName.trim() || !editEmail.trim() || editMutation.isPending || !canEdit}
+                    title={!canEdit ? 'Requires Moderator access' : undefined}
                     onClick={() => handleEdit(inv.id)}>
                     {editMutation.isPending ? 'Saving…' : 'Save Changes'}
                   </button>
                   <button
                     className="inv-delete-btn"
-                    disabled={!!inv.user || deleteMutation.isPending}
-                    title={inv.user ? 'Delete the user account first' : 'Delete invitee'}
-                    onClick={() => setConfirmDelete({ id: inv.id, name: inv.name })}
+                    disabled={!!inv.user || deleteMutation.isPending || !canDelete}
+                    title={!canDelete ? 'Requires Super Admin access' : inv.user ? 'Delete the user account first' : 'Delete invitee'}
+                    onClick={() => { if (canDelete && !inv.user) setConfirmDelete({ id: inv.id, name: inv.name }); }}
                   >
                     Delete
                   </button>

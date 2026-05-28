@@ -7,6 +7,7 @@ import { readToken, isTokenExpired } from '@/lib/auth';
 export default function WelcomePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
   const [playing, setPlaying] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -17,6 +18,10 @@ export default function WelcomePage() {
       router.replace('/home');
       return;
     }
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    setIsStandalone(standalone);
     setReady(true);
   }, [router]);
 
@@ -218,13 +223,13 @@ export default function WelcomePage() {
 
         {/* CTAs */}
         <div className="welcome-ctas">
-          <button className="btn-get-started" onClick={() => router.push('/onboarding')}>
+          <button className="btn-get-started" onClick={() => router.push(isStandalone ? '/onboarding' : '/install')}>
             Get Started
             <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
               <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <button className="btn-skip" onClick={() => router.push('/onboarding')}>
+          <button className="btn-skip" onClick={() => router.push(isStandalone ? '/onboarding' : '/install')}>
             Skip Intro
           </button>
           <div className="welcome-bottom-note">WFG Executive Summit 2026 · Powered by ATS</div>

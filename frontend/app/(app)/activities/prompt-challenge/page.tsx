@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPromptQuestions, answerPrompt, type PromptQuestion } from '@/lib/api/activities';
 import { useUiStore } from '@/store/ui';
 
@@ -86,6 +86,7 @@ type ViewState = 'list' | { question: PromptQuestion };
 
 export default function PromptChallengePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { pushToast } = useUiStore();
   const [view, setView]      = useState<ViewState>('list');
   const [selected, setSel]   = useState<number | null>(null);
@@ -112,6 +113,8 @@ export default function PromptChallengePage() {
         message: res.isCorrect ? `Correct! Great prompt instinct.` : `Best prompt selected. Keep going!`,
         points: res.pointsAwarded,
       });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     } catch {
       const isCorrect = q.correctIndex != null && idx === q.correctIndex;
       const pts = isCorrect ? 20 : 10;

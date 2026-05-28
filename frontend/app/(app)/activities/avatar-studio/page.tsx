@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint } from '../../../../lib/api/activities';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint, getActivities } from '../../../../lib/api/activities';
 
 type Status = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
@@ -32,6 +32,18 @@ export default function AvatarStudioPage() {
   const [ptsFromPrint, setPtsFromPrint] = useState(0);
   const [printClaimed, setPrintClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
+
+  const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
+  const avatarActivity = activities?.find((a) => a.type === 'avatar');
+
+  useEffect(() => {
+    if (avatarActivity?.isCompleted && status === 'idle') {
+      setPtsFromGenerate(avatarActivity.pointsEarned >= 50 ? 50 : avatarActivity.pointsEarned);
+      setPtsFromPrint(avatarActivity.pointsEarned > 50 ? avatarActivity.pointsEarned - 50 : 0);
+      setPrintClaimed(avatarActivity.pointsEarned > 50);
+      setStatus('done');
+    }
+  }, [avatarActivity, status]);
 
   const totalPts = ptsFromGenerate + ptsFromPrint;
 

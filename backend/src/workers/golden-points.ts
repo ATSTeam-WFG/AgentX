@@ -63,7 +63,7 @@ export async function handleGoldenPointsScoring(jobId: string, payload: Record<s
       title: 'Your Golden Points score is in!',
       body:  `You scored ${result.aiScore}/100 and earned ${result.pointsAwarded} pts. Tap to see your feedback.`,
       url:   '/activities/golden-points',
-    }).catch(() => {})
+    })?.catch(() => {})
   }, 10_000)
 
   console.log(

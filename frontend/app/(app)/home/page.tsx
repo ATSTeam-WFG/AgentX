@@ -7,7 +7,6 @@ import { getAgenda, type AgendaEvent } from '@/lib/api/agenda';
 import { getMe } from '@/lib/api/profile';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 import { useAuthStore } from '@/store/auth';
-import { PwaPromptBanner } from '@/components/PwaPromptBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
 
@@ -89,7 +88,7 @@ export default function HomePage() {
   const onRefresh = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['agenda'] }),
-      queryClient.invalidateQueries({ queryKey: ['me'] }),
+      queryClient.invalidateQueries({ queryKey: ['profile'] }),
     ]);
   }, [queryClient]);
   const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
@@ -104,7 +103,7 @@ export default function HomePage() {
     queryKey: ['profile'],
     queryFn: getMe,
     staleTime: 60_000,
-    retry: false,
+    retry: 1,
   });
 
   const events   = agenda?.events ?? V7_EVENTS;
@@ -469,7 +468,6 @@ export default function HomePage() {
             </div>
           </Link>
 
-          <PwaPromptBanner />
         </div>
       </div>
     </>

@@ -16,6 +16,25 @@ const AppFeedbackSchema = z.object({
 })
 
 export async function feedbackRoutes(fastify: FastifyInstance) {
+  fastify.get<{ Params: { id: string } }>(
+    '/agenda-events/:id/feedback',
+    { preHandler: [authenticate] },
+    async (request, reply) => {
+      const userId = request.user.sub
+      const { id: agendaEventId } = request.params
+
+      const existing = await prisma.eventFeedback.findUnique({
+        where: { userId_agendaEventId: { userId, agendaEventId } },
+        select: { ratingsJson: true },
+      })
+
+      if (!existing) return reply.send({ submitted: false })
+
+      const ratings = existing.ratingsJson as Record<string, number>
+      return reply.send({ submitted: true, rating: ratings.overall ?? null })
+    },
+  )
+
   fastify.post<{ Params: { id: string } }>(
     '/agenda-events/:id/feedback',
     { preHandler: [authenticate] },
@@ -29,8 +48,13 @@ export async function feedbackRoutes(fastify: FastifyInstance) {
       const event = await prisma.agendaEvent.findUnique({ where: { id: agendaEventId } })
       if (!event) throw notFound('Agenda event not found')
 
-      await prisma.eventFeedback.create({
-        data: {
+      await prisma.eventFeedback.upsert({
+        where: { userId_agendaEventId: { userId, agendaEventId } },
+        update: {
+          ratingsJson: parsed.data.ratings as object,
+          comment: parsed.data.comment ?? null,
+        },
+        create: {
           agendaEventId,
           userId,
           ratingsJson: parsed.data.ratings as object,

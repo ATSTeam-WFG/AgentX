@@ -124,16 +124,18 @@ export default function ActivitiesPage() {
   const { data: apiActivities } = useQuery({
     queryKey: ['activities'],
     queryFn: getActivities,
-    staleTime: 30_000,
+    staleTime: 0,
     retry: false,
   });
 
   const earnedById: Record<string, number> = {};
   const doneById: Record<string, boolean> = {};
+  const oneShotById: Record<string, boolean> = {};
   if (apiActivities) {
     for (const a of apiActivities) {
       earnedById[a.type] = a.pointsEarned ?? 0;
       doneById[a.type] = a.isCompleted ?? false;
+      oneShotById[a.type] = a.isOneShot ?? false;
     }
   }
 
@@ -326,8 +328,10 @@ export default function ActivitiesPage() {
           {ACTIVITIES.map((act) => {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;
-            return (
-              <Link key={act.id} href={act.href} className={`v7-act-card${done ? ' v7-act-card--done' : ''}`}>
+            const locked = done;
+            const cardClass = `v7-act-card${done ? ' v7-act-card--done' : ''}`;
+            const cardContent = (
+              <>
                 {done && <div className="v7-act-done-overlay" aria-hidden />}
                 <div className="v7-act-header">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
@@ -355,8 +359,11 @@ export default function ActivitiesPage() {
                     </svg>
                   </div>
                 )}
-              </Link>
+              </>
             );
+            return locked
+              ? <div key={act.id} className={cardClass} style={{ cursor: 'default' }}>{cardContent}</div>
+              : <Link key={act.id} href={act.href} className={cardClass}>{cardContent}</Link>;
           })}
           <div style={{ height: 28 }} />
         </div>

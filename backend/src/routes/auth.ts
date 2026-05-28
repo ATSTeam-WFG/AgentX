@@ -14,8 +14,15 @@ async function createSession(userId: string) {
   return prisma.session.create({ data: { userId, expiresAt } })
 }
 
-function signUserJwt(fastify: FastifyInstance, userId: string, tokenId: string) {
-  return fastify.jwt.sign({ sub: userId, tokenId }, { expiresIn: '7d' })
+function signUserJwt(
+  fastify: FastifyInstance,
+  userId: string,
+  tokenId: string,
+  name: string,
+  email: string,
+  attendeeType: string,
+) {
+  return fastify.jwt.sign({ sub: userId, tokenId, name, email, attendeeType }, { expiresIn: '7d' })
 }
 
 async function signupUser(fastify: FastifyInstance, name: string, email: string) {
@@ -52,7 +59,7 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
   }
 
   const session = await createSession(user.id)
-  const token = signUserJwt(fastify, user.id, session.tokenId)
+  const token = signUserJwt(fastify, user.id, session.tokenId, user.name, user.email, user.attendeeType)
 
   return {
     token,
@@ -99,7 +106,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     })
 
     const session = await createSession(user.id)
-    const token = signUserJwt(fastify, user.id, session.tokenId)
+    const token = signUserJwt(fastify, user.id, session.tokenId, user.name, user.email, user.attendeeType)
 
     return reply.send({
       token,
@@ -126,8 +133,11 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     await prisma.session.update({ where: { tokenId }, data: { lastUsedAt: new Date() } })
 
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw unauthorized('User not found')
+
     const newSession = await createSession(userId)
-    const token = signUserJwt(fastify, userId, newSession.tokenId)
+    const token = signUserJwt(fastify, userId, newSession.tokenId, user.name, user.email, user.attendeeType)
 
     return reply.send({ token })
   })

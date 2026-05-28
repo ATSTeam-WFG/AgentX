@@ -13,7 +13,9 @@
     "db:reset": "tsx scripts/reset-dev.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:all": "npm test && npm run test:e2e"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { submitGoldenPoints, getGoldenPointsStatus } from '@/lib/api/activities';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { submitGoldenPoints, getGoldenPointsStatus, getActivities } from '@/lib/api/activities';
 import { getPushState, requestAndSubscribe } from '@/lib/push';
 
 type Status = 'idle' | 'submitting' | 'scoring' | 'done' | 'error';
@@ -35,6 +35,16 @@ export default function GoldenPointsPage() {
   const [pushState, setPushState] = useState<'idle' | 'asking' | 'granted' | 'denied' | 'unsupported'>('idle');
   const wc = wordCount(text);
   const canSubmit = wc >= MIN_WORDS && (status === 'idle' || status === 'error');
+
+  const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
+  const gpActivity = activities?.find((a) => a.type === 'golden_points');
+
+  useEffect(() => {
+    if (gpActivity?.isCompleted && status === 'idle') {
+      setPoints(gpActivity.pointsEarned);
+      setStatus('done');
+    }
+  }, [gpActivity, status]);
 
   // Initialize push state from current browser permission on mount
   useEffect(() => {

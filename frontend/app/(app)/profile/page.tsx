@@ -38,7 +38,7 @@ export default function ProfilePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['me'] }),
+      queryClient.invalidateQueries({ queryKey: ['profile'] }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
     ]);
   }, [queryClient]);
@@ -48,7 +48,7 @@ export default function ProfilePage() {
     queryKey: ['profile'],
     queryFn: getMe,
     staleTime: 60_000,
-    retry: false,
+    retry: 1,
   });
 
   const { data: lb, isLoading: lbLoading } = useQuery({

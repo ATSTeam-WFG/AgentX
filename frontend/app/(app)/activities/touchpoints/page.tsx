@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { scoreTouchpointAnswer } from '@/lib/scoring';
+import { useQueryClient } from '@tanstack/react-query';
+import { checkinTouchpoint, getTouchpointCheckins } from '@/lib/api/activities';
 import { useUiStore } from '@/store/ui';
 
 const TOUCHPOINTS = [
@@ -18,6 +19,7 @@ type TpResult = { pointsAwarded: number; reason: string; answer: string };
 
 export default function TouchpointsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { pushToast } = useUiStore();
   const [expanded, setExpanded] = useState<TpId | null>(null);
   const [drafts, setDrafts]     = useState<Record<string, string>>({});
@@ -27,17 +29,37 @@ export default function TouchpointsPage() {
   const totalPts  = Object.values(done).reduce((s, d) => s + d.pointsAwarded, 0);
   const doneCount = Object.keys(done).length;
 
+  useEffect(() => {
+    getTouchpointCheckins().then((checkins) => {
+      const restored: Record<string, TpResult> = {};
+      for (const c of checkins) {
+        restored[c.locationId] = { pointsAwarded: c.pointsAwarded, reason: 'Previously submitted', answer: '' };
+      }
+      setDone((prev) => ({ ...restored, ...prev }));
+    }).catch(() => {});
+  }, []);
+
   async function handleSubmit(tp: typeof TOUCHPOINTS[number]) {
     const answer = (drafts[tp.id] ?? '').trim();
     if (answer.length < 20) return;
     setSub(tp.id);
-    await new Promise((r) => setTimeout(r, 400));
-    const res = scoreTouchpointAnswer(tp.prompt, answer, TOUCHPOINTS.indexOf(tp));
-    if (!res.isValid) { setSub(null); return; }
-    setDone((prev) => ({ ...prev, [tp.id]: { ...res, answer } }));
-    setExpanded(null);
-    pushToast({ message: `Response recorded. ${res.reason}`, points: res.pointsAwarded });
-    setSub(null);
+    try {
+      const res = await checkinTouchpoint(tp.id, answer, crypto.randomUUID());
+      setDone((prev) => ({ ...prev, [tp.id]: { pointsAwarded: res.pointsAwarded, reason: 'Submitted', answer } }));
+      setExpanded(null);
+      pushToast({ message: `Response recorded! +${res.pointsAwarded} pts`, points: res.pointsAwarded });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 409) {
+        pushToast({ message: 'Already submitted for this zone' });
+        setDone((prev) => ({ ...prev, [tp.id]: { pointsAwarded: 0, reason: 'Previously submitted', answer: '' } }));
+        setExpanded(null);
+      }
+    } finally {
+      setSub(null);
+    }
   }
 
   return (

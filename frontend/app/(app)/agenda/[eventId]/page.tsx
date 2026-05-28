@@ -2,8 +2,8 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { getAgendaEvent, postSessionFeedback, type Speaker } from '@/lib/api/agenda';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAgendaEvent, postSessionFeedback, getSessionFeedbackStatus, type Speaker } from '@/lib/api/agenda';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 
 function formatTime(iso: string) {
@@ -12,10 +12,10 @@ function formatTime(iso: string) {
 
 export default function SessionDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { eventId } = use(params);
   const [rating, setRating]   = useState(0);
   const [comment, setComment] = useState('');
-  const [submitted, setDone]  = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { data: apiEvent } = useQuery({
@@ -26,12 +26,20 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
   });
   const event = apiEvent ?? V7_EVENTS.find((e) => e.id === eventId);
 
+  const { data: feedbackStatus } = useQuery({
+    queryKey: ['agenda-feedback', eventId],
+    queryFn: () => getSessionFeedbackStatus(eventId),
+    staleTime: 300_000,
+    retry: false,
+  });
+  const submitted = feedbackStatus?.submitted ?? false;
+
   async function handleFeedback() {
     if (!rating || !event) return;
     setLoading(true);
     try {
-      await postSessionFeedback(event.id, { rating, comment });
-      setDone(true);
+      await postSessionFeedback(event.id, { ratings: { overall: rating }, comment });
+      queryClient.invalidateQueries({ queryKey: ['agenda-feedback', eventId] });
     } catch {
       // silent
     } finally {

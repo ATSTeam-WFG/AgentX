@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { prisma } from '../../db'
 import { notFound } from '../../lib/errors'
+import { requireMinRole } from '../../lib/role-guard'
 import { broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
 
@@ -17,6 +18,7 @@ export async function adminFeaturesRoutes(fastify: FastifyInstance) {
   fastify.patch(
     '/features/:key',
     async (request: FastifyRequest<{ Params: { key: string }; Body: { value: boolean } }>, reply) => {
+      requireMinRole('moderator', request)
       const { key } = request.params
       const { value } = request.body
       const adminId = request.user.sub

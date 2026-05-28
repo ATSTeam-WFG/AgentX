@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -141,12 +143,26 @@ async function exportCsv() {
 
 const TYPE_LABELS: Record<string, string> = { invited: 'Invited', walk_in: 'Walk-in' };
 
-function UserCard({ user, onApprove, onAdjust, onEdit, onDelete }: {
+function LockNotice({ requires }: { requires: string }) {
+  return (
+    <div className="adm-lock-notice">
+      <svg viewBox="0 0 14 16" fill="none" width="12" height="13">
+        <rect x="2" y="7.5" width="10" height="7" rx="2" fill="currentColor"/>
+        <path d="M4.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      Requires {requires} access
+    </div>
+  );
+}
+
+function UserCard({ user, onApprove, onAdjust, onEdit, onDelete, canEdit, canDelete }: {
   user: AdminUser;
   onApprove: (id: string) => void;
   onAdjust: (id: string, delta: number, reason: string) => void;
   onEdit: (id: string, data: { name: string; email: string; attendeeType: string }) => void;
   onDelete: (id: string, name: string) => void;
+  canEdit: boolean;
+  canDelete: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [delta, setDelta] = useState('');
@@ -209,40 +225,61 @@ function UserCard({ user, onApprove, onAdjust, onEdit, onDelete }: {
           )}
 
           {/* Edit */}
-          <div className="adum-section-label">Edit User</div>
-          <div className="adum-edit-row">
-            <input className="adum-edit-input" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" />
-            <input className="adum-edit-input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email" />
-            <select className="adum-edit-select" value={editType} onChange={(e) => setEditType(e.target.value)}>
-              <option value="invited">Invited</option>
-              <option value="walk_in">Walk-in</option>
-            </select>
+          <div className="adum-section-label">
+            Edit User
+            {!canEdit && <span className="adm-role-badge">Moderator+</span>}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button className="adum-save-btn" onClick={handleEdit}
-              disabled={!editName.trim() || !editEmail.trim()}>
-              Save Changes
-            </button>
-            {editMsg && <span className="adum-inline-ok">{editMsg}</span>}
-            {editErr && <span className="adum-inline-err">{editErr}</span>}
+          {!canEdit && <LockNotice requires="Moderator" />}
+          <div className={canEdit ? '' : 'adm-locked'}>
+            <div className="adum-edit-row">
+              <input className="adum-edit-input" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" />
+              <input className="adum-edit-input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email" />
+              <select className="adum-edit-select" value={editType} onChange={(e) => setEditType(e.target.value)}>
+                <option value="invited">Invited</option>
+                <option value="walk_in">Walk-in</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className="adum-save-btn" onClick={handleEdit}
+                disabled={!editName.trim() || !editEmail.trim()}>
+                Save Changes
+              </button>
+              {editMsg && <span className="adum-inline-ok">{editMsg}</span>}
+              {editErr && <span className="adum-inline-err">{editErr}</span>}
+            </div>
           </div>
 
           {/* Points */}
-          <div className="adum-section-label">Adjust Points</div>
-          <div className="adum-pts-form">
-            <input className="adum-pts-input" type="number" placeholder="+50 or -25"
-              value={delta} onChange={(e) => setDelta(e.target.value)} />
-            <input className="adum-reason-input" type="text" placeholder="Reason (required)"
-              value={reason} onChange={(e) => setReason(e.target.value)} />
-            <button className="adum-apply-btn" onClick={handleAdjust}
-              disabled={!delta || !reason.trim()}>Apply</button>
+          <div className="adum-section-label">
+            Adjust Points
+            {!canEdit && <span className="adm-role-badge">Moderator+</span>}
           </div>
-          {ptsMsg && <div className="adum-inline-ok">{ptsMsg}</div>}
+          {!canEdit && <LockNotice requires="Moderator" />}
+          <div className={canEdit ? '' : 'adm-locked'}>
+            <div className="adum-pts-form">
+              <input className="adum-pts-input" type="number" placeholder="+50 or -25"
+                value={delta} onChange={(e) => setDelta(e.target.value)} />
+              <input className="adum-reason-input" type="text" placeholder="Reason (required)"
+                value={reason} onChange={(e) => setReason(e.target.value)} />
+              <button className="adum-apply-btn" onClick={handleAdjust}
+                disabled={!delta || !reason.trim()}>Apply</button>
+            </div>
+            {ptsMsg && <div className="adum-inline-ok">{ptsMsg}</div>}
+          </div>
 
-          {/* Delete */}
-          <button className="adum-delete-btn" onClick={() => onDelete(user.id, user.name)}>
-            Delete User
-          </button>
+          {/* Delete — super_admin only */}
+          {canDelete ? (
+            <button className="adum-delete-btn" onClick={() => onDelete(user.id, user.name)}>
+              Delete User
+            </button>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button className="adum-delete-btn adm-locked" disabled title="Requires Super Admin access">
+                Delete User
+              </button>
+              <span className="adm-role-badge">Super Admin</span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -251,6 +288,9 @@ function UserCard({ user, onApprove, onAdjust, onEdit, onDelete }: {
 
 export default function AdminUsersPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canEdit   = canDo(role, 'moderator');
+  const canDelete = canDo(role, 'super_admin');
   const [tab, setTab] = useState<'all' | 'pending'>('all');
   const [query, setQuery] = useState('');
   const [submitted, setSubmitted] = useState('');
@@ -628,6 +668,8 @@ export default function AdminUsersPage() {
               onAdjust={(id, delta, reason) => pointsMutation.mutate({ id, delta, reason })}
               onEdit={(id, data) => editMutation.mutate({ id, data })}
               onDelete={(id, name) => setConfirmDelete({ id, name })}
+              canEdit={canEdit}
+              canDelete={canDelete}
             />
           ))}
 
@@ -680,6 +722,8 @@ export default function AdminUsersPage() {
                   onAdjust={(id, delta, reason) => pointsMutation.mutate({ id, delta, reason })}
                   onEdit={(id, data) => editMutation.mutate({ id, data })}
                   onDelete={(id, name) => setConfirmDelete({ id, name })}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
                 />
               </div>
             </div>

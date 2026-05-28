@@ -4,6 +4,8 @@ import { prisma } from '../../db'
 import { authenticate } from '../../plugins/auth'
 import { badRequest, notFound, conflict } from '../../lib/errors'
 import { verifyToken } from '../../lib/qr'
+import { broadcastUser, broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 const ScanBodySchema = z.object({
   qrToken: z.string().min(1),
@@ -19,6 +21,19 @@ const CheckinBodySchema = z.object({
 const CHECKIN_POINTS = 30
 
 export async function touchpointsRoutes(fastify: FastifyInstance) {
+  fastify.get('/checkins', { preHandler: [authenticate] }, async (request: FastifyRequest, reply) => {
+    const userId = request.user.sub
+    const checkinSubs = await prisma.submission.findMany({
+      where: { userId, kind: 'touchpoint_checkin' },
+      select: { payloadJson: true },
+    })
+    const checkins = checkinSubs.map((s) => {
+      const p = s.payloadJson as { locationId: string; pointsAwarded: number }
+      return { locationId: p.locationId, pointsAwarded: p.pointsAwarded }
+    })
+    return reply.send({ checkins })
+  })
+
   fastify.post('/scan', { preHandler: [authenticate] }, async (request: FastifyRequest, reply) => {
     const userId = request.user.sub
     const parsed = ScanBodySchema.safeParse(request.body)
@@ -69,6 +84,12 @@ export async function touchpointsRoutes(fastify: FastifyInstance) {
       })
     }, { maxWait: 10000, timeout: 15000 })
 
+    const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
+    if (updatedScore) {
+      broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
+      broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
+    }
+
     return reply.send(responsePayload)
   })
 
@@ -101,7 +122,7 @@ export async function touchpointsRoutes(fastify: FastifyInstance) {
           userId,
           activityId: activity.id,
           kind: 'touchpoint_checkin',
-          payloadJson: { ...responsePayload, response },
+          payloadJson: responsePayload,
           clientDedupeKey: dedupeKey,
         },
       })
@@ -111,6 +132,12 @@ export async function touchpointsRoutes(fastify: FastifyInstance) {
         create: { userId, totalPoints: CHECKIN_POINTS, activitiesCompleted: 0 },
       })
     }, { maxWait: 10000, timeout: 15000 })
+
+    const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
+    if (updatedScore) {
+      broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
+      broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
+    }
 
     return reply.send(responsePayload)
   })

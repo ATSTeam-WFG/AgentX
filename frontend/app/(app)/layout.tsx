@@ -45,13 +45,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     const claims = decodeToken(token);
     if (claims) {
-      // JWT only carries sub/name/email/role — cast to User, extra fields will be undefined
       const hydratedUser = {
         id: claims.sub,
         name: claims.name,
         email: claims.email,
-        role: claims.role,
-        attendeeType: 'invited',
+        attendeeType: (claims.attendeeType ?? 'invited') as User['attendeeType'],
         pendingAdminApproval: false,
       } as User;
       setAuth(hydratedUser, token);

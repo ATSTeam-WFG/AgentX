@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { badRequest, notFound } from '../../lib/errors'
+import { requireMinRole } from '../../lib/role-guard'
 import { broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
 
@@ -13,6 +14,7 @@ const CreateSchema = z.object({
 
 export async function adminAnnouncementsRoutes(fastify: FastifyInstance) {
   fastify.post('/', async (request, reply) => {
+    requireMinRole('moderator', request)
     const parsed = CreateSchema.safeParse(request.body)
     if (!parsed.success) throw badRequest(parsed.error.issues[0].message)
     const { title, body, expiresAt } = parsed.data
@@ -53,6 +55,7 @@ export async function adminAnnouncementsRoutes(fastify: FastifyInstance) {
   })
 
   fastify.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('moderator', request)
     const { id } = request.params
     const adminId = request.user.sub
 

@@ -50,11 +50,12 @@ export function useWebSocket() {
           break;
         case 'scores.update':
           queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-          queryClient.invalidateQueries({ queryKey: ['me'] });
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
           break;
         case 'jobs.done': {
           const d = data as JobsDoneData;
           queryClient.invalidateQueries({ queryKey: ['activities'] });
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
           if (d.type === 'golden_points_scoring')
             pushToast({ message: 'Your Golden Points score is in!' });
           else if (d.type === 'avatar_generation')

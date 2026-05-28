@@ -1,6 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -42,6 +44,55 @@ const TYPE_LABELS: Record<string, string> = {
   touchpoint: 'Touchpoint',
 };
 
+// SVG icons per activity type (stroke-based, inherits `color` from parent)
+const ACT_ICONS = {
+  trivia: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <circle cx="10" cy="10" r="8"/>
+      <path d="M7.5 7.5a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/>
+      <circle cx="10" cy="14.5" r=".75" fill="currentColor" stroke="none"/>
+    </svg>
+  ),
+  avatar: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <rect x="2" y="2" width="16" height="16" rx="3"/>
+      <circle cx="10" cy="8" r="2.5"/>
+      <path d="M4.5 17a5.5 5.5 0 0 1 11 0"/>
+    </svg>
+  ),
+  prompt_challenge: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <path d="M17 2H3a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h5l2 3 2-3h5a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+      <line x1="6" y1="7" x2="14" y2="7"/>
+      <line x1="6" y1="10.5" x2="11" y2="10.5"/>
+    </svg>
+  ),
+  golden_points: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <polygon points="10 2 12.59 7.18 18.5 8.09 14.25 12.22 15.18 18.09 10 15.36 4.82 18.09 5.75 12.22 1.5 8.09 7.41 7.18 10 2"/>
+    </svg>
+  ),
+  touchpoint: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <path d="M10 1.5C7.24 1.5 5 3.74 5 6.5c0 4.25 5 12 5 12s5-7.75 5-12c0-2.76-2.24-5-5-5z"/>
+      <circle cx="10" cy="6.5" r="1.8"/>
+    </svg>
+  ),
+  _default: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"
+      strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <circle cx="10" cy="10" r="8"/>
+      <line x1="10" y1="6" x2="10" y2="10"/>
+      <line x1="10" y1="13" x2="10" y2="14"/>
+    </svg>
+  ),
+};
+
 // Hardcoded dark-enough colors for silver (#CCDEE7) card surface
 const TYPE_COLORS: Record<string, string> = {
   trivia:           '#2a5cd4',   // blue
@@ -53,6 +104,8 @@ const TYPE_COLORS: Record<string, string> = {
 
 export default function AdminActivitiesPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canToggle = canDo(role, 'moderator');
 
   const { data: activities, isLoading } = useQuery({
     queryKey: ['activities'],
@@ -144,14 +197,11 @@ export default function AdminActivitiesPage() {
         const color = TYPE_COLORS[activity.type] ?? '#2a5cd4';
         const isOn = activity.isOpen;
         const bgColor = `${color}1e`; // ~12% opacity
-        const icons: Record<string, string> = {
-          trivia: '🧠', avatar: '🖼️', prompt_challenge: '💬',
-          golden_points: '⭐', touchpoint: '📍',
-        };
+        const actIcon = ACT_ICONS[activity.type as keyof typeof ACT_ICONS] ?? ACT_ICONS._default;
         return (
           <div key={activity.id} className="act-card">
-            <div className="act-icon" style={{ background: bgColor }}>
-              {icons[activity.type] ?? '🎯'}
+            <div className="act-icon" style={{ background: bgColor, color }}>
+              {actIcon}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="act-name">{activity.name}</div>
@@ -166,18 +216,33 @@ export default function AdminActivitiesPage() {
               </div>
             </div>
             <div className="act-toggle-wrap">
-              <button
-                className="act-toggle"
-                onClick={() => toggleMutation.mutate(activity.id)}
-                disabled={toggleMutation.isPending}
-              >
-                <div className={`act-toggle-track ${isOn ? 'on' : 'off'}`}>
-                  <div className="act-toggle-thumb" />
+              {canToggle ? (
+                <button
+                  className="act-toggle"
+                  onClick={() => toggleMutation.mutate(activity.id)}
+                  disabled={toggleMutation.isPending}
+                >
+                  <div className={`act-toggle-track ${isOn ? 'on' : 'off'}`}>
+                    <div className="act-toggle-thumb" />
+                  </div>
+                  <span className={`act-toggle-label ${isOn ? 'on' : 'off'}`}>
+                    {isOn ? 'Open' : 'Closed'}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  className="act-toggle adm-locked"
+                  title="Requires Moderator access"
+                  style={{ cursor: 'not-allowed' }}
+                >
+                  <div className={`act-toggle-track ${isOn ? 'on' : 'off'}`}>
+                    <div className="act-toggle-thumb" />
+                  </div>
+                  <span className={`act-toggle-label ${isOn ? 'on' : 'off'}`}>
+                    {isOn ? 'Open' : 'Closed'}
+                  </span>
                 </div>
-                <span className={`act-toggle-label ${isOn ? 'on' : 'off'}`}>
-                  {isOn ? 'Open' : 'Closed'}
-                </span>
-              </button>
+              )}
             </div>
           </div>
         );

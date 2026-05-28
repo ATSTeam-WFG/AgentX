@@ -36,3 +36,6 @@ export const postSessionFeedback = (eventId: string, payload: Record<string, unk
     method: 'POST',
     body: JSON.stringify(payload),
   });
+
+export const getSessionFeedbackStatus = (eventId: string) =>
+  apiFetch<{ submitted: boolean; rating?: number | null }>(`/v1/agenda-events/${eventId}/feedback`);

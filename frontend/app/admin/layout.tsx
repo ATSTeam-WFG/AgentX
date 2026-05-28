@@ -3,31 +3,60 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { readAdminToken, isTokenExpired, clearAdminToken } from '@/lib/auth';
+import { readAdminToken, isTokenExpired, clearAdminToken, decodeAdminRole, canDo, type AdminRole } from '@/lib/auth';
 
-const NAV_ITEMS = [
-  { href: '/admin/features',        label: '⚡ Control'  },
-  { href: '/admin',                 label: 'Dashboard'  },
-  { href: '/admin/golden-points',   label: 'Golden Pts' },
-  { href: '/admin/users',           label: 'Users'      },
-  { href: '/admin/announcements',   label: 'Announce'   },
-  { href: '/admin/activities',      label: 'Activities' },
-  { href: '/admin/agenda',          label: 'Agenda'     },
-  { href: '/admin/invitees',        label: 'Invitees'   },
-  { href: '/admin/audit-log',       label: 'Audit Log'  },
-  { href: '/admin/system',          label: 'System'     },
+// minRole: the minimum role required to SEE this item.
+// Items without minRole are visible to all authenticated admins.
+const NAV_GROUPS: Array<{
+  label: string;
+  minRole?: AdminRole;
+  items: Array<{ href: string; label: string; minRole?: AdminRole }>;
+}> = [
+  {
+    label: 'Live',
+    items: [
+      { href: '/admin',           label: 'Dashboard'     },
+      { href: '/admin/analytics', label: 'Analytics'     },
+    ],
+  },
+  {
+    label: 'Review',
+    items: [
+      { href: '/admin/golden-points',   label: 'Golden Points'  },
+      { href: '/admin/users',           label: 'Users'          },
+      { href: '/admin/announcements',   label: 'Announcements'  },
+    ],
+  },
+  {
+    label: 'Setup',
+    items: [
+      { href: '/admin/activities', label: 'Activities'    },
+      { href: '/admin/agenda',     label: 'Agenda'        },
+      { href: '/admin/invitees',   label: 'Invitees'      },
+      { href: '/admin/features',   label: 'Feature Flags', minRole: 'moderator' as AdminRole },
+    ],
+  },
+  {
+    label: 'Admin',
+    minRole: 'moderator' as AdminRole,
+    items: [
+      { href: '/admin/audit-log', label: 'Audit Log' },
+      { href: '/admin/system',    label: 'System',    minRole: 'super_admin' as AdminRole },
+    ],
+  },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isPwa, setIsPwa] = useState<boolean | null>(null);
+  const router   = useRouter();
+  const [isPwa,  setIsPwa]  = useState<boolean | null>(null);
+  const [role,   setRole]   = useState<AdminRole | null>(null);
 
   useEffect(() => {
-    // Detect PWA / standalone mode
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
     const iosSa = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsPwa(standalone || iosSa);
+    setRole(decodeAdminRole());
   }, []);
 
   useEffect(() => {
@@ -43,10 +72,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.replace('/admin/login');
   }
 
-  // Waiting for PWA check — render nothing to avoid flash
   if (isPwa === null) return null;
 
-  // Block access in PWA / installed app mode
+  // ── PWA block ────────────────────────────────────────────────────────────
   if (isPwa) {
     return (
       <>
@@ -60,29 +88,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }
           .pwa-block-card {
             background: var(--surface);
-            border: 1px solid rgba(255,255,255,.30);
+            border: 1px solid rgba(255,255,255,.20);
             border-radius: var(--r-lg);
             padding: 36px 28px;
             text-align: center;
             max-width: 320px;
             width: 100%;
-            box-shadow: var(--shadow-card);
+            box-shadow: var(--shadow);
           }
-          .pwa-block-icon { font-size: 40px; margin-bottom: 16px; }
+          .pwa-block-icon { display: flex; justify-content: center; margin-bottom: 16px; }
           .pwa-block-title {
             font-family: 'Sora', sans-serif;
             font-size: 22px; font-weight: 800;
             color: #1C283C; margin: 0 0 10px;
             letter-spacing: -.02em;
           }
-          .pwa-block-body {
-            font-size: 14px; color: #4a6080;
-            line-height: 1.55;
-          }
+          .pwa-block-body { font-size: 14px; color: #4a6080; line-height: 1.55; }
         `}</style>
         <div className="pwa-block">
           <div className="pwa-block-card">
-            <div className="pwa-block-icon">🖥️</div>
+            <div className="pwa-block-icon">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.8"
+                strokeLinecap="round" strokeLinejoin="round" width="40" height="40" style={{ color: "#4a8aff" }}>
+                <rect x="4" y="6" width="32" height="22" rx="3"/>
+                <path d="M14 34h12M20 28v6"/>
+              </svg>
+            </div>
             <h1 className="pwa-block-title">Desktop Only</h1>
             <p className="pwa-block-body">
               The admin panel is only accessible in a desktop browser — not inside the AgentX app.
@@ -93,97 +124,183 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // ── Login page — no chrome ────────────────────────────────────────────────
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  // ── Admin shell with sidebar ──────────────────────────────────────────────
   return (
     <>
       <style>{`
-        /* ── Shell ─────────────────────────────────────────────────── */
-        .admin-shell {
+        /* ── Shell ─────────────────────────────────────────────────────────── */
+        .adm-shell {
           position: fixed; inset: 0;
-          display: flex; flex-direction: column;
-          background: var(--bg); overflow: hidden;
+          display: flex; flex-direction: row;
+          background: var(--bg);
           font-family: 'DM Sans', sans-serif;
+          overflow: hidden;
         }
 
-        /* ── Topbar ─────────────────────────────────────────────────── */
-        .admin-topbar {
-          display: flex; align-items: center; gap: 12px;
-          padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 14px;
-          background: var(--navy);
-          border-bottom: 1px solid rgba(255,255,255,.10);
+        /* ── Sidebar ────────────────────────────────────────────────────────── */
+        .adm-sidebar {
+          width: 208px;
           flex-shrink: 0;
-        }
-        .admin-back {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 14px; font-weight: 600; color: rgba(255,255,255,.65);
-          background: none; border: none; cursor: pointer;
-          text-decoration: none; padding: 0;
-        }
-        .admin-back:active { opacity: .7; }
-        .admin-title {
-          font-family: 'Sora', sans-serif;
-          font-size: 18px; font-weight: 800;
-          color: #fff; letter-spacing: -.01em;
-        }
-        .admin-logout {
-          margin-left: auto;
-          background: rgba(186,24,24,.18);
-          color: #e05c5c;
-          border: 1px solid rgba(186,24,24,.28);
-          border-radius: 7px; padding: 5px 11px;
-          font-size: 12px; font-weight: 700;
-          letter-spacing: .02em; cursor: pointer;
-          font-family: 'DM Sans', sans-serif;
-          transition: opacity var(--tr);
-        }
-        .admin-logout:active { opacity: .7; }
-
-        /* ── Tab strip ──────────────────────────────────────────────── */
-        .admin-tabs {
-          display: flex; gap: 0;
-          background: var(--surface);
-          border-bottom: 1.5px solid rgba(28,40,60,.14);
-          flex-shrink: 0; overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
+          background: var(--bg2);
+          border-right: 1px solid rgba(255,255,255,.07);
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          overflow-x: hidden;
           scrollbar-width: none;
         }
-        .admin-tabs::-webkit-scrollbar { display: none; }
-        .admin-tab {
-          flex-shrink: 0; padding: 11px 15px;
+        .adm-sidebar::-webkit-scrollbar { display: none; }
+
+        /* Branding */
+        .adm-brand {
+          padding: 20px 18px 16px;
+          border-bottom: 1px solid rgba(255,255,255,.07);
+          flex-shrink: 0;
+        }
+        .adm-brand-event {
+          font-size: 10px; font-weight: 800; letter-spacing: .10em;
+          text-transform: uppercase; color: var(--t4);
+          margin-bottom: 5px;
+        }
+        .adm-brand-name {
+          font-family: 'Sora', sans-serif;
+          font-size: 18px; font-weight: 800;
+          color: #fff; letter-spacing: -.02em;
+          line-height: 1;
+        }
+
+        /* Nav groups */
+        .adm-nav { flex: 1; padding: 10px 0 8px; }
+
+        .adm-nav-group { margin-bottom: 2px; }
+
+        .adm-nav-group-label {
+          display: block;
+          padding: 12px 18px 4px;
+          font-size: 9.5px; font-weight: 800; letter-spacing: .12em;
+          text-transform: uppercase; color: var(--t5);
+          user-select: none;
+        }
+
+        .adm-nav-item {
+          display: block;
+          padding: 8px 18px;
           font-size: 13px; font-weight: 600;
-          color: #4a6080;
-          border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
-          text-decoration: none; transition: all var(--tr);
-          white-space: nowrap;
+          color: var(--t3);
+          text-decoration: none;
+          position: relative;
+          transition: color var(--tr), background var(--tr);
         }
-        .admin-tab:hover { color: #2A3C52; }
-        .admin-tab.active { color: #2a5cd4; border-bottom-color: #2a5cd4; }
-
-        /* ── Content area ───────────────────────────────────────────── */
-        .admin-content {
-          flex: 1; overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
-          overscroll-behavior: contain;
-        }
-
-        /* ── Page titles (on dark navy bg) ──────────────────────────── */
-        .admin-content > h1,
-        [class*="-title"]:not([class*="card"] [class*="-title"]) {
+        .adm-nav-item:hover {
           color: var(--t);
+          background: rgba(255,255,255,.04);
+        }
+        .adm-nav-item.active {
+          color: #fff;
+          background: rgba(255,255,255,.09);
+        }
+        .adm-nav-item.active::before {
+          content: '';
+          position: absolute;
+          left: 0; top: 5px; bottom: 5px;
+          width: 3px;
+          background: #4a8aff;
+          border-radius: 0 2px 2px 0;
         }
 
-        /* ════════════════════════════════════════════════════════════════
-           CARD ZONE — override text vars to dark on silver surfaces.
-           Any element with "card" in its class becomes a dark-text zone.
-           Also covers named non-card elements that sit on silver surfaces.
-        ════════════════════════════════════════════════════════════════ */
+        /* Sidebar footer */
+        .adm-sidebar-footer {
+          padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+          border-top: 1px solid rgba(255,255,255,.07);
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .adm-back-link {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 12px; font-weight: 600; color: var(--t4);
+          text-decoration: none;
+          padding: 5px 4px;
+          border-radius: 6px;
+          transition: color var(--tr);
+        }
+        .adm-back-link:hover { color: var(--t); }
+        .adm-logout {
+          width: 100%;
+          padding: 8px 12px;
+          background: rgba(186,24,24,.16);
+          color: #e05c5c;
+          border: 1px solid rgba(186,24,24,.25);
+          border-radius: 8px;
+          font-size: 12px; font-weight: 700; letter-spacing: .03em;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+          transition: opacity var(--tr);
+          text-align: center;
+        }
+        .adm-logout:active { opacity: .7; }
+
+        /* ── Role-locked sections (shared across all admin pages) ──────────── */
+        .adm-locked { opacity: 0.35; pointer-events: none; user-select: none; }
+        .adm-lock-notice {
+          display: flex; align-items: center; gap: 6px;
+          padding: 7px 11px;
+          background: rgba(92,117,144,.09);
+          border: 1px solid rgba(92,117,144,.18);
+          border-radius: 8px;
+          font-size: 11px; font-weight: 700; letter-spacing: .02em;
+          color: var(--t3);
+          margin-bottom: 10px;
+        }
+        .adm-lock-notice svg { flex-shrink: 0; opacity: .7; }
+        /* Role badge shown inline next to section labels */
+        .adm-role-badge {
+          display: inline-flex; align-items: center; gap: 4px;
+          font-size: 10px; font-weight: 700; letter-spacing: .05em;
+          text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+          background: rgba(92,117,144,.12); color: var(--t4);
+          border: 1px solid rgba(92,117,144,.18);
+          vertical-align: middle; margin-left: 6px;
+        }
+
+        /* ── Content area ───────────────────────────────────────────────────── */
+        .adm-main {
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          /* Declare dark-text defaults so all content reads correctly on var(--bg) */
+          --t:  #CCDEE7;
+          --t2: #A8BECB;
+          --t3: #7A96A8;
+          --t4: #5c7590;
+          --t5: #3d5570;
+        }
+        .adm-main-inner {
+          padding: 24px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+          min-height: 100%;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           CARD ZONE — any element whose class contains "card" switches to
+           silver-surface text vars. Also covers named non-card elements that
+           sit on silver surfaces.
+        ═══════════════════════════════════════════════════════════════════ */
         [class*="card"],
+        [class*="dialog"],
         .adm-quick-link,
         .alog-entry,
         .adum-expanded,
         .agd-edit-wrap,
         .gpa-full-text,
-        .gpa-feedback {
+        .gpa-feedback,
+        .sys-refresh-btn {
           --t:  #1C283C;
           --t2: #2A3C52;
           --t3: #4a6080;
@@ -192,37 +309,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
       `}</style>
 
-      <div className="admin-shell">
-        <div className="admin-topbar">
-          <Link href="/profile" className="admin-back">
-            <svg viewBox="0 0 12 12" fill="none" width="16" height="16">
-              <path d="M7.5 2.5l-4 4 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Back
-          </Link>
-          <span className="admin-title">Admin</span>
-          {pathname !== '/admin/login' && (
-            <button className="admin-logout" onClick={handleLogout}>Log out</button>
-          )}
-        </div>
+      <div className="adm-shell">
 
-        {pathname !== '/admin/login' && (
-          <nav className="admin-tabs">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`admin-tab${pathname === item.href ? ' active' : ''}`}
-              >
-                {item.label}
-              </Link>
-            ))}
+        {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+        <aside className="adm-sidebar">
+
+          <div className="adm-brand">
+            <div className="adm-brand-event">WFG Executive Summit</div>
+            <span className="adm-brand-name">Admin</span>
+          </div>
+
+          <nav className="adm-nav">
+            {NAV_GROUPS
+              .filter((group) => !group.minRole || canDo(role, group.minRole))
+              .map((group) => {
+                const visibleItems = group.items.filter(
+                  (item) => !item.minRole || canDo(role, item.minRole)
+                );
+                if (visibleItems.length === 0) return null;
+                return (
+                  <div key={group.label} className="adm-nav-group">
+                    <span className="adm-nav-group-label">{group.label}</span>
+                    {visibleItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`adm-nav-item${pathname === item.href ? ' active' : ''}`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
           </nav>
-        )}
 
-        <div className="admin-content">
-          {children}
-        </div>
+          <div className="adm-sidebar-footer">
+            <Link href="/profile" className="adm-back-link">
+              <svg viewBox="0 0 12 12" fill="none" width="14" height="14">
+                <path d="M7.5 2.5l-4 4 4 4" stroke="currentColor" strokeWidth="1.8"
+                  strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back to app
+            </Link>
+            <button className="adm-logout" onClick={handleLogout}>Log out</button>
+          </div>
+
+        </aside>
+
+        {/* ── Main content ─────────────────────────────────────────────────── */}
+        <main className="adm-main">
+          <div className="adm-main-inner">
+            {children}
+          </div>
+        </main>
+
       </div>
     </>
   );

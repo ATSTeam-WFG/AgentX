@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { prisma } from '../../db'
 import { authenticate } from '../../plugins/auth'
 import { badRequest, conflict, notFound, forbidden } from '../../lib/errors'
+import { broadcastUser, broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 
 const CompleteBodySchema = z.object({
   attemptId: z.string().uuid(),
@@ -157,6 +159,12 @@ export async function triviaRoutes(fastify: FastifyInstance) {
         create: { userId, totalPoints: pointsAwarded, activitiesCompleted: 1 },
       })
     }, { maxWait: 10000, timeout: 15000 })
+
+    const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
+    if (updatedScore) {
+      broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
+      broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
+    }
 
     return reply.send(responsePayload)
   })

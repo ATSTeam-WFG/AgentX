@@ -1,6 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -53,6 +55,8 @@ function relativeTime(iso: string): string {
 
 export default function AdminFeaturesPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canManage = canDo(role, 'moderator');
 
   const { data: flags, isLoading, isError } = useQuery({
     queryKey: ['admin-features'],
@@ -211,19 +215,34 @@ export default function AdminFeaturesPage() {
                       ? `Changed ${relativeTime(flag.updatedAt)}`
                       : 'Never changed'}
                   </span>
-                  <button
-                    className="cp-toggle"
-                    onClick={() => mutation.mutate({ key: flag.key, value: !flag.value })}
-                    disabled={mutation.isPending}
-                    aria-label={`Toggle ${flag.label}`}
-                  >
-                    <div className={`cp-toggle-track ${isOn ? 'on' : 'off'}`}>
-                      <div className="cp-toggle-thumb" />
+                  {canManage ? (
+                    <button
+                      className="cp-toggle"
+                      onClick={() => mutation.mutate({ key: flag.key, value: !flag.value })}
+                      disabled={mutation.isPending}
+                      aria-label={`Toggle ${flag.label}`}
+                    >
+                      <div className={`cp-toggle-track ${isOn ? 'on' : 'off'}`}>
+                        <div className="cp-toggle-thumb" />
+                      </div>
+                      <span className={`cp-toggle-label ${isOn ? 'on' : 'off'}`}>
+                        {isOn ? 'On' : 'Off'}
+                      </span>
+                    </button>
+                  ) : (
+                    <div
+                      className="cp-toggle adm-locked"
+                      title="Requires Moderator access"
+                      style={{ cursor: 'not-allowed' }}
+                    >
+                      <div className={`cp-toggle-track ${isOn ? 'on' : 'off'}`}>
+                        <div className="cp-toggle-thumb" />
+                      </div>
+                      <span className={`cp-toggle-label ${isOn ? 'on' : 'off'}`}>
+                        {isOn ? 'On' : 'Off'}
+                      </span>
                     </div>
-                    <span className={`cp-toggle-label ${isOn ? 'on' : 'off'}`}>
-                      {isOn ? 'On' : 'Off'}
-                    </span>
-                  </button>
+                  )}
                 </div>
               </div>
             );

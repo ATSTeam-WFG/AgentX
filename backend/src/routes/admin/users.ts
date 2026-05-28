@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { notFound, conflict, badRequest } from '../../lib/errors'
+import { requireMinRole } from '../../lib/role-guard'
 import { broadcastAll, broadcastUser } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
 
@@ -116,6 +117,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
 
   // ── Edit ────────────────────────────────────────────────────────────────────
   fastify.patch('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('moderator', request)
     const adminId = request.user.sub
     const { id } = request.params
 
@@ -156,6 +158,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
 
   // ── Delete ──────────────────────────────────────────────────────────────────
   fastify.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('super_admin', request)
     const adminId = request.user.sub
     const { id } = request.params
 
@@ -194,6 +197,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
 
   // ── Adjust points ───────────────────────────────────────────────────────────
   fastify.post('/:id/points', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('moderator', request)
     const adminId = request.user.sub
     const { id } = request.params
 

@@ -104,3 +104,13 @@ export const scanTouchpoint = (qrToken: string, dedupeKey: string) =>
     '/v1/touchpoints/scan',
     { method: 'POST', body: JSON.stringify({ qrToken, dedupeKey }) }
   );
+
+export const checkinTouchpoint = (locationId: string, response: string, dedupeKey: string) =>
+  apiFetch<{ pointsAwarded: number; locationId: string }>(
+    '/v1/touchpoints/checkin',
+    { method: 'POST', body: JSON.stringify({ locationId, response, dedupeKey }) }
+  );
+
+export const getTouchpointCheckins = () =>
+  apiFetch<{ checkins: { locationId: string; pointsAwarded: number }[] }>('/v1/touchpoints/checkins')
+    .then((r) => r.checkins);

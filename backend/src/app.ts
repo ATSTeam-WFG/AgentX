@@ -40,6 +40,7 @@ import { adminAuditLogRoutes } from './routes/admin/audit-log'
 import { adminDashboardRoutes } from './routes/admin/dashboard'
 import { adminSystemRoutes } from './routes/admin/system'
 import { adminFeaturesRoutes } from './routes/admin/features'
+import { adminAnalyticsRoutes } from './routes/admin/analytics'
 import { featuresRoutes } from './routes/features'
 
 export async function buildApp() {
@@ -152,9 +153,10 @@ export async function buildApp() {
       adminApp.register(adminActivitiesRoutes, { prefix: '/activities' })
       adminApp.register(adminAnnouncementsRoutes, { prefix: '/announcements' })
       adminApp.register(adminAuditLogRoutes, { prefix: '/audit-log' })
-      adminApp.register(adminDashboardRoutes, { prefix: '/dashboard' })
-      adminApp.register(adminSystemRoutes, { prefix: '/system' })
-      adminApp.register(adminFeaturesRoutes, { prefix: '' })
+      adminApp.register(adminDashboardRoutes,  { prefix: '/dashboard'  })
+      adminApp.register(adminSystemRoutes,    { prefix: '/system'     })
+      adminApp.register(adminFeaturesRoutes,  { prefix: ''            })
+      adminApp.register(adminAnalyticsRoutes, { prefix: '/analytics'  })
     },
     { prefix: '/v1/admin' },
   )

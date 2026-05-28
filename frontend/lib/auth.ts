@@ -1,11 +1,46 @@
 const TOKEN_KEY = 'agentx_token';
 const ADMIN_TOKEN_KEY = 'agentx_admin_token';
 
+// ── Admin roles ───────────────────────────────────────────────────────────────
+
+export type AdminRole = 'super_admin' | 'moderator' | 'support';
+
+const ROLE_RANK: Record<AdminRole, number> = {
+  support:     0,
+  moderator:   1,
+  super_admin: 2,
+};
+
+/** Decode the admin role from the stored admin JWT. Returns null if not present or unparseable. */
+export function decodeAdminRole(): AdminRole | null {
+  if (typeof window === 'undefined') return null;
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const decoded = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return (decoded.role as AdminRole) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns true if `role` meets the minimum required role.
+ * Safe to call with null (returns false).
+ */
+export function canDo(role: AdminRole | null, minRole: AdminRole): boolean {
+  if (!role) return false;
+  return (ROLE_RANK[role] ?? -1) >= ROLE_RANK[minRole];
+}
+
 export interface JwtClaims {
-  sub: string;      // userId
-  email: string;
+  sub: string;           // userId
+  tokenId: string;
   name: string;
-  role: 'user' | 'admin';
+  email: string;
+  attendeeType: string;
   exp: number;
   iat: number;
 }
@@ -38,8 +73,9 @@ export function clearAdminToken(): void {
 
 export function decodeToken(token: string): JwtClaims | null {
   try {
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const decoded = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
     return decoded as JwtClaims;
   } catch {
     return null;

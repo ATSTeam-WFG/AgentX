@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -147,6 +149,8 @@ function EventForm({ initial, onSave, onCancel, saving, error }: {
 
 export default function AdminAgendaPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canEdit = canDo(role, 'moderator');
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -160,7 +164,7 @@ export default function AdminAgendaPage() {
 
   const createMutation = useMutation({
     mutationFn: (f: EventFormState) => createEvent({
-      day: parseInt(f.day), name: f.name,
+      day: parseInt(f.day, 10), name: f.name,
       description: f.description || undefined,
       location: f.location,
       speakerName: f.speakerName || undefined,
@@ -173,7 +177,7 @@ export default function AdminAgendaPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, f }: { id: string; f: EventFormState }) => updateEvent(id, {
-      day: parseInt(f.day), name: f.name,
+      day: parseInt(f.day, 10), name: f.name,
       description: f.description || undefined,
       location: f.location,
       speakerName: f.speakerName || undefined,
@@ -308,9 +312,15 @@ export default function AdminAgendaPage() {
       <h1 className="agd-title">Agenda</h1>
 
       {!showAdd && (
-        <button className="agd-add-btn" onClick={() => { setShowAdd(true); setFormError(''); }}>
-          + Add Event
-        </button>
+        canEdit ? (
+          <button className="agd-add-btn" onClick={() => { setShowAdd(true); setFormError(''); }}>
+            + Add Event
+          </button>
+        ) : (
+          <button className="agd-add-btn adm-locked" title="Requires Moderator access" style={{ cursor: 'not-allowed' }}>
+            + Add Event
+          </button>
+        )
       )}
 
       {showAdd && (
@@ -341,17 +351,19 @@ export default function AdminAgendaPage() {
                 <div className="agd-event-main">
                   <div className="agd-event-header">
                     <div className="agd-event-name">{event.name}</div>
-                    <div className="agd-event-actions">
-                      <button
-                        className="agd-edit-btn"
-                        onClick={() => { setEditingId(event.id === editingId ? null : event.id); setFormError(''); }}
-                      >
-                        {editingId === event.id ? 'Cancel' : 'Edit'}
-                      </button>
-                      <button className="agd-del-btn" onClick={() => setConfirmDelete(event.id)}>
-                        Delete
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="agd-event-actions">
+                        <button
+                          className="agd-edit-btn"
+                          onClick={() => { setEditingId(event.id === editingId ? null : event.id); setFormError(''); }}
+                        >
+                          {editingId === event.id ? 'Cancel' : 'Edit'}
+                        </button>
+                        <button className="agd-del-btn" onClick={() => setConfirmDelete(event.id)}>
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="agd-event-meta">
                     <span className="agd-event-time">{formatTime(event.startsAt)} – {formatTime(event.endsAt)}</span>
