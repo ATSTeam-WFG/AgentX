@@ -1,4 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
+import { broadcastUser, broadcastAll } from '../../ws-connections'
+import { makeWsMessage } from '../../ws-events'
 import { z } from 'zod'
 import { prisma } from '../../db'
 import { authenticate } from '../../plugins/auth'
@@ -131,6 +133,12 @@ export async function promptChallengeRoutes(fastify: FastifyInstance) {
         })
       }
     }, { maxWait: 10000, timeout: 15000 })
+
+    const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
+    if (updatedScore) {
+      broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
+      broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
+    }
 
     return reply.send(responsePayload)
   })

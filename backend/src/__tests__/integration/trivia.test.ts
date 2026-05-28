@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { getTestApp, closeTestApp } from '../helpers/app'
 import { createTestUser } from '../helpers/tokens'
 import { prisma } from '../../db'
@@ -30,6 +30,20 @@ async function completeTrivia(
     payload: { attemptId, answers, dedupeKey },
   })
 }
+
+describe('POST /v1/activities/trivia/start — activity closed', () => {
+  afterEach(async () => {
+    await prisma.activity.updateMany({ where: { type: 'trivia' }, data: { isOpen: true } })
+  })
+
+  it('returns 400 when trivia activity is closed', async () => {
+    await prisma.activity.updateMany({ where: { type: 'trivia' }, data: { isOpen: false } })
+    const { token } = await createTestUser()
+    const res = await startTrivia(token)
+    expect(res.statusCode).toBe(400)
+    expect(res.json().error).toBe('BAD_REQUEST')
+  })
+})
 
 describe('POST /v1/activities/trivia/start', () => {
   it('returns attemptId and 50 questions without correctIndex', async () => {

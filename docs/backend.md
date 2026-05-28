@@ -272,13 +272,23 @@ All mostly cacheable and version-aware.
 | POST | `/v1/activities/avatar/generate` | `{photo_key, prompt_style, dedupe_key}` → job ID. |
 | GET | `/v1/jobs/:id` | Job status. Used for polling avatar generation. |
 | POST | `/v1/touchpoints/scan` | `{qr_token, dedupe_key}` → points + touchpoint info. |
+| POST | `/v1/touchpoints/checkin` | `{location_id, response, dedupe_key}` → 30 pts. Text response, one per location. |
+| GET | `/v1/touchpoints/checkins` | Returns all checkins for the authenticated user (locationId + pointsAwarded). |
 
 ### 7.5 Feedback
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/v1/agenda-events/:id/feedback` | Per-session feedback. |
+| POST | `/v1/agenda-events/:id/feedback` | Per-session feedback. Upserts on re-submit. |
+| GET | `/v1/agenda-events/:id/feedback` | Returns `{ submitted, rating? }` for the authenticated user. |
 | POST | `/v1/feedback` | App feedback. Honors `is_anonymous` flag. |
+
+### 7.5a Initiative Notes
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/initiative-notes` | Returns all saved notes for the authenticated user. |
+| POST | `/v1/initiative-notes` | `{initiativeName, noteText}` — upserts by (userId, initiativeName). |
 
 ### 7.6 Leaderboard
 
@@ -292,10 +302,13 @@ Single connection at `/v1/ws`, authenticated by token. Subscriptions:
 
 | Event | Trigger |
 |---|---|
-| `leaderboard.update` | Sent when top 5 changes. |
+| `leaderboard.update` | Sent when top 5 changes (admin point edit, any activity completion). |
 | `announcements.new` | Admin publishes an announcement. |
 | `agenda.changed` | Admin edits agenda. |
-| `jobs.{id}.complete` | Async job completion (avatar generation). |
+| `activity.changed` | Admin toggles activity open/closed. |
+| `scores.update` | User earns points (trivia, prompt-challenge, touchpoint, admin adjustment). |
+| `jobs.done` | Async job complete — avatar generation or golden points scoring. |
+| `features.updated` | Admin toggles a feature flag. |
 
 WebSocket is a nice-to-have. Every feature must work with polling as a fallback.
 

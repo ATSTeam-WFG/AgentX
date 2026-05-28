@@ -15,14 +15,16 @@ export default function SponsorDetailPage({ params }: { params: Promise<{ slug: 
         .sp-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .sp-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: none; border: none; cursor: pointer; margin-bottom: 24px; padding: 0;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .sp-logo-wrap {
           background: #fff;
           border-radius: 18px;
@@ -81,9 +83,8 @@ export default function SponsorDetailPage({ params }: { params: Promise<{ slug: 
       `}</style>
 
       <div className="sp-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Sponsors</button>
         <div className="sp-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Back</button>
-
           {sponsor ? (
             <>
               <div className={`sp-logo-wrap${sponsor.dark ? ' dark' : ''}`}>

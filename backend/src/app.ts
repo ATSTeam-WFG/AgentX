@@ -39,6 +39,11 @@ import { adminAnnouncementsRoutes } from './routes/admin/announcements'
 import { adminAuditLogRoutes } from './routes/admin/audit-log'
 import { adminDashboardRoutes } from './routes/admin/dashboard'
 import { adminSystemRoutes } from './routes/admin/system'
+import { adminFeaturesRoutes } from './routes/admin/features'
+import { adminAnalyticsRoutes } from './routes/admin/analytics'
+import { adminJobsRoutes } from './routes/admin/jobs'
+import { featuresRoutes } from './routes/features'
+import { chatRoutes } from './routes/chat'
 
 export async function buildApp() {
   const app = Fastify({ logger: config.NODE_ENV !== 'test' })
@@ -111,6 +116,7 @@ export async function buildApp() {
 
   // Public routes
   app.register(authRoutes, { prefix: '/v1/auth' })
+  app.register(featuresRoutes, { prefix: '/v1' })
   app.register(agendaRoutes, { prefix: '/v1' })
   app.register(initiativesRoutes, { prefix: '/v1' })
   app.register(announcementsRoutes, { prefix: '/v1' })
@@ -132,6 +138,7 @@ export async function buildApp() {
   app.register(avatarRoutes, { prefix: '/v1/activities/avatar' })
   app.register(touchpointsRoutes, { prefix: '/v1/touchpoints' })
   app.register(pushRoutes, { prefix: '/v1/push' })
+  app.register(chatRoutes, { prefix: '/v1/chat' })
 
   // Admin auth (no preHandler — login is public)
   app.register(adminAuthRoutes, { prefix: '/v1/admin/auth' })
@@ -149,8 +156,11 @@ export async function buildApp() {
       adminApp.register(adminActivitiesRoutes, { prefix: '/activities' })
       adminApp.register(adminAnnouncementsRoutes, { prefix: '/announcements' })
       adminApp.register(adminAuditLogRoutes, { prefix: '/audit-log' })
-      adminApp.register(adminDashboardRoutes, { prefix: '/dashboard' })
-      adminApp.register(adminSystemRoutes, { prefix: '/system' })
+      adminApp.register(adminDashboardRoutes,  { prefix: '/dashboard'  })
+      adminApp.register(adminSystemRoutes,    { prefix: '/system'     })
+      adminApp.register(adminFeaturesRoutes,  { prefix: ''            })
+      adminApp.register(adminAnalyticsRoutes, { prefix: '/analytics'  })
+      adminApp.register(adminJobsRoutes,     { prefix: '/jobs'       })
     },
     { prefix: '/v1/admin' },
   )

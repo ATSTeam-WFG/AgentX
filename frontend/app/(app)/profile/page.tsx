@@ -38,7 +38,7 @@ export default function ProfilePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['me'] }),
+      queryClient.invalidateQueries({ queryKey: ['profile'] }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
     ]);
   }, [queryClient]);
@@ -47,8 +47,8 @@ export default function ProfilePage() {
   const { data: profile } = useQuery({
     queryKey: ['profile'],
     queryFn: getMe,
-    staleTime: 60_000,
-    retry: false,
+    staleTime: 5 * 60_000,
+    retry: 1,
   });
 
   const { data: lb, isLoading: lbLoading } = useQuery({
@@ -62,7 +62,7 @@ export default function ProfilePage() {
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
-  const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
+  const touchpts   = profile?.touchpointsCompleted ?? 0;
   const rank       = profile?.rank ?? '–';
 
   const leaderboard = lb?.leaderboard ?? [];

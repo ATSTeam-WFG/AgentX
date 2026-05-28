@@ -2,8 +2,8 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { getAgendaEvent, postSessionFeedback, type Speaker } from '@/lib/api/agenda';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAgendaEvent, postSessionFeedback, getSessionFeedbackStatus, type Speaker } from '@/lib/api/agenda';
 import { V7_EVENTS } from '@/lib/v7-agenda';
 
 function formatTime(iso: string) {
@@ -12,10 +12,10 @@ function formatTime(iso: string) {
 
 export default function SessionDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { eventId } = use(params);
   const [rating, setRating]   = useState(0);
   const [comment, setComment] = useState('');
-  const [submitted, setDone]  = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { data: apiEvent } = useQuery({
@@ -26,12 +26,20 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
   });
   const event = apiEvent ?? V7_EVENTS.find((e) => e.id === eventId);
 
+  const { data: feedbackStatus } = useQuery({
+    queryKey: ['agenda-feedback', eventId],
+    queryFn: () => getSessionFeedbackStatus(eventId),
+    staleTime: 300_000,
+    retry: false,
+  });
+  const submitted = feedbackStatus?.submitted ?? false;
+
   async function handleFeedback() {
     if (!rating || !event) return;
     setLoading(true);
     try {
-      await postSessionFeedback(event.id, { rating, comment });
-      setDone(true);
+      await postSessionFeedback(event.id, { ratings: { overall: rating }, comment });
+      queryClient.invalidateQueries({ queryKey: ['agenda-feedback', eventId] });
     } catch {
       // silent
     } finally {
@@ -45,13 +53,15 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
         .detail-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .detail-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--amber);
-          background: none; border: none; cursor: pointer; margin-bottom: 20px; padding: 0;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .session-title {
           font-family: 'Sora', sans-serif;
           font-size: 24px; font-weight: 700; color: #CCDEE7; margin: 0 0 14px; line-height: 1.2;
@@ -165,9 +175,8 @@ export default function SessionDetailPage({ params }: { params: Promise<{ eventI
       `}</style>
 
       <div className="detail-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Agenda</button>
         <div className="detail-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Agenda</button>
-
           {event ? (
             <>
               <h1 className="session-title">{event.name}</h1>

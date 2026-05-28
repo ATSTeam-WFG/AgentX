@@ -6,7 +6,7 @@ import { makeWsMessage } from '../ws-events'
 
 const POLL_INTERVAL_MS = 5000
 const LOCK_DURATION_MS = 60000
-const BATCH_SIZE = 5
+const BATCH_SIZE = 20
 const WORKER_ID = `worker-${process.pid}`
 
 async function processSingleJob(id: string, type: string, payload: Record<string, unknown>) {
@@ -25,7 +25,11 @@ async function processSingleJob(id: string, type: string, payload: Record<string
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    const currentJob = await prisma.job.findUnique({ where: { id }, select: { attempts: true } })
+    const currentJob = await prisma.job.findUnique({ where: { id }, select: { attempts: true, status: true } })
+    if (currentJob?.status === 'done') {
+      console.warn(`[worker] job ${id} already done — skipping error reset`)
+      return
+    }
     const failed = (currentJob?.attempts ?? 0) >= 3
     await prisma.job.update({
       where: { id },

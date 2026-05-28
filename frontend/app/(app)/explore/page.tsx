@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
+import { getInitiativeNotes, saveInitiativeNote } from '@/lib/api/explore';
 
 interface Initiative {
   name: string;
@@ -65,26 +67,48 @@ const ALSO_IN_WORKS = [
 ];
 
 export default function ExplorePage() {
+  const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const onRefresh = useCallback(async () => {}, []);
+  const onRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['initiative-notes'] });
+  }, [queryClient]);
   const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
+
+  const { data: persistedNotes } = useQuery({
+    queryKey: ['initiative-notes'],
+    queryFn: getInitiativeNotes,
+    staleTime: 300_000,
+  });
+
+  function getNote(i: number) {
+    if (notes[i] !== undefined) return notes[i];
+    return persistedNotes?.[INITIATIVES[i].name] ?? '';
+  }
 
   function toggleInit(i: number) {
     setOpenIdx((prev) => (prev === i ? null : i));
   }
 
-  function submitNote(i: number) {
-    if (!notes[i]?.trim()) return;
-    setSaved((prev) => ({ ...prev, [i]: true }));
+  async function submitNote(i: number) {
+    const text = getNote(i).trim();
+    if (!text) return;
+    setSaving((prev) => ({ ...prev, [i]: true }));
+    try {
+      await saveInitiativeNote(INITIATIVES[i].name, text);
+      setSaved((prev) => ({ ...prev, [i]: true }));
+      queryClient.invalidateQueries({ queryKey: ['initiative-notes'] });
+    } catch {
+      // keep form open on error
+    } finally {
+      setSaving((prev) => ({ ...prev, [i]: false }));
+    }
   }
 
-  function editNote(i: number) {
-    setSaved((prev) => ({ ...prev, [i]: false }));
-  }
 
   return (
     <>
@@ -287,11 +311,10 @@ export default function ExplorePage() {
           padding: 12px 14px;
           font-size: 15px; font-weight: 600;
         }
-        .edit-note-btn {
-          margin-left: auto; background: none; border: none;
-          color: var(--green); font-family: inherit;
-          font-size: 14px; font-weight: 700;
-          cursor: pointer; text-decoration: underline;
+        .init-notes-lock {
+          margin-left: auto; display: flex; align-items: center;
+          gap: 4px; font-size: 12px; font-weight: 600;
+          color: var(--green); opacity: .7;
         }
 
         /* ── Also in the works card ───────── */
@@ -388,25 +411,33 @@ export default function ExplorePage() {
                       </div>
                     </div>
 
-                    {saved[i] ? (
+                    {(saved[i] || (!saving[i] && persistedNotes?.[INITIATIVES[i].name] && notes[i] === undefined)) ? (
                       <div className="init-notes-saved">
                         <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
                           <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                        Sent to ATS · You can update anytime.
-                        <button className="edit-note-btn" onClick={() => editNote(i)}>Edit</button>
+                        Sent to ATS · Submitted
+                        <span className="init-notes-lock">
+                          <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+                            <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                            <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                          </svg>
+                          Locked
+                        </span>
                       </div>
                     ) : (
                       <>
                         <textarea
                           className="init-notes-textarea"
                           placeholder="Share thoughts, ideas or questions about this product"
-                          value={notes[i] || ''}
+                          value={getNote(i)}
                           onChange={(e) => setNotes((prev) => ({ ...prev, [i]: e.target.value }))}
                         />
                         <div className="init-notes-submit-wrap">
-                          <button className="init-notes-submit" onClick={() => submitNote(i)}>Send to ATS</button>
-                          <p className="init-notes-disclaimer">Only the ATS team reads this!</p>
+                          <button className="init-notes-submit" onClick={() => submitNote(i)} disabled={saving[i]}>
+                            {saving[i] ? 'Saving…' : 'Save Note'}
+                          </button>
+                          <p className="init-notes-disclaimer">Only visible to you.</p>
                         </div>
                       </>
                     )}

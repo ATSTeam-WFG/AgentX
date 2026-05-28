@@ -116,7 +116,7 @@ export default function SystemPage() {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
-          'Content-Type': 'application/json',
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
       });
@@ -212,8 +212,8 @@ export default function SystemPage() {
         .sys-section-title { font-size: 13px; font-weight: 700; color: var(--t2); margin: 0 0 10px; letter-spacing: -.01em; }
         .sys-action-grid { display: flex; flex-direction: column; gap: 8px; }
         .sys-action-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: var(--surface); border: 1px solid rgba(28,40,60,.10); border-radius: 10px; padding: 14px 16px; }
-        .sys-action-card.danger { border-color: rgba(224,92,92,.25); background: rgba(224,92,92,.04); }
-        .sys-action-card.warning { border-color: rgba(218,138,35,.22); background: rgba(218,138,35,.04); }
+        .sys-action-card.danger  { border-color: rgba(224,92,92,.25);  background: rgba(224,92,92,.06);  --t: #CCDEE7; --t2: #A8BECB; --t3: #8aa8c8; --t4: #5c7590; }
+        .sys-action-card.warning { border-color: rgba(218,138,35,.22); background: rgba(218,138,35,.06); --t: #CCDEE7; --t2: #A8BECB; --t3: #8aa8c8; --t4: #5c7590; }
         .sys-action-info { flex: 1; min-width: 0; }
         .sys-action-name { font-size: 13px; font-weight: 700; color: var(--t); margin: 0 0 2px; }
         .sys-action-desc { font-size: 12px; color: var(--t3); line-height: 1.45; margin: 0; }
@@ -338,7 +338,7 @@ export default function SystemPage() {
                   Zeros out all user points and clears all activity attempts, submissions, and
                   responses. User accounts are preserved — attendees can redo all activities.
                 </p>
-                {!superAdmin && <p className="sys-action-lock">🔒 Super admin required</p>}
+                {!superAdmin && <p className="sys-action-lock"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width="12" height="12" style={{display:"inline",verticalAlign:"middle",marginRight:"4px"}}><rect x="3" y="6" width="8" height="7" rx="1.5"/><path d="M5 6V4.5a2 2 0 0 1 4 0V6"/></svg>Super admin required</p>}
               </div>
               <button
                 className="sys-btn sys-btn-orange"
@@ -363,7 +363,7 @@ export default function SystemPage() {
                   Clears all attempts and responses for one activity, subtracting those points
                   from each affected user. Select the activity below.
                 </p>
-                {!superAdmin && <p className="sys-action-lock">🔒 Super admin required</p>}
+                {!superAdmin && <p className="sys-action-lock"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width="12" height="12" style={{display:"inline",verticalAlign:"middle",marginRight:"4px"}}><rect x="3" y="6" width="8" height="7" rx="1.5"/><path d="M5 6V4.5a2 2 0 0 1 4 0V6"/></svg>Super admin required</p>}
               </div>
               <ResetActivityButton
                 activities={activities}
@@ -388,7 +388,7 @@ export default function SystemPage() {
                   attempts, scores, submissions, sessions. Config data (agenda, activities,
                   invitees) is preserved.
                 </p>
-                {!superAdmin && <p className="sys-action-lock">🔒 Super admin required</p>}
+                {!superAdmin && <p className="sys-action-lock"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width="12" height="12" style={{display:"inline",verticalAlign:"middle",marginRight:"4px"}}><rect x="3" y="6" width="8" height="7" rx="1.5"/><path d="M5 6V4.5a2 2 0 0 1 4 0V6"/></svg>Super admin required</p>}
               </div>
               <button
                 className="sys-btn sys-btn-red"
@@ -422,7 +422,7 @@ export default function SystemPage() {
                   re-runs the full seed. Your admin session will be invalidated and you will be
                   logged out. Type <strong>RESET</strong> to confirm.
                 </p>
-                {!superAdmin && <p className="sys-action-lock">🔒 Super admin required</p>}
+                {!superAdmin && <p className="sys-action-lock"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width="12" height="12" style={{display:"inline",verticalAlign:"middle",marginRight:"4px"}}><rect x="3" y="6" width="8" height="7" rx="1.5"/><path d="M5 6V4.5a2 2 0 0 1 4 0V6"/></svg>Super admin required</p>}
               </div>
               <button
                 className="sys-btn sys-btn-red"

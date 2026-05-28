@@ -1,5 +1,3 @@
-import { readFileSync } from 'fs'
-import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { GoogleGenAI } from '@google/genai'
 import { prisma } from '../db'
@@ -7,20 +5,29 @@ import { config } from '../config'
 import { downloadBuffer, uploadBuffer, deleteObject, publicUrl } from '../lib/storage'
 import { sendPushToUser } from '../lib/push'
 
-const AVATAR_PROMPT = `Using the uploaded ES26 ATS backdrop exactly as-is, create a highly realistic executive avatar version of the uploaded person.
-The final result should feel similar to a premium Snapchat Bitmoji experience, but much more realistic and professional.
-Keep the original ATS futuristic city background unchanged.
-The subject should appear naturally integrated into the scene with:
+const SYSTEM_PROMPT = `TASK: Composite the uploaded person into the uploaded ES26 ATS backdrop as a photorealistic executive portrait.
 
-- realistic lighting
-- cinematic reflections
-- clean edge blending
-- subtle futuristic atmosphere
+HARD CONSTRAINTS (must not violate):
+1. Preserve facial identity exactly — bone structure, eye shape, skin tone, distinguishing features of the uploaded person.
+2. Preserve the ATS backdrop pixel-for-pixel. Do not regenerate, restyle, or alter the background.
 
-Maintain strong facial resemblance and identity accuracy.
-Outfit should be modern business-professional with luxury realtor energy.
-Slight stylization is okay, but realism should dominate.
-The final image should look like a high-end AI-generated event portrait created live at a futuristic executive summit.`
+SUBJECT TREATMENT:
+- Photorealistic rendering, not stylized. Skin texture, fabric weave, and hair detail should read as photographic.
+- Wardrobe: tailored charcoal blazer, crisp white open-collar shirt, no tie. Polished but not corporate-stiff.
+- Pose: confident, three-quarter turn toward camera, relaxed shoulders.
+
+INTEGRATION:
+- Match the backdrop's color temperature and key light direction.
+- Add subtle rim lighting consistent with the scene's ambient glow.
+- Cinematic reflections in eyes and on skin where appropriate.
+- Clean, soft edge blending — no cutout halo.
+
+REFERENCE: high-end live portrait captured at a futuristic executive summit. Premium and confident, not cartoonish.`
+
+const USER_TURN_TEXT =
+  'The first image is the subject (preserve facial identity). ' +
+  'The second image is the ES26 ATS backdrop (preserve exactly). ' +
+  'Composite the subject into the backdrop per the system instructions.'
 
 export async function handleAvatarGeneration(jobId: string, payload: Record<string, unknown>) {
   const { selfieKey, backdropId, userId } = payload as {
@@ -39,12 +46,12 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
   const selfieExt = selfieKey.endsWith('.png') ? 'png' : 'jpg'
   const selfieMime = selfieExt === 'png' ? 'image/png' : 'image/jpeg'
 
-  // 2. Read backdrop from disk
-  const backdropPath = join(process.cwd(), 'assets', 'backdrops', `backdrop${backdropId}.png`)
-  const backdropBuffer = readFileSync(backdropPath)
+  // 2. Download backdrop from R2
+  const backdropBuffer = await downloadBuffer(`backdrops/backdrop-${backdropId}.png`)
   const backdropBase64 = backdropBuffer.toString('base64')
 
   // 3. Call Gemini image generation
+  console.log(`[avatar] calling Gemini for job ${jobId}, backdrop ${backdropId}`)
   const ai = new GoogleGenAI({ apiKey: config.GOOGLE_AI_API_KEY })
 
   const result = await ai.models.generateContent({
@@ -55,17 +62,29 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
         parts: [
           { inlineData: { mimeType: selfieMime as 'image/jpeg' | 'image/png', data: selfieBase64 } },
           { inlineData: { mimeType: 'image/png', data: backdropBase64 } },
-          { text: AVATAR_PROMPT },
+          { text: USER_TURN_TEXT },
         ],
       },
     ],
-    config: { responseModalities: ['IMAGE'] },
+    config: {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      imageConfig: { aspectRatio: '3:4', imageSize: '2K' },
+      responseModalities: ['IMAGE', 'TEXT'],
+    },
   })
 
-  const imagePart = result.candidates?.[0]?.content?.parts?.find(
+  const parts = result.candidates?.[0]?.content?.parts ?? []
+  for (const p of parts) {
+    if ((p as { text?: string }).text) {
+      console.log('[avatar] Gemini text:', (p as { text: string }).text)
+    }
+  }
+
+  const imagePart = parts.find(
     (p: { inlineData?: unknown }) => p.inlineData,
   ) as { inlineData: { data: string; mimeType: string } } | undefined
 
+  console.log(`[avatar] Gemini response: ${parts.length} part(s), has image: ${!!imagePart}`)
   if (!imagePart?.inlineData?.data) {
     throw new Error('Gemini returned no image in response')
   }
@@ -73,12 +92,17 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
   // 4. Upload generated avatar to R2
   const avatarKey = `avatars/${userId}/${randomUUID()}.jpg`
   const imageBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
-  await uploadBuffer(avatarKey, imageBuffer, 'image/jpeg')
+  await uploadBuffer(avatarKey, imageBuffer, 'image/jpeg', 'public, max-age=31536000, immutable')
   const avatarUrl = publicUrl(avatarKey)
 
-  // 5. Persist avatar URL + mark job done
+  // 5. Persist avatar URL, award 100 pts, mark job done
   await prisma.$transaction(async (tx) => {
     await tx.user.update({ where: { id: userId }, data: { avatarUrl } })
+    await tx.userScore.upsert({
+      where: { userId },
+      update: { totalPoints: { increment: 150 }, activitiesCompleted: { increment: 1 } },
+      create: { userId, totalPoints: 150, activitiesCompleted: 1 },
+    })
     await tx.job.update({
       where: { id: jobId },
       data: { status: 'done', completedAt: new Date() },

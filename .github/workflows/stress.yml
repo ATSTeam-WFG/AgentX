@@ -7,8 +7,6 @@ on:
         description: Virtual users per scenario
         default: '100'
         required: false
-  schedule:
-    - cron: '0 2 * * *'  # 2am UTC nightly
 
 concurrency:
   group: stress-tests

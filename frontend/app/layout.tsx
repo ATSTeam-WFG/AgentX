@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "@/styles/globals.css";
 
 export default function RootLayout({
@@ -13,12 +13,28 @@ export default function RootLayout({
     },
   }));
 
+  useEffect(() => {
+    const resetZoom = () => {
+      const viewport = document.querySelector<HTMLMetaElement>('meta[name=viewport]');
+      if (!viewport) return;
+      // Snap viewport back to scale 1 by enforcing maximum-scale=1 momentarily
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
+      // Immediately restore so the next pinch gesture is allowed
+      requestAnimationFrame(() => {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+      });
+    };
+
+    document.addEventListener('touchend', resetZoom);
+    return () => document.removeEventListener('touchend', resetZoom);
+  }, []);
+
   return (
     <html lang="en">
       <head>
         <title>AgentX · WFG Executive Summit</title>
         <meta name="description" content="Your companion app for the WFG Executive Summit 2026" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#06090f" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

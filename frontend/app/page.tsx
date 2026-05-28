@@ -7,6 +7,7 @@ import { readToken, isTokenExpired } from '@/lib/auth';
 export default function WelcomePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
   const [playing, setPlaying] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -17,6 +18,12 @@ export default function WelcomePage() {
       router.replace('/home');
       return;
     }
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+    // Desktop browsers skip the install page — route straight to onboarding
+    setIsStandalone(standalone || !isMobile);
     setReady(true);
   }, [router]);
 
@@ -150,16 +157,6 @@ export default function WelcomePage() {
           transition: opacity .15s, transform .15s;
         }
         .btn-get-started:active { opacity: .88; transform: scale(.98); }
-        .btn-skip {
-          width: 100%; height: 50px; border-radius: 14px;
-          background: var(--bg2); color: var(--amber);
-          border: 1px solid rgba(227,149,72,.18);
-          font-size: 15px; font-weight: 700; font-family: 'Sora', sans-serif;
-          cursor: pointer;
-          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
-          transition: background .15s;
-        }
-        .btn-skip:active { background: #1a2945; }
         .welcome-bottom-note {
           font-size: 12px; color: rgba(255,255,255,.28);
           text-align: center; margin-top: 4px;
@@ -218,14 +215,11 @@ export default function WelcomePage() {
 
         {/* CTAs */}
         <div className="welcome-ctas">
-          <button className="btn-get-started" onClick={() => router.push('/onboarding')}>
+          <button className="btn-get-started" onClick={() => router.push(isStandalone ? '/onboarding' : '/install')}>
             Get Started
             <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
               <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </button>
-          <button className="btn-skip" onClick={() => router.push('/onboarding')}>
-            Skip Intro
           </button>
           <div className="welcome-bottom-note">WFG Executive Summit 2026 · Powered by ATS</div>
         </div>

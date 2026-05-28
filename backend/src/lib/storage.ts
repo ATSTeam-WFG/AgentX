@@ -34,9 +34,20 @@ function bucket(): string {
   return config.OBJECT_STORAGE_BUCKET
 }
 
-export async function uploadBuffer(key: string, body: Buffer, contentType: string): Promise<void> {
+export async function uploadBuffer(
+  key: string,
+  body: Buffer,
+  contentType: string,
+  cacheControl?: string,
+): Promise<void> {
   await getClient().send(
-    new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType }),
+    new PutObjectCommand({
+      Bucket: bucket(),
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ...(cacheControl && { CacheControl: cacheControl }),
+    }),
   )
 }
 

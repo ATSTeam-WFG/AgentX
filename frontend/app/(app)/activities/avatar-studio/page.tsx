@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint } from '../../../../lib/api/activities';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { uploadSelfieAndGenerate, getAvatarStatus, claimAvatarPrint, getActivities } from '../../../../lib/api/activities';
 
 type Status = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
@@ -32,6 +32,18 @@ export default function AvatarStudioPage() {
   const [ptsFromPrint, setPtsFromPrint] = useState(0);
   const [printClaimed, setPrintClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
+
+  const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
+  const avatarActivity = activities?.find((a) => a.type === 'avatar');
+
+  useEffect(() => {
+    if (avatarActivity?.isCompleted && status === 'idle') {
+      setPtsFromGenerate(avatarActivity.pointsEarned >= 50 ? 50 : avatarActivity.pointsEarned);
+      setPtsFromPrint(avatarActivity.pointsEarned > 50 ? avatarActivity.pointsEarned - 50 : 0);
+      setPrintClaimed(avatarActivity.pointsEarned > 50);
+      setStatus('done');
+    }
+  }, [avatarActivity, status]);
 
   const totalPts = ptsFromGenerate + ptsFromPrint;
 
@@ -106,14 +118,16 @@ export default function AvatarStudioPage() {
         .av-page { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
         .av-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 5px;
           font-size: 15px; font-weight: 600; color: var(--blue);
-          background: none; border: none; cursor: pointer; margin-bottom: 16px; padding: 0;
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif;
           font-size: 28px; font-weight: 700; color: var(--t);
@@ -254,8 +268,8 @@ export default function AvatarStudioPage() {
       `}</style>
 
       <div className="av-page">
+        <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
         <div className="av-scroll">
-          <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
           <h1 className="page-title">Avatar Studio</h1>
           <p className="page-sub">Create your personalized summit avatar</p>
 

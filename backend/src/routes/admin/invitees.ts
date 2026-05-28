@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { parse } from 'csv-parse/sync'
 import { prisma } from '../../db'
 import { badRequest, conflict, notFound } from '../../lib/errors'
+import { requireMinRole } from '../../lib/role-guard'
 
 const ListQuerySchema = z.object({
   search: z.string().optional(),
@@ -31,7 +32,13 @@ const RowSchema = z.object({
 export async function adminInviteesRoutes(fastify: FastifyInstance) {
   // ── CSV upload ──────────────────────────────────────────────────────────────
   fastify.post('/upload', async (request, reply) => {
-    const file = await request.file()
+    requireMinRole('moderator', request)
+    let file
+    try {
+      file = await request.file()
+    } catch {
+      throw badRequest('No file uploaded')
+    }
     if (!file) throw badRequest('No file uploaded')
     if (!file.filename.endsWith('.csv') && !file.mimetype.includes('csv')) {
       throw badRequest('File must be a CSV')
@@ -107,6 +114,7 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
 
   // ── Create single ───────────────────────────────────────────────────────────
   fastify.post('/', async (request: FastifyRequest, reply) => {
+    requireMinRole('moderator', request)
     const parsed = CreateInviteeSchema.safeParse(request.body)
     if (!parsed.success) throw badRequest(parsed.error.issues[0].message)
     const { name, email, attendeeType } = parsed.data
@@ -120,6 +128,7 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
 
   // ── Edit ────────────────────────────────────────────────────────────────────
   fastify.patch('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('moderator', request)
     const { id } = request.params
 
     const parsed = EditInviteeSchema.safeParse(request.body)
@@ -139,6 +148,7 @@ export async function adminInviteesRoutes(fastify: FastifyInstance) {
 
   // ── Delete ──────────────────────────────────────────────────────────────────
   fastify.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('super_admin', request)
     const { id } = request.params
 
     const invitee = await prisma.invitee.findUnique({

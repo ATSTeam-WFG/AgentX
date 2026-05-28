@@ -1,11 +1,17 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { prisma } from '../../db'
 import { notFound } from '../../lib/errors'
+import { requireMinRole } from '../../lib/role-guard'
 import { broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
 
 export async function adminActivitiesRoutes(fastify: FastifyInstance) {
+  fastify.get('/', async () => {
+    return prisma.activity.findMany({ orderBy: { createdAt: 'asc' } })
+  })
+
   fastify.post('/:id/toggle', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    requireMinRole('moderator', request)
     const { id } = request.params
     const adminId = request.user.sub
 

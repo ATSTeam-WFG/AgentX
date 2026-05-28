@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { startTrivia, completeTrivia, type TriviaQuestion } from '@/lib/api/activities';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { startTrivia, completeTrivia, getActivities, type TriviaQuestion } from '@/lib/api/activities';
 
 type Phase = 'hub' | 'play' | 'result';
 
@@ -39,6 +40,7 @@ function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
 
 export default function TriviaPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [phase, setPhase]           = useState<Phase>('hub');
   const [attemptId, setAttemptId]   = useState('');
   const [questions, setQuestions]   = useState<TriviaQuestion[]>([]);
@@ -48,6 +50,16 @@ export default function TriviaPage() {
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
   const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
+
+  const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
+  const triviaActivity = activities?.find((a) => a.type === 'trivia');
+
+  useEffect(() => {
+    if (triviaActivity?.isCompleted && phase === 'hub') {
+      setResult({ pointsAwarded: triviaActivity.pointsEarned, correctCount: 0, totalQuestions: 0 });
+      setPhase('result');
+    }
+  }, [triviaActivity, phase]);
 
   const current = questions[qIdx];
 
@@ -64,7 +76,12 @@ export default function TriviaPage() {
     } else {
       // Submit
       completeTrivia(attemptId, ans, crypto.randomUUID())
-        .then((r) => { setResult(r); setPhase('result'); })
+        .then((r) => {
+          setResult(r);
+          setPhase('result');
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
+          queryClient.invalidateQueries({ queryKey: ['activities'] });
+        })
         .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
     }
   }, [answers, attemptId, questions]);
@@ -126,22 +143,16 @@ export default function TriviaPage() {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 20px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
+          padding: 8px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 90px);
           overscroll-behavior: contain;
         }
         .back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--amber);
-          background: none;
-          border: none;
-          cursor: pointer;
-          margin-bottom: 16px;
-          padding: 0;
+          display: flex; align-items: center; gap: 5px;
+          font-size: 15px; font-weight: 600; color: var(--amber);
+          background: none; border: none; cursor: pointer;
+          padding: 10px 18px 6px; flex-shrink: 0;
         }
+        .back-btn:active { opacity: .75; }
         .page-title {
           font-family: 'Sora', sans-serif;
           font-size: 32px;
@@ -366,8 +377,9 @@ export default function TriviaPage() {
       <div className="trivia-page">
         {/* Hub */}
         {phase === 'hub' && (
-          <div className="trivia-scroll">
+          <>
             <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
+            <div className="trivia-scroll">
             <h1 className="page-title">Title Trivia</h1>
             <p className="page-sub">Test your title &amp; escrow knowledge</p>
             <div className="rules-card">
@@ -382,7 +394,8 @@ export default function TriviaPage() {
                 {loading ? 'Loading…' : 'Start Quiz →'}
               </button>
             </div>
-          </div>
+            </div>
+          </>
         )}
 
         {/* Play */}

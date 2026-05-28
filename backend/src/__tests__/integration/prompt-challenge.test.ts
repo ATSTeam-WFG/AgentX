@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { getTestApp, closeTestApp } from '../helpers/app'
 import { createTestUser } from '../helpers/tokens'
 import { prisma } from '../../db'
@@ -155,5 +155,30 @@ describe('POST /v1/activities/prompt-challenge/answer', () => {
       payload: { questionId: '00000000-0000-0000-0000-000000000000', selectedIndex: 0, dedupeKey: 'x' },
     })
     expect(res.statusCode).toBe(401)
+  })
+
+  it('returns 400 for selectedIndex out of range', async () => {
+    const { token } = await createTestUser()
+    const { questions } = (await getQuestions(token)).json()
+    const res = await app.inject({
+      method: 'POST',
+      url: '/v1/activities/prompt-challenge/answer',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { questionId: questions[0].id, selectedIndex: 5, dedupeKey: 'pc-oob-1' },
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('returns 400 when activity is closed', async () => {
+    await prisma.activity.updateMany({ where: { type: 'prompt_challenge' }, data: { isOpen: false } })
+    try {
+      const { token } = await createTestUser()
+      const { questions } = (await getQuestions(token)).json()
+      const res = await submitAnswer(token, questions[0].id, 0, 'pc-closed-1')
+      expect(res.statusCode).toBe(400)
+      expect(res.json().error).toBe('BAD_REQUEST')
+    } finally {
+      await prisma.activity.updateMany({ where: { type: 'prompt_challenge' }, data: { isOpen: true } })
+    }
   })
 })

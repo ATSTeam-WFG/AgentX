@@ -7,6 +7,9 @@ declare module '@fastify/jwt' {
       tokenId?: string
       aud?: string
       role?: string
+      name?: string
+      email?: string
+      attendeeType?: string
     }
   }
 }

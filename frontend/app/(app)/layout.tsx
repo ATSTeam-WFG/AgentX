@@ -13,6 +13,8 @@ import type { User } from '@/lib/api/auth';
 import { initOutboxListeners, flushOutbox } from '@/lib/outbox';
 import OfflineBanner from '@/components/OfflineBanner';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { fetchFeatures } from '@/lib/api/features';
+import { useFeaturesStore } from '@/store/features';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   useWebSocket();
@@ -43,13 +45,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     const claims = decodeToken(token);
     if (claims) {
-      // JWT only carries sub/name/email/role — cast to User, extra fields will be undefined
       const hydratedUser = {
         id: claims.sub,
         name: claims.name,
         email: claims.email,
-        role: claims.role,
-        attendeeType: 'invited',
+        attendeeType: (claims.attendeeType ?? 'invited') as User['attendeeType'],
         pendingAdminApproval: false,
       } as User;
       setAuth(hydratedUser, token);
@@ -63,6 +63,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const cleanup = initOutboxListeners();
     return cleanup;
   }, []);
+
+  // Fetch feature flags on mount — populates the features store so all pages
+  // can gate content without individual fetches.
+  const setFlags = useFeaturesStore((s) => s.setFlags);
+  useEffect(() => {
+    fetchFeatures().then(setFlags).catch(() => {});
+  }, [setFlags]);
 
   return (
     <>

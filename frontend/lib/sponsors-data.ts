@@ -35,15 +35,16 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     dark: false,
     website: 'https://www.bearprinting.com',
     description:
-      'Bear Printing is a marketing platform built for agents and the title, escrow, and lending professionals who support them. We combine automated MLS-linked print marketing, AI-powered content creation, and national listing data into one seamless workflow, so agents spend less time on marketing and more time closing deals. Our RepConnect program gives title reps complete visibility into their agents’ marketing activity, co-branded communication, and the ability to act on agents’ behalf, all RESPA-compliant.',
+      "Bear Printing is a marketing platform built for agents and the title, escrow, and lending professionals who support them. We combine automated MLS-linked print marketing, AI-powered content creation, and national listing data into one seamless workflow, so agents spend less time on marketing and more time closing deals. Our RepConnect program gives title reps complete visibility into their agents' marketing activity, co-branded communication, and the ability to act on agents' behalf, all RESPA-compliant.",
   },
   {
     slug: 'pythonic',
     name: 'Pythonic',
     logo: `${CDN}/sponsors/pythonic-logo.png`,
     dark: false,
+    website: 'https://blog.pythonic.ai/',
     description:
-      "Pythonic Corporation is at the forefront of AI-driven document understanding technology. We have developed innovative solutions to tackle the unique challenges of processing scanned documents and PDFs. With our focus on the title insurance industry, Pythonic’s mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.",
+      "Pythonic Corporation is at the forefront of AI-driven document understanding technology. We have developed innovative solutions to tackle the unique challenges of processing scanned documents and PDFs. With our focus on the title insurance industry, Pythonic's mission is to make it simple for our clients to incorporate state-of-the-art document AI capabilities into their systems and workflows.",
   },
   {
     slug: 'capital-bank',
@@ -52,7 +53,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     dark: false,
     website: 'https://capitalbankmd.com',
     description:
-      'Capital Bank, N.A. understands the challenges of your market landscape and the risks you face in the industry and meets those challenges head-on with a customized approach. Working with us means you always have someone at your service to make recommendations, tailor solutions and support you, whether it’s our late wire room hours, protecting your accounts from unauthorized transactions, or setting up customized reporting.',
+      "Capital Bank, N.A. understands the challenges of your market landscape and the risks you face in the industry and meets those challenges head-on with a customized approach. Working with us means you always have someone at your service to make recommendations, tailor solutions and support you, whether it's our late wire room hours, protecting your accounts from unauthorized transactions, or setting up customized reporting.",
   },
   {
     slug: 'alanna',
@@ -61,7 +62,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     dark: false,
     website: 'https://alanna.ai',
     description:
-      'alanna.ai is the developer of the title industry’s only conversational AI technology capable of holding complex conversations with clients in 133 languages via SMS text or web chat. Alanna helps title agencies communicate intelligently and consistently with REALTORS, home buyers and sellers on routine or recurring requests. The technology has been shown to resolve up to 97% of a typical title agency’s inbound emails and phone calls without requiring human involvement and is available to serve clients 24/7.',
+      "alanna.ai is the developer of the title industry's only conversational AI technology capable of holding complex conversations with clients in 133 languages via SMS text or web chat. Alanna helps title agencies communicate intelligently and consistently with REALTORS, home buyers and sellers on routine or recurring requests. The technology has been shown to resolve up to 97% of a typical title agency's inbound emails and phone calls without requiring human involvement and is available to serve clients 24/7.",
   },
   {
     slug: 'datatrace',
@@ -70,7 +71,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     dark: false,
     website: 'https://www.datatracetitle.com',
     description:
-      "DataTrace Information Services LLC, the nation’s largest provider of property and ownership data and title automation solutions, enables title and settlement companies to streamline their processes, increase efficiency and drive growth. The company’s solutions are powered by the industry’s most complete network of geographic title plants and most comprehensive property information data set, including nearly 8.6 billion recorded document images.",
+      "DataTrace Information Services LLC, the nation's largest provider of property and ownership data and title automation solutions, enables title and settlement companies to streamline their processes, increase efficiency and drive growth. The company's solutions are powered by the industry's most complete network of geographic title plants and most comprehensive property information data set, including nearly 8.6 billion recorded document images.",
   },
   {
     slug: 'signature-xcel',
@@ -97,6 +98,42 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     dark: true,
     website: 'https://palmagent.com',
     description:
-      "PalmAgent is real estate’s #1 title sales tool, a white-label platform built for title sales reps and the realtors they work with. We give your team the calculators, estimates, and agent-facing tools they use every day, branded as your company in the realtor’s pocket. After 25 years and a 94% client retention rate, we’ve built the leverage your sales team needs to flip realtors off competitors, keep top producers loyal, and turn passive users into active referrers, all on one platform, priced per market.",
+      "PalmAgent is real estate's #1 title sales tool, a white-label platform built for title sales reps and the realtors they work with. We give your team the calculators, estimates, and agent-facing tools they use every day, branded as your company in the realtor's pocket. After 25 years and a 94% client retention rate, we've built the leverage your sales team needs to flip realtors off competitors, keep top producers loyal, and turn passive users into active referrers, all on one platform, priced per market.",
+  },
+  {
+    slug: 'accutitle',
+    name: 'AccuTitle',
+    logo: `${CDN}/sponsors/accutitle-logo.png`,
+    dark: false,
+    website: 'https://accutitle.com',
+    description:
+      "AccuTitle delivers smart, streamlined title management solutions built for how title professionals actually work. Our platform suite, including TitleFusion, AccuAir, Landtech, Closers' Choice, and TrackerPro, supports firms of every size with intuitive tools, seamless workflows, and the responsive service you deserve. We don't just provide software. We show up for you. AccuTitle. The Friendly Company.",
+  },
+  {
+    slug: 'proplogix',
+    name: 'PropLogix',
+    logo: `${CDN}/sponsors/proplogix-horizontal-logo.png`,
+    dark: false,
+    website: 'https://www.proplogix.com',
+    description:
+      'PropLogix provides closing support services to title professionals across the U.S., including Municipal Lien Searches, Tax Certificates, Survey Procurement, Estoppels, and Curative Services. PropLogix helps closing teams streamline operations and reduce risk.',
+  },
+  {
+    slug: 'rynoh',
+    name: 'Rynoh',
+    logo: `${CDN}/sponsors/rynoh-logo.jpg`,
+    dark: false,
+    website: 'https://rynoh.com',
+    description:
+      "Rynoh is the title industry's leading escrow reconciliation and compliance platform, purpose-built to protect the money in escrow for title companies, settlement agents, and construction disbursing operations. Founded in 2007, Rynoh automates daily three-way escrow reconciliation, delivering a morning report to your team before banks open — flagging unmatched wires, stale disbursements, fraud indicators, and security exceptions in real time.",
+  },
+  {
+    slug: 'certifid',
+    name: 'CertifID',
+    logo: `${CDN}/sponsors/certifid-logo.png`,
+    dark: false,
+    website: 'https://certifid.com',
+    description:
+      'CertifID is a leader in wire fraud protection. The company safeguards billions of dollars every month from fraud with advanced software, digital payments, direct insurance, and proven recovery services. Trusted by title companies, law firms, lenders, realtors, and home buyers and sellers — CertifID provides further peace of mind with up to $5M in direct coverage on every wire it protects.',
   },
 ]

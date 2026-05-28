@@ -2,7 +2,7 @@
 
 Tracks implementation status across each phase defined in [`backend.md`](./backend.md).
 
-**Last updated:** 2026-05-25
+**Last updated:** 2026-05-27
 **Current phase:** Phase 4 — Complete (admin panel fully implemented)
 
 ---
@@ -39,15 +39,22 @@ Trivia, Prompt Challenge, Touchpoints. Scoring and leaderboard.
 | `POST /v1/activities/trivia/complete` + dedupe | Done | `src/routes/activities/trivia.ts` |
 | `GET /v1/activities/prompt-challenge/questions` | Done | `src/routes/activities/prompt-challenge.ts` |
 | `POST /v1/activities/prompt-challenge/answer` + dedupe | Done | `src/routes/activities/prompt-challenge.ts` |
-| `POST /v1/touchpoints/scan` + QR token verification | Done | `src/routes/touchpoints.ts` |
+| `POST /v1/touchpoints/scan` + QR token verification | Done | `src/routes/activities/touchpoints.ts` |
+| `POST /v1/touchpoints/checkin` — text response checkin | Done | `src/routes/activities/touchpoints.ts`; 30 pts/location, one per location |
+| `GET /v1/touchpoints/checkins` — restore completed zones | Done | `src/routes/activities/touchpoints.ts` |
 | Touchpoint HMAC token generation | Done | `src/lib/qr.ts` |
 | `user_scores` atomic update | Done | Prisma transactions in activity routes |
+| WebSocket broadcasts after point awards | Done | Trivia, prompt-challenge, touchpoints all call `broadcastUser` + `broadcastAll` after transactions |
 | `GET /v1/leaderboard` | Done | `src/routes/leaderboard.ts` |
-| `GET /v1/activities` — user completion state | Done | `src/routes/activities/index.ts` |
-| `POST /v1/agenda-events/:id/feedback` — event feedback | Done | `src/routes/feedback.ts` |
+| `GET /v1/activities` — user completion state | Done | `src/routes/activities/index.ts`; includes avatar print-claim pts + touchpoint checkin count |
+| `POST /v1/agenda-events/:id/feedback` — event feedback | Done | `src/routes/feedback.ts`; upserts on re-submit |
+| `GET /v1/agenda-events/:id/feedback` — submitted state | Done | `src/routes/feedback.ts`; returns `{ submitted, rating? }` |
+| `GET/POST /v1/initiative-notes` — persist explore notes | Done | `src/routes/initiatives.ts`; `InitiativeNote` model, upsert by (userId, initiativeName) |
 | `POST /v1/feedback` — app feedback (anonymous support) | Done | `src/routes/feedback.ts` |
 | One-shot constraint testing | Done | 95 tests passing |
 | Dedupe_key retry simulation tests | Done | 95 tests passing |
+| One-shot frontend guards | Done | Activities list: completed one-shot cards non-clickable; trivia/golden-points/avatar pages detect `isCompleted` on mount |
+| Frontend cache invalidation | Done | `useWebSocket`, pull-to-refresh, and activity completion handlers all invalidate `['profile']` correctly |
 
 ---
 
@@ -96,7 +103,7 @@ Full admin control plane and observability.
 | Admin: invitees management | Done | `frontend/app/admin/invitees/page.tsx`; CSV upload + single add + paginated list with search; "Registered" badge if invitee has linked user |
 | Admin: PWA block | Done | `frontend/app/admin/layout.tsx`; detects `(display-mode: standalone)` + iOS `navigator.standalone`; shows "Desktop Only" card in PWA mode |
 | Push notification integration | Done | VAPID Web Push (no third-party); `src/lib/push.ts`, `src/routes/push.ts`; frontend subscribe flow in `frontend/lib/push.ts` |
-| WebSocket: leaderboard, announcements, agenda, jobs | Not started | |
+| WebSocket: leaderboard, announcements, agenda, activity, scores, jobs, features | Done | All events implemented; backend broadcasts from activity routes + admin routes |
 | `GET /v1/sync` — reconnect delta endpoint | Not started | |
 | Observability dashboard | Not started | Sentry or equivalent |
 | Alerting rules | Not started | Error rate, latency, queue depth, AI failures |
@@ -166,6 +173,7 @@ Pre-event readiness. Must complete before event day.
 | 2026-05-25 | Admin panel fully implemented — all backend stubs replaced + all frontend pages built | 5 backend routes implemented (`announcements`, `audit-log`, `activities`, `agenda`, `invitees`); 7 frontend pages built/overhauled; `AuditLog` written in same transaction as every mutating admin operation |
 | 2026-05-25 | Admin panel blocked in PWA/standalone mode | `layout.tsx` detects `(display-mode: standalone)` + iOS `navigator.standalone`; renders "Desktop Only" card and stops rendering all routes — prevents staff accidentally using admin in the attendee app |
 | 2026-05-25 | Admin panel color system: all CSS custom property references hardcoded for silver surface | Admin cards use `--surface: #CCDEE7` (silver) not the dark `--bg`; `var(--bg2)` on inputs + `var(--border-metal)` borders + `var(--gold)` status chips were invisible on silver. Fixed globally via `[class*="card"]` CSS var override in `layout.tsx` + per-page hardcoded hex for inputs, borders, and status colors |
+| 2026-05-27 | End-to-end submission persistence + cache invalidation pass | Fixed 6 issues: (1) React Query key mismatch (`['me']` vs `['profile']`) meant profile/home never refreshed after points earned; (2) backend never broadcast `scores.update` after activity routes — added to trivia, prompt-challenge, touchpoints; (3) session feedback was silently failing (payload `rating` vs `ratings`), fixed + added GET for submitted state + EventFeedback `@@unique`; (4) touchpoints checkin was client-side only — wired to backend, added `GET /checkins` to restore state on reload; (5) initiative notes were React state only — added `InitiativeNote` model + `GET/POST /v1/initiative-notes`; (6) one-shot activities could be re-entered — activities list now renders completed one-shot cards as non-navigable, individual pages detect `isCompleted` on mount |
 
 ---
 

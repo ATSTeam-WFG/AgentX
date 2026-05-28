@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db'
 import { authenticate } from '../plugins/auth'
-import { conflict, unauthorized, badRequest } from '../lib/errors'
+import { conflict, unauthorized, badRequest, forbidden } from '../lib/errors'
 
 const AuthBodySchema = z.object({
   name: z.string().min(1).max(200).trim(),
@@ -14,8 +14,15 @@ async function createSession(userId: string) {
   return prisma.session.create({ data: { userId, expiresAt } })
 }
 
-function signUserJwt(fastify: FastifyInstance, userId: string, tokenId: string) {
-  return fastify.jwt.sign({ sub: userId, tokenId }, { expiresIn: '7d' })
+function signUserJwt(
+  fastify: FastifyInstance,
+  userId: string,
+  tokenId: string,
+  name: string,
+  email: string,
+  attendeeType: string,
+) {
+  return fastify.jwt.sign({ sub: userId, tokenId, name, email, attendeeType }, { expiresIn: '7d' })
 }
 
 async function signupUser(fastify: FastifyInstance, name: string, email: string) {
@@ -37,6 +44,11 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
       return created
     }, { maxWait: 10000, timeout: 15000 })
   } else {
+    // Walk-in path — check the checkin_open feature flag
+    const checkinConfig = await prisma.appConfig.findUnique({ where: { key: 'checkin_open' } })
+    if (checkinConfig && !checkinConfig.value) {
+      throw forbidden('Walk-in registration is currently closed. Please contact an administrator.')
+    }
     user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: { name, email, attendeeType: 'walk_in', pendingAdminApproval: true },
@@ -47,7 +59,7 @@ async function signupUser(fastify: FastifyInstance, name: string, email: string)
   }
 
   const session = await createSession(user.id)
-  const token = signUserJwt(fastify, user.id, session.tokenId)
+  const token = signUserJwt(fastify, user.id, session.tokenId, user.name, user.email, user.attendeeType)
 
   return {
     token,
@@ -94,7 +106,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     })
 
     const session = await createSession(user.id)
-    const token = signUserJwt(fastify, user.id, session.tokenId)
+    const token = signUserJwt(fastify, user.id, session.tokenId, user.name, user.email, user.attendeeType)
 
     return reply.send({
       token,
@@ -121,8 +133,11 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     await prisma.session.update({ where: { tokenId }, data: { lastUsedAt: new Date() } })
 
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw unauthorized('User not found')
+
     const newSession = await createSession(userId)
-    const token = signUserJwt(fastify, userId, newSession.tokenId)
+    const token = signUserJwt(fastify, userId, newSession.tokenId, user.name, user.email, user.attendeeType)
 
     return reply.send({ token })
   })

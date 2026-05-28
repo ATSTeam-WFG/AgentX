@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminRole } from '@/hooks/use-admin-role';
+import { canDo } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -50,8 +52,22 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+function LockNotice({ text }: { text: string }) {
+  return (
+    <div className="adm-lock-notice" style={{ marginBottom: 12 }}>
+      <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+        <rect x="3" y="6" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+        <path d="M5 6V4.5a2 2 0 0 1 4 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      </svg>
+      {text}
+    </div>
+  );
+}
+
 export default function AdminAnnouncementsPage() {
   const qc = useQueryClient();
+  const role = useAdminRole();
+  const canManage = canDo(role, 'moderator');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
@@ -191,8 +207,10 @@ export default function AdminAnnouncementsPage() {
 
       <h1 className="ann-title">Announcements</h1>
 
-      <div className="ann-form-card">
+      <div className="ann-form-card" style={canManage ? {} : { position: 'relative' }}>
+        {!canManage && <LockNotice text="Requires Moderator access to post announcements" />}
         <div className="ann-form-heading">New Announcement</div>
+        <div className={canManage ? undefined : 'adm-locked'}>
         <form onSubmit={handleCreate}>
           <label className="ann-label">Title</label>
           <input
@@ -229,6 +247,7 @@ export default function AdminAnnouncementsPage() {
           </div>
           {formError && <div className="ann-form-error">{formError}</div>}
         </form>
+        </div>
       </div>
 
       <div className="ann-section-label">{list.length} active announcement{list.length !== 1 ? 's' : ''}</div>
@@ -240,7 +259,7 @@ export default function AdminAnnouncementsPage() {
         <div key={a.id} className="ann-card">
           <div className="ann-card-header">
             <div className="ann-card-title">{a.title}</div>
-            {confirmDelete !== a.id ? (
+            {canManage && confirmDelete !== a.id ? (
               <button className="ann-delete-btn" onClick={() => setConfirmDelete(a.id)}>Delete</button>
             ) : null}
           </div>
@@ -251,7 +270,7 @@ export default function AdminAnnouncementsPage() {
               <span className="ann-expiry-chip">Expires {formatDate(a.expiresAt)}</span>
             )}
           </div>
-          {confirmDelete === a.id && (
+          {canManage && confirmDelete === a.id && (
             <div className="ann-confirm-row">
               <button
                 className="ann-confirm-yes"

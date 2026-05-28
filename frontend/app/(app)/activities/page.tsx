@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getActivities } from '@/lib/api/activities';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { PullIndicator } from '@/components/PullIndicator';
+import { useFeaturesStore } from '@/store/features';
 
 const ACTIVITIES = [
   {
@@ -112,6 +113,7 @@ function PtsRing({ pts, max }: { pts: number; max: number }) {
 }
 
 export default function ActivitiesPage() {
+  const isActivitiesOpen = useFeaturesStore((s) => s.isEnabled('activities_open'));
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {
@@ -119,19 +121,21 @@ export default function ActivitiesPage() {
   }, [queryClient]);
   const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
-  const { data: apiActivities } = useQuery({
+  const { data: apiActivities, isError: activitiesError } = useQuery({
     queryKey: ['activities'],
     queryFn: getActivities,
-    staleTime: 30_000,
+    staleTime: 0,
     retry: false,
   });
 
   const earnedById: Record<string, number> = {};
   const doneById: Record<string, boolean> = {};
+  const oneShotById: Record<string, boolean> = {};
   if (apiActivities) {
     for (const a of apiActivities) {
       earnedById[a.type] = a.pointsEarned ?? 0;
       doneById[a.type] = a.isCompleted ?? false;
+      oneShotById[a.type] = a.isOneShot ?? false;
     }
   }
 
@@ -272,9 +276,42 @@ export default function ActivitiesPage() {
           transform: scale(.97);
           box-shadow: 0 1px 6px rgba(0,0,0,.16);
         }
+        /* Locked state */
+        .acts-locked {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 32px;
+          text-align: center;
+        }
+        .acts-locked-icon {
+          font-size: 52px; margin-bottom: 24px;
+          opacity: .75;
+        }
+        .acts-locked-title {
+          font-family: 'Sora', sans-serif;
+          font-size: 22px; font-weight: 700;
+          color: var(--t); letter-spacing: -.01em;
+          margin: 0 0 10px;
+        }
+        .acts-locked-body {
+          font-size: 15px; color: rgba(200,215,230,.55);
+          line-height: 1.55; max-width: 280px;
+          margin: 0;
+        }
       `}</style>
 
       <div className="acts-page">
+        {!isActivitiesOpen ? (
+          <div className="acts-locked">
+            <div className="acts-locked-icon">🔒</div>
+            <h2 className="acts-locked-title">Activities open soon</h2>
+            <p className="acts-locked-body">
+              Check back right before the summit kicks off — activities will go live then.
+            </p>
+          </div>
+        ) : (
+        <>
         <PullIndicator ref={indicatorRef} />
         <div className="acts-header">
           <div className="acts-title-row">
@@ -288,11 +325,22 @@ export default function ActivitiesPage() {
         </div>
 
         <div className="acts-scroll" ref={scrollRef}>
+          {activitiesError && (
+            <div style={{
+              background: 'rgba(227,149,72,.08)', border: '1px solid rgba(227,149,72,.25)',
+              borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+              fontSize: 13, color: 'rgba(227,149,72,.85)', lineHeight: 1.4,
+            }}>
+              Could not load activity progress. Pull down to retry.
+            </div>
+          )}
           {ACTIVITIES.map((act) => {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;
-            return (
-              <Link key={act.id} href={act.href} className={`v7-act-card${done ? ' v7-act-card--done' : ''}`}>
+            const locked = done;
+            const cardClass = `v7-act-card${done ? ' v7-act-card--done' : ''}`;
+            const cardContent = (
+              <>
                 {done && <div className="v7-act-done-overlay" aria-hidden />}
                 <div className="v7-act-header">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
@@ -320,11 +368,16 @@ export default function ActivitiesPage() {
                     </svg>
                   </div>
                 )}
-              </Link>
+              </>
             );
+            return locked
+              ? <div key={act.id} className={cardClass} style={{ cursor: 'default' }}>{cardContent}</div>
+              : <Link key={act.id} href={act.href} className={cardClass}>{cardContent}</Link>;
           })}
           <div style={{ height: 28 }} />
         </div>
+        </>
+        )}
       </div>
     </>
   );

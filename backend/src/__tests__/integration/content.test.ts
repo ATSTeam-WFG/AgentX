@@ -23,6 +23,25 @@ describe('GET /v1/agenda', () => {
     expect(body.events.length).toBeGreaterThanOrEqual(3)
   })
 
+  it('GET /v1/agenda/:id returns 404 for unknown id', async () => {
+    const res = await app.inject({ method: 'GET', url: '/v1/agenda/00000000-0000-0000-0000-000000000000' })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('GET /v1/agenda/:id returns single event with expected shape', async () => {
+    const listRes = await app.inject({ method: 'GET', url: '/v1/agenda' })
+    const eventId = listRes.json().events[0].id
+    const res = await app.inject({ method: 'GET', url: `/v1/agenda/${eventId}` })
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.id).toBe(eventId)
+    expect(typeof body.name).toBe('string')
+    expect(typeof body.location).toBe('string')
+    expect(typeof body.startsAt).toBe('string')
+    expect(typeof body.endsAt).toBe('string')
+    expect(typeof body.day).toBe('number')
+  })
+
   it('returns all events with since=0', async () => {
     const res = await app.inject({ method: 'GET', url: '/v1/agenda?since=0' })
     expect(res.statusCode).toBe(200)

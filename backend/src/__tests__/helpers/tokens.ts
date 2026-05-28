@@ -18,30 +18,36 @@ export async function createTestUser(opts: {
   const name = opts.name ?? 'Test User'
   const email = opts.email ?? `test-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`
 
-  let inviteeId: string | undefined
-  if (opts.invited) {
-    const inv = await prisma.invitee.create({ data: { name, email, attendeeType: 'invited' } })
-    inviteeId = inv.id
-  }
+  // Use a transaction so user + userScore + session are created atomically.
+  // Without this, parallel test teardowns (TRUNCATE) can race between the
+  // user.create and userScore.create calls, violating FK constraints.
+  const result = await prisma.$transaction(async (tx) => {
+    let inviteeId: string | undefined
+    if (opts.invited) {
+      const inv = await tx.invitee.create({ data: { name, email, attendeeType: 'invited' } })
+      inviteeId = inv.id
+    }
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      attendeeType: opts.invited ? 'invited' : 'walk_in',
-      pendingAdminApproval: !opts.invited,
-      ...(inviteeId ? { inviteeId } : {}),
-    },
+    const user = await tx.user.create({
+      data: {
+        name,
+        email,
+        attendeeType: opts.invited ? 'invited' : 'walk_in',
+        pendingAdminApproval: !opts.invited,
+        ...(inviteeId ? { inviteeId } : {}),
+      },
+    })
+    await tx.userScore.create({ data: { userId: user.id } })
+
+    const session = await tx.session.create({
+      data: {
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    })
+    return { user, session }
   })
-  await prisma.userScore.create({ data: { userId: user.id } })
 
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    },
-  })
-
-  const token = signTestToken(user.id, session.tokenId)
-  return { user, session, token }
+  const token = signTestToken(result.user.id, result.session.tokenId)
+  return { user: result.user, session: result.session, token }
 }

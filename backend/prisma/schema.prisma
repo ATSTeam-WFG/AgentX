@@ -106,6 +106,7 @@ model User {
   appFeedbacks            AppFeedback[]
   sponsorImpressions      SponsorImpression[]
   pushSubscriptions       PushSubscription[]
+  initiativeNotes         InitiativeNote[]
 }
 
 model Session {
@@ -390,6 +391,8 @@ model EventFeedback {
   ratingsJson   Json
   comment       String?
   createdAt     DateTime    @default(now())
+
+  @@unique([userId, agendaEventId])
 }
 
 model AppFeedback {
@@ -401,6 +404,30 @@ model AppFeedback {
   comment     String?
   isAnonymous Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+model InitiativeNote {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  initiativeName String
+  noteText       String
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, initiativeName])
+}
+
+// ============================================================
+// Configuration
+// ============================================================
+
+model AppConfig {
+  key              String   @id
+  label            String
+  description      String
+  value            Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+  updatedByAdminId String?
 }
 
 // ============================================================

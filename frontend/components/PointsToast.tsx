@@ -27,6 +27,9 @@ export default function PointsToast() {
           pointer-events: all;
           animation: ptsTDown .35s cubic-bezier(.34,1.56,.64,1) forwards;
         }
+        .pts-toast.success { border-color: rgba(20,102,54,.55); }
+        .pts-toast.success .pts-toast-badge { color: #3aad6a; }
+        .pts-toast.warn { border-color: rgba(227,149,72,.45); }
         @keyframes ptsTDown {
           from { transform: translateY(-110%); opacity: 0; }
           to   { transform: translateY(0);     opacity: 1; }
@@ -75,7 +78,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   }, [toast.id, toast.duration, onDismiss]);
 
   return (
-    <div className="pts-toast">
+    <div className={`pts-toast${toast.type ? ` ${toast.type}` : ''}`}>
       <div className="pts-toast-owl">
         <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/agentx.png" alt="Agent X" />
       </div>

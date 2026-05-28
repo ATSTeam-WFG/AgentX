@@ -6,7 +6,7 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
   fastify.get('/activities', { preHandler: [authenticate] }, async (request: FastifyRequest, reply) => {
     const userId = request.user.sub
 
-    const [activities, triviaAttempt, pcAnswers, totalPcQuestions, gpSubmission, avatarUser] =
+    const [activities, triviaAttempt, pcAnswers, totalPcQuestions, gpSubmission, avatarUser, touchpointCheckins] =
       await Promise.all([
         prisma.activity.findMany({ orderBy: { createdAt: 'asc' } }),
         prisma.activityAttempt.findFirst({
@@ -23,7 +23,11 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
           select: { pointsAwarded: true, status: true },
         }),
         prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
+        prisma.submission.count({ where: { userId, kind: 'touchpoint_checkin' } }),
       ])
+
+    const TOUCHPOINT_MAX = 5
+    const CHECKIN_POINTS = 30
 
     const result = activities.map((activity) => {
       let isCompleted = false
@@ -40,7 +44,10 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
         pointsEarned = gpSubmission?.pointsAwarded ?? 0
       } else if (activity.type === 'avatar') {
         isCompleted = avatarUser?.avatarUrl != null
-        pointsEarned = avatarUser?.avatarUrl ? 50 : 0
+        pointsEarned = avatarUser?.avatarUrl ? 150 : 0
+      } else if (activity.type === 'touchpoint') {
+        isCompleted = touchpointCheckins >= TOUCHPOINT_MAX
+        pointsEarned = touchpointCheckins * CHECKIN_POINTS
       }
 
       return {

@@ -15,7 +15,6 @@ async function main() {
   console.log(`Seeded ${counts.activities} activities`)
   console.log(`Seeded ${counts.trivia} trivia questions`)
   console.log(`Seeded ${counts.promptChallenge} prompt challenge questions`)
-  console.log(`Seeded ${counts.touchpoints} touchpoints`)
 }
 
 main()
