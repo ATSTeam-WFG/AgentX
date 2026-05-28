@@ -68,7 +68,7 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
     ],
     config: {
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      imageConfig: { aspectRatio: '4:5', imageSize: '2K' },
+      imageConfig: { aspectRatio: '3:4', imageSize: '2K' },
       responseModalities: ['IMAGE', 'TEXT'],
     },
   })

@@ -258,17 +258,21 @@ export async function chatRoutes(fastify: FastifyInstance) {
         { role: 'user' as const, content: message },
       ]
 
-      const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        system: [{ type: 'text', text: AGENT_X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-        messages,
-      })
-
-      const reply =
-        response.content[0]?.type === 'text'
-          ? response.content[0].text
-          : "Agent X is momentarily unavailable. Please try again shortly."
+      let reply: string
+      try {
+        const response = await client.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 400,
+          system: [{ type: 'text', text: AGENT_X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+          messages,
+        })
+        reply =
+          response.content[0]?.type === 'text'
+            ? response.content[0].text
+            : "Agent X is momentarily unavailable. Please try again shortly."
+      } catch {
+        reply = "Agent X is momentarily unavailable. Please try again shortly."
+      }
 
       return { reply }
     }

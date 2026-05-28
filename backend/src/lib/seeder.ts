@@ -56,7 +56,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Breakfast',
       description:
         'An informal networking breakfast before the day\'s program begins. Attendees connect across companies and roles over a full breakfast spread. Sponsor exhibits and the ATS Demo Room open at this time.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: null,
       startsAt: new Date('2026-06-04T11:30:00Z'), // 7:30 AM EDT
       endsAt:   new Date('2026-06-04T12:30:00Z'), // 8:30 AM EDT
@@ -68,7 +68,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Opening Remarks',
       description:
         'The official start of the WFG Executive Summit 2026. WFG leadership welcomes attendees, sets the tone for the day, and previews the key themes and sessions ahead.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'WFG Leadership',
       startsAt: new Date('2026-06-04T12:45:00Z'), // 8:45 AM EDT
       endsAt:   new Date('2026-06-04T12:55:00Z'), // 8:55 AM EDT
@@ -80,7 +80,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: "What's Next: The Q2 Economic Perspective",
       description:
         "A data-driven look at the current economic landscape and its direct implications for the real estate and title industry. Patrick F. Stone and economist Bill Conerly examine interest rate trends, housing market conditions, and what title agents should realistically expect through the remainder of 2026. Attendees leave with a clear-eyed view of the macro environment and what it means for their business strategy.",
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Patrick F. Stone · Bill Conerly',
       startsAt: new Date('2026-06-04T13:00:00Z'), // 9:00 AM EDT
       endsAt:   new Date('2026-06-04T13:45:00Z'), // 9:45 AM EDT
@@ -92,7 +92,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Agent 3.0: Amplify Your Edge',
       description:
         "An overview of WFG's Agent 3.0 platform — the next generation of tools and resources available to independent WFG title agents. Gene Rebadow walks through new capabilities, operational improvements, and the competitive advantages now available to agents within the WFG network.",
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Gene Rebadow',
       startsAt: new Date('2026-06-04T13:50:00Z'), // 9:50 AM EDT
       endsAt:   new Date('2026-06-04T14:00:00Z'), // 10:00 AM EDT
@@ -104,7 +104,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Beyond Faster: Turn AI from Commodity into Competitive Advantage',
       description:
         'AI tools are widely available — but most businesses are using them interchangeably, which erases any competitive edge. This keynote challenges attendees to move beyond speed and efficiency gains and instead position AI as a strategic differentiator that is hard to replicate and tied directly to revenue. Julie Holmes lays out a practical framework for shifting AI from a commodity tool to a genuine business advantage.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Julie Holmes',
       startsAt: new Date('2026-06-04T14:05:00Z'), // 10:05 AM EDT
       endsAt:   new Date('2026-06-04T14:50:00Z'), // 10:50 AM EDT
@@ -116,7 +116,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'ATS Team: Custom AI Solutions for Title Agents',
       description:
         "The WFG Advanced Technology Solutions (ATS) team presents the suite of AI-powered tools built specifically for title agents. The session covers real-world deployments, live demonstrations, and a forward look at the AI-assisted title operations roadmap — spanning document processing, client communication, workflow automation, and more. Presented by the engineers and strategists who built the tools.",
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Ryan Ozonian · Vedant Upganlawar · Priyal Katudia · Anish Tatke · Wendy Lunt',
       startsAt: new Date('2026-06-04T14:50:00Z'), // 10:50 AM EDT
       endsAt:   new Date('2026-06-04T15:20:00Z'), // 11:20 AM EDT
@@ -128,10 +128,10 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Real Talk: How Title Agents Actually Use AI Solutions in Their Business',
       description:
         "A candid panel of working title agents share their first-hand experiences adopting AI in day-to-day operations. Expect honest takeaways on which tools made a real impact, what didn't work as advertised, how their teams adapted, and what they wish they'd known before getting started. This is a practitioner perspective — not a vendor pitch.",
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Foussekis',
       startsAt: new Date('2026-06-04T15:25:00Z'), // 11:25 AM EDT
-      endsAt:   new Date('2026-06-04T15:45:00Z'), // 11:45 AM EDT
+      endsAt:   new Date('2026-06-04T15:55:00Z'), // 11:55 AM EDT
       version: 1,
     },
     {
@@ -140,7 +140,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Networking Lunch',
       description:
         'A structured lunch break designed for peer connection. Open seating; attendees are encouraged to mix across companies and roles. Sponsor exhibits and the ATS Demo Room remain available during this time.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: null,
       startsAt: new Date('2026-06-04T16:00:00Z'), // 12:00 PM EDT
       endsAt:   new Date('2026-06-04T17:00:00Z'), //  1:00 PM EDT
@@ -152,7 +152,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'The AI Shift: What Title Agents Need to Know',
       description:
         'A business-focused panel examining what the widespread adoption of AI means for title agency operations, client relationships, and competitive positioning over the next 12–24 months. Panelists share how AI is reshaping their companies today and what agents who haven\'t yet committed to AI should do — and when.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Mo Choumil · Michael Ruder · Wendy Lunt',
       startsAt: new Date('2026-06-04T17:00:00Z'), // 1:00 PM EDT
       endsAt:   new Date('2026-06-04T17:30:00Z'), // 1:30 PM EDT
@@ -164,7 +164,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'AI Search: Helping You Get Found on AI Platforms',
       description:
         'As consumers increasingly turn to AI assistants and ChatGPT to find service providers, traditional SEO is no longer sufficient for visibility. Jeff Lobb breaks down how title agents can optimize their digital presence for AI-driven discovery — what signals matter, how AI platforms surface recommendations, and what steps agents can take now to stay visible in a rapidly changing search landscape.',
-      location: 'Main Hall',
+      location: 'Seacrest Ballroom',
       speaker: 'Jeff Lobb',
       startsAt: new Date('2026-06-04T17:30:00Z'), // 1:30 PM EDT
       endsAt:   new Date('2026-06-04T18:00:00Z'), // 2:00 PM EDT
@@ -176,7 +176,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Sales, Marketing and AI Prompts for the Modern Title Agent',
       description:
         'A hands-on breakout covering how title agents can use AI to sharpen their sales outreach, marketing, and client communications. Attendees work through practical prompting techniques tailored to title industry scenarios — generating referral content, drafting client emails, building LinkedIn presence, and more. Available in Beginner/Moderate and Advanced tracks.',
-      location: 'Main Hall — Breakout Rooms',
+      location: 'Seacrest Ballroom — Breakout Rooms',
       speaker: null,
       startsAt: new Date('2026-06-04T18:15:00Z'), // 2:15 PM EDT
       endsAt:   new Date('2026-06-04T19:15:00Z'), // 3:15 PM EDT
@@ -188,7 +188,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       name: 'Replace the Busy Work: Automate, Accelerate, Dominate Your Workflow',
       description:
         'A practical deep-dive into identifying and automating the administrative and repetitive tasks that consume title agents\' time. Attendees walk away with concrete automation strategies and workflows they can implement in their own operations — from document handling to client follow-up to order status updates. Available in both Beginner/Moderate and Advanced tracks.',
-      location: 'Main Hall — Breakout Rooms',
+      location: 'Seacrest Ballroom — Breakout Rooms',
       speaker: null,
       startsAt: new Date('2026-06-04T18:15:00Z'), // 2:15 PM EDT
       endsAt:   new Date('2026-06-04T19:15:00Z'), // 3:15 PM EDT
@@ -445,7 +445,7 @@ export async function seedActivities(prisma: PrismaClient) {
     { id: 'seed-activity-trivia',     type: 'trivia'           as const, name: 'Summit Trivia',        maxPoints: 500, isOneShot: true,  isOpen: true,  configJson: { pointsPerQuestion: 10 } },
     { id: 'seed-activity-prompt',     type: 'prompt_challenge' as const, name: 'Prompt Challenge',      maxPoints: 100, isOneShot: false, isOpen: true,  configJson: { pointsCorrect: 20, pointsWrong: 10 } },
     { id: 'seed-activity-touchpoint', type: 'touchpoint'       as const, name: 'Touchpoint Scans',      maxPoints: 0,   isOneShot: false, isOpen: true,  configJson: Prisma.JsonNull },
-    { id: 'seed-activity-avatar',     type: 'avatar'           as const, name: 'AI Avatar Creator',     maxPoints: 50,  isOneShot: true,  isOpen: false, configJson: Prisma.JsonNull },
+    { id: 'seed-activity-avatar',     type: 'avatar'           as const, name: 'AI Avatar Creator',     maxPoints: 50,  isOneShot: true,  isOpen: true,  configJson: Prisma.JsonNull },
     { id: 'seed-activity-golden',     type: 'golden_points'    as const, name: 'Golden Points',         maxPoints: 100, isOneShot: true,  isOpen: true,  configJson: { questionText: "How is AI transforming the title & escrow industry, and what excites you most about WFG's use of technology at this summit?" } },
   ]
   for (const act of activities) {

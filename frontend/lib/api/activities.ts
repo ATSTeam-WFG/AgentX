@@ -97,6 +97,16 @@ export const getAvatarStatus = (jobId: string) =>
 export const claimAvatarPrint = () =>
   apiFetch<{ pointsAwarded: number }>('/v1/activities/avatar/claim-print', { method: 'POST' });
 
+export async function downloadAvatar(): Promise<Blob> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const token = readToken();
+  const res = await fetch(`${baseUrl}/v1/activities/avatar/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new ApiError(res.status, null, `${res.status} /v1/activities/avatar/download`);
+  return res.blob();
+}
+
 export const checkinTouchpoint = (locationId: string, response: string, dedupeKey: string) =>
   apiFetch<{ pointsAwarded: number; locationId: string }>(
     '/v1/touchpoints/checkin',

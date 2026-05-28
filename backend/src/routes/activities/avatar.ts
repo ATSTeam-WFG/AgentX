@@ -3,14 +3,14 @@ import { randomUUID } from 'crypto'
 import { prisma } from '../../db'
 import { authenticate } from '../../plugins/auth'
 import { badRequest, conflict, forbidden, notFound, unauthorized } from '../../lib/errors'
-import { uploadBuffer } from '../../lib/storage'
+import { uploadBuffer, downloadBuffer, publicUrl } from '../../lib/storage'
+import { config } from '../../config'
 
 export async function avatarRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', authenticate)
 
   // POST /v1/activities/avatar/upload
-  // Accepts multipart: field "selfie" (image) + field "backdropId" ("1" or "2")
-  // Uploads selfie to R2, creates avatar_generation job, awards 50pts (first time only)
+  // Accepts multipart: field "selfie" (image). Returns existing job if one is already pending/running.
   fastify.post('/upload', async (request, reply) => {
     const userId = request.user.sub
 
@@ -37,14 +37,23 @@ export async function avatarRoutes(fastify: FastifyInstance) {
     if (!activity) throw notFound('Avatar activity not found')
     if (!activity.isOpen) throw badRequest('Avatar activity is not currently open')
 
+    const dedupeKey = `avatar_upload_${userId}`
+    const [existingUser, existingJob, existingSub] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
+      prisma.job.findFirst({
+        where: { type: 'avatar_generation', status: { in: ['pending', 'running'] }, payloadJson: { path: ['userId'], equals: userId } },
+        select: { id: true },
+      }),
+      prisma.submission.findUnique({ where: { clientDedupeKey: dedupeKey }, select: { id: true } }),
+    ])
+
+    if (existingUser?.avatarUrl) throw conflict('Avatar already generated')
+    if (existingJob) return reply.status(200).send({ jobId: existingJob.id })
+
     const ext = selfieContentType === 'image/png' ? 'png' : 'jpg'
     const selfieKey = `selfies/${userId}/${randomUUID()}.${ext}`
 
     await uploadBuffer(selfieKey, selfieBuffer, selfieContentType)
-
-    const dedupeKey = `avatar_upload_${userId}`
-    const existingSub = await prisma.submission.findUnique({ where: { clientDedupeKey: dedupeKey } })
-    const isFirstTime = !existingSub
 
     const job = await prisma.$transaction(async (tx) => {
       const newJob = await tx.job.create({
@@ -54,7 +63,7 @@ export async function avatarRoutes(fastify: FastifyInstance) {
         },
       })
 
-      if (isFirstTime) {
+      if (!existingSub) {
         await tx.submission.create({
           data: {
             userId,
@@ -124,5 +133,21 @@ export async function avatarRoutes(fastify: FastifyInstance) {
     })
 
     return reply.send({ pointsAwarded: 50 })
+  })
+
+  // GET /v1/activities/avatar/download
+  // Proxies the current user's avatar image from R2 to avoid CORS issues on the client
+  fastify.get('/download', async (request, reply) => {
+    const userId = request.user.sub
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } })
+    if (!user?.avatarUrl) throw notFound('No avatar found')
+
+    const base = (config.OBJECT_STORAGE_PUBLIC_URL ?? '').replace(/\/$/, '')
+    const key = user.avatarUrl.replace(`${base}/`, '')
+    const imageBuffer = await downloadBuffer(key)
+
+    reply.header('Content-Type', 'image/jpeg')
+    reply.header('Content-Disposition', 'attachment; filename="executive-portrait.jpg"')
+    return reply.send(imageBuffer)
   })
 }

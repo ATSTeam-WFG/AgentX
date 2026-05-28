@@ -121,7 +121,7 @@ export default function ActivitiesPage() {
   }, [queryClient]);
   const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
-  const { data: apiActivities } = useQuery({
+  const { data: apiActivities, isError: activitiesError } = useQuery({
     queryKey: ['activities'],
     queryFn: getActivities,
     staleTime: 0,
@@ -325,6 +325,15 @@ export default function ActivitiesPage() {
         </div>
 
         <div className="acts-scroll" ref={scrollRef}>
+          {activitiesError && (
+            <div style={{
+              background: 'rgba(227,149,72,.08)', border: '1px solid rgba(227,149,72,.25)',
+              borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+              fontSize: 13, color: 'rgba(227,149,72,.85)', lineHeight: 1.4,
+            }}>
+              Could not load activity progress. Pull down to retry.
+            </div>
+          )}
           {ACTIVITIES.map((act) => {
             const done = doneById[act.id] ?? false;
             const earned = earnedById[act.id] ?? 0;

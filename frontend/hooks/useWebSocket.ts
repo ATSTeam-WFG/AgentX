@@ -58,8 +58,6 @@ export function useWebSocket() {
           queryClient.invalidateQueries({ queryKey: ['profile'] });
           if (d.type === 'golden_points_scoring')
             pushToast({ message: 'Your Golden Points score is in!' });
-          else if (d.type === 'avatar_generation')
-            pushToast({ message: 'Your AI avatar is ready!' });
           break;
         }
         case 'features.updated': {

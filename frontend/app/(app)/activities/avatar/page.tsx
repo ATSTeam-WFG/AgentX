@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import ES26LoadingScreen from '@/components/ES26LoadingScreen';
 import { useUiStore } from '@/store/ui';
-import { uploadSelfieAndGenerate, getAvatarStatus } from '@/lib/api/activities';
+import { uploadSelfieAndGenerate, getAvatarStatus, downloadAvatar } from '@/lib/api/activities';
 
 type Phase = 'intro' | 'camera' | 'generating' | 'result';
 
@@ -71,9 +71,14 @@ export default function AvatarStudioPage() {
           setPhase('result');
           pushToast({ message: 'Avatar portrait created!', points: 150 });
           queryClient.invalidateQueries({ queryKey: ['profile'] });
+        } else if (res.status === 'failed') {
+          clearInterval(t);
+          localStorage.removeItem(JOB_STORAGE_KEY);
+          setPhase('camera');
+          pushToast({ message: 'Portrait generation failed. Please try again.', type: 'warn' });
         }
       } catch {
-        // silent retry
+        // silent retry — transient network error, keep polling
       }
     }, 2000);
     return () => clearInterval(t);
@@ -97,20 +102,20 @@ export default function AvatarStudioPage() {
       setJobId(id);
     } catch {
       setPhase('camera');
+      pushToast({ message: 'Upload failed. Please check your connection and try again.', type: 'warn' });
     }
   }
 
   async function handleSaveToGallery() {
     try {
-      const res = await fetch(resultUrl);
-      const blob = await res.blob();
-      const file = new File([blob], 'my-executive-portrait.png', { type: blob.type });
+      const blob = await downloadAvatar();
+      const file = new File([blob], 'my-executive-portrait.jpg', { type: blob.type });
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: 'My Executive Portrait' });
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'my-executive-portrait.png';
+        a.download = 'my-executive-portrait.jpg';
         a.click();
         URL.revokeObjectURL(a.href);
       }
