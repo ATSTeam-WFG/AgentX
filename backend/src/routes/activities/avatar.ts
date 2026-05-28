@@ -20,18 +20,20 @@ export async function avatarRoutes(fastify: FastifyInstance) {
     const parts = request.parts()
     let selfieBuffer: Buffer | null = null
     let selfieContentType = 'image/jpeg'
+    let backdropId: string | null = null
 
     for await (const part of parts) {
       if (part.type === 'file' && part.fieldname === 'selfie') {
         selfieBuffer = await part.toBuffer()
         selfieContentType = part.mimetype
+      } else if (part.type === 'field' && part.fieldname === 'backdropId') {
+        backdropId = part.value as string
       }
     }
 
     if (!selfieBuffer || selfieBuffer.length === 0) throw badRequest('No selfie file provided')
     if (!selfieContentType.startsWith('image/')) throw badRequest('File must be an image')
-
-    const backdropId = Math.random() < 0.5 ? '1' : '2'
+    if (!backdropId || !['1', '2'].includes(backdropId)) throw badRequest('Invalid or missing backdropId')
 
     const activity = await prisma.activity.findFirst({ where: { type: 'avatar' } })
     if (!activity) throw notFound('Avatar activity not found')

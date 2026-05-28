@@ -71,9 +71,11 @@ export const getGoldenPointsStatus = (id: string) =>
 // Avatar — multipart upload uses fetch directly (apiFetch forces application/json Content-Type)
 export async function uploadSelfieAndGenerate(
   selfie: File,
+  backdropId: string,
 ): Promise<{ jobId: string; pointsAwarded: number }> {
   const formData = new FormData();
   formData.append('selfie', selfie);
+  formData.append('backdropId', backdropId);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
   const token = readToken();
