@@ -36,7 +36,7 @@ describe('GET /v1/leaderboard', () => {
     const adminLoginRes = await app.inject({
       method: 'POST',
       url: '/v1/admin/auth/login',
-      payload: { email: 'admin@wfg.com', password: 'AdminPass123!' },
+      payload: { email: 'admin@es26.com', password: 'executiveSum@26' },
     })
     const adminToken = adminLoginRes.json().token
     const res = await app.inject({

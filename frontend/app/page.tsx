@@ -21,7 +21,9 @@ export default function WelcomePage() {
     const standalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    setIsStandalone(standalone);
+    const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+    // Desktop browsers skip the install page — route straight to onboarding
+    setIsStandalone(standalone || !isMobile);
     setReady(true);
   }, [router]);
 

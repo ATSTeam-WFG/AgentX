@@ -1,6 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { signToken } from './qr'
 
 // ── Admin ──────────────────────────────────────────────────────────────────
 
@@ -130,7 +129,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       description:
         "A candid panel of working title agents share their first-hand experiences adopting AI in day-to-day operations. Expect honest takeaways on which tools made a real impact, what didn't work as advertised, how their teams adapted, and what they wish they'd known before getting started. This is a practitioner perspective — not a vendor pitch.",
       location: 'Main Hall',
-      speaker: 'Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Fousekis',
+      speaker: 'Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Foussekis',
       startsAt: new Date('2026-06-04T15:25:00Z'), // 11:25 AM EDT
       endsAt:   new Date('2026-06-04T15:45:00Z'), // 11:45 AM EDT
       version: 1,
@@ -154,7 +153,7 @@ export async function seedAgenda(prisma: PrismaClient) {
       description:
         'A business-focused panel examining what the widespread adoption of AI means for title agency operations, client relationships, and competitive positioning over the next 12–24 months. Panelists share how AI is reshaping their companies today and what agents who haven\'t yet committed to AI should do — and when.',
       location: 'Main Hall',
-      speaker: 'Mo Choumli · Michael Ruder · Wendy Lunt',
+      speaker: 'Mo Choumil · Michael Ruder · Wendy Lunt',
       startsAt: new Date('2026-06-04T17:00:00Z'), // 1:00 PM EDT
       endsAt:   new Date('2026-06-04T17:30:00Z'), // 1:30 PM EDT
       version: 1,
@@ -174,13 +173,13 @@ export async function seedAgenda(prisma: PrismaClient) {
     {
       id: 'seed-agenda-d2-breakout-ai-101',
       day: 2,
-      name: "Don't Get Left Behind: AI for the Modern Title Agent",
+      name: 'Sales, Marketing and AI Prompts for the Modern Title Agent',
       description:
-        'An accessible, hands-on session covering the AI tools most relevant to title agents in 2026. Attendees choose their track — Beginner/Moderate or Advanced — so every participant can engage at the right level. The session covers practical tool selection, real use cases in title work, and how to get started without disrupting existing operations.',
+        'A hands-on breakout covering how title agents can use AI to sharpen their sales outreach, marketing, and client communications. Attendees work through practical prompting techniques tailored to title industry scenarios — generating referral content, drafting client emails, building LinkedIn presence, and more. Available in Beginner/Moderate and Advanced tracks.',
       location: 'Main Hall — Breakout Rooms',
       speaker: null,
       startsAt: new Date('2026-06-04T18:15:00Z'), // 2:15 PM EDT
-      endsAt:   new Date('2026-06-04T19:00:00Z'), // 3:00 PM EDT
+      endsAt:   new Date('2026-06-04T19:15:00Z'), // 3:15 PM EDT
       version: 1,
     },
     {
@@ -191,8 +190,8 @@ export async function seedAgenda(prisma: PrismaClient) {
         'A practical deep-dive into identifying and automating the administrative and repetitive tasks that consume title agents\' time. Attendees walk away with concrete automation strategies and workflows they can implement in their own operations — from document handling to client follow-up to order status updates. Available in both Beginner/Moderate and Advanced tracks.',
       location: 'Main Hall — Breakout Rooms',
       speaker: null,
-      startsAt: new Date('2026-06-04T19:00:00Z'), // 3:00 PM EDT
-      endsAt:   new Date('2026-06-04T19:45:00Z'), // 3:45 PM EDT
+      startsAt: new Date('2026-06-04T18:15:00Z'), // 2:15 PM EDT
+      endsAt:   new Date('2026-06-04T19:15:00Z'), // 3:15 PM EDT
       version: 1,
     },
     {
@@ -205,6 +204,18 @@ export async function seedAgenda(prisma: PrismaClient) {
       speaker: 'Vedant Upganlawar · Priyal Katudia · Anish Tatke',
       startsAt: new Date('2026-06-04T18:15:00Z'), // 2:15 PM EDT
       endsAt:   new Date('2026-06-04T19:35:00Z'), // 3:35 PM EDT
+      version: 1,
+    },
+    {
+      id: 'seed-agenda-d2-happy-hour',
+      day: 2,
+      name: 'Happy Hour with Sponsors',
+      description:
+        'A relaxed networking reception giving attendees dedicated time with summit sponsors. Connect with solution providers, ask follow-up questions from the day\'s sessions, and explore partnership opportunities in a casual setting.',
+      location: 'Seacrest Foyer',
+      speaker: null,
+      startsAt: new Date('2026-06-04T19:15:00Z'), // 3:15 PM EDT
+      endsAt:   new Date('2026-06-04T20:15:00Z'), // 4:15 PM EDT
       version: 1,
     },
     {
@@ -586,28 +597,6 @@ export async function seedPromptChallengeQuestions(prisma: PrismaClient) {
   return questions.length
 }
 
-// ── Touchpoints ────────────────────────────────────────────────────────────
-
-export async function seedTouchpoints(prisma: PrismaClient) {
-  const defs = [
-    { id: 'seed-tp-01', name: 'Main Lobby Check-In',  points: 25, locationDescription: 'Near entrance, Kiosk A' },
-    { id: 'seed-tp-02', name: 'Exhibit Hall Scan',     points: 25, locationDescription: 'Exhibit Hall, Kiosk B' },
-    { id: 'seed-tp-03', name: 'Keynote Room Entry',    points: 25, locationDescription: 'Main ballroom entrance' },
-    { id: 'seed-tp-04', name: 'Networking Lounge',     points: 25, locationDescription: 'Level 2 lounge area' },
-  ]
-  const results = []
-  for (const tp of defs) {
-    const qrToken = signToken(tp.id)
-    await prisma.touchpoint.upsert({
-      where: { id: tp.id },
-      update: {},
-      create: { ...tp, qrToken, isActive: true },
-    })
-    results.push({ name: tp.name, qrToken })
-  }
-  return results
-}
-
 // ── App Config (Feature Flags) ─────────────────────────────────────────────
 
 export async function seedAppConfig(prisma: PrismaClient) {
@@ -671,7 +660,6 @@ export async function runFullSeed(prisma: PrismaClient) {
   const activities = await seedActivities(prisma)
   const trivia = await seedTriviaQuestions(prisma)
   const pc = await seedPromptChallengeQuestions(prisma)
-  const touchpoints = await seedTouchpoints(prisma)
   const appConfig = await seedAppConfig(prisma)
-  return { admin: 1, invitees, agenda, sponsors, initiatives, announcements: 1, activities, trivia, promptChallenge: pc, touchpoints: touchpoints.length, appConfig }
+  return { admin: 1, invitees, agenda, sponsors, initiatives, announcements: 1, activities, trivia, promptChallenge: pc, appConfig }
 }

@@ -28,13 +28,13 @@ interface Snapshot {
     trivia:          { completed: number };
     promptChallenge: { completed: number };
     avatar:          { completed: number };
-    touchpoints:     { uniqueUsers: number; totalScans: number };
+    touchpoints:     { uniqueUsers: number; totalCheckins: number };
     goldenPoints: {
       pending: number; aiScored: number; flagged: number;
       approved: number; rejected: number;
     };
   };
-  touchpointBreakdown: { name: string; location: string; points: number; scans: number }[];
+  touchpointBreakdown: { locationId: string; checkins: number }[];
   points: {
     total: number;
     topUsers: { name: string; points: number }[];
@@ -188,8 +188,8 @@ export default function AnalyticsPage() {
   }));
 
   const tpData = touchpointBreakdown.map(t => ({
-    name: t.name,
-    scans: t.scans,
+    name: t.locationId,
+    checkins: t.checkins,
   }));
 
   const jobTotal = jobs.pending + jobs.running + jobs.done + jobs.failed;
@@ -530,7 +530,7 @@ export default function AnalyticsPage() {
         {tpData.length > 0 && (
           <div className="an-chart-card">
             <div className="an-chart-title">
-              Touchpoint Scans — {activities.touchpoints.totalScans.toLocaleString()} total
+              Touchpoint Check-ins — {activities.touchpoints.totalCheckins.toLocaleString()} total
               &nbsp;({activities.touchpoints.uniqueUsers} unique users)
             </div>
             <ResponsiveContainer width="100%" height={160}>
@@ -544,7 +544,7 @@ export default function AnalyticsPage() {
                   itemStyle={{ color: '#fff', fontWeight: 700 }}
                   cursor={{ fill: 'rgba(20,102,54,.08)' }}
                 />
-                <Bar dataKey="scans" fill="#146636" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="checkins" fill="#146636" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

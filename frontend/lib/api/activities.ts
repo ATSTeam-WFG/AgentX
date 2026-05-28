@@ -71,11 +71,9 @@ export const getGoldenPointsStatus = (id: string) =>
 // Avatar — multipart upload uses fetch directly (apiFetch forces application/json Content-Type)
 export async function uploadSelfieAndGenerate(
   selfie: File,
-  backdropId: '1' | '2',
 ): Promise<{ jobId: string; pointsAwarded: number }> {
   const formData = new FormData();
   formData.append('selfie', selfie);
-  formData.append('backdropId', backdropId);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
   const token = readToken();
@@ -99,12 +97,6 @@ export const getAvatarStatus = (jobId: string) =>
 export const claimAvatarPrint = () =>
   apiFetch<{ pointsAwarded: number }>('/v1/activities/avatar/claim-print', { method: 'POST' });
 
-export const scanTouchpoint = (qrToken: string, dedupeKey: string) =>
-  apiFetch<{ pointsAwarded: number; touchpoint: { name: string; locationDescription: string } }>(
-    '/v1/touchpoints/scan',
-    { method: 'POST', body: JSON.stringify({ qrToken, dedupeKey }) }
-  );
-
 export const checkinTouchpoint = (locationId: string, response: string, dedupeKey: string) =>
   apiFetch<{ pointsAwarded: number; locationId: string }>(
     '/v1/touchpoints/checkin',
@@ -112,5 +104,5 @@ export const checkinTouchpoint = (locationId: string, response: string, dedupeKe
   );
 
 export const getTouchpointCheckins = () =>
-  apiFetch<{ checkins: { locationId: string; pointsAwarded: number }[] }>('/v1/touchpoints/checkins')
+  apiFetch<{ checkins: { locationId: string; pointsAwarded: number; response?: string }[] }>('/v1/touchpoints/checkins')
     .then((r) => r.checkins);

@@ -6,6 +6,7 @@ interface MeApiResponse {
   score: {
     totalPoints: number;
     activitiesCompleted: number;
+    touchpointsCompleted: number;
     rank: number;
   };
 }
@@ -13,6 +14,7 @@ interface MeApiResponse {
 export interface UserProfile extends User {
   totalPoints: number;
   activitiesCompleted: number;
+  touchpointsCompleted: number;
   rank: number;
 }
 

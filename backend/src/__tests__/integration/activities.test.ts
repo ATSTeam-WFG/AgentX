@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { getTestApp, closeTestApp } from '../helpers/app'
 import { createTestUser } from '../helpers/tokens'
 import { prisma } from '../../db'
-import { signToken } from '../../lib/qr'
 import type { FastifyInstance } from 'fastify'
 
 let app: FastifyInstance

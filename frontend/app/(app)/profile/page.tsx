@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const { data: profile } = useQuery({
     queryKey: ['profile'],
     queryFn: getMe,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     retry: 1,
   });
 
@@ -62,7 +62,7 @@ export default function ProfilePage() {
   const role       = (user as { role?: string } | null)?.role ?? 'Summit Attendee';
   const points     = profile?.totalPoints ?? 0;
   const activities = profile?.activitiesCompleted ?? 0;
-  const touchpts   = (profile as { touchpointsCompleted?: number } | null)?.touchpointsCompleted ?? 0;
+  const touchpts   = profile?.touchpointsCompleted ?? 0;
   const rank       = profile?.rank ?? '–';
 
   const leaderboard = lb?.leaderboard ?? [];

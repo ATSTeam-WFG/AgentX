@@ -20,10 +20,10 @@ export async function profileRoutes(fastify: FastifyInstance) {
   fastify.get('/me', async (request: FastifyRequest, reply) => {
     const userId = request.user.sub
 
-    const [user, userScore, activitiesCompleted] = await Promise.all([
+    const [user, userScore, touchpointsCompleted] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId } }),
       prisma.userScore.findUnique({ where: { userId } }),
-      prisma.activityAttempt.count({ where: { userId, completedAt: { not: null } } }),
+      prisma.submission.count({ where: { userId, kind: 'touchpoint_checkin' } }),
     ])
 
     if (!user) throw notFound('User not found')
@@ -47,7 +47,8 @@ export async function profileRoutes(fastify: FastifyInstance) {
       },
       score: {
         totalPoints: userScore?.totalPoints ?? 0,
-        activitiesCompleted,
+        activitiesCompleted: userScore?.activitiesCompleted ?? 0,
+        touchpointsCompleted,
         rank: higherRanked + 1,
       },
     })

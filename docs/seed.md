@@ -48,13 +48,14 @@ All times stored as UTC. Event location: Delray Beach, FL (EDT = UTC−4).
 | seed-agenda-d2-agent30       | Agent 3.0: Amplify Your Edge                          | 9:50–10:00 AM      | Main Hall                   | Gene Rebadow                                                     |
 | seed-agenda-d2-beyond-faster | Beyond Faster: Turn AI from Commodity into Competitive Advantage | 10:05–10:50 AM | Main Hall            | Julie Holmes                                                     |
 | seed-agenda-d2-ats-team      | ATS Team: Custom AI Solutions for Title Agents        | 10:50–11:20 AM     | Main Hall                   | Ryan Ozonian · Vedant Upganlawar · Priyal Katudia · Anish Tatke · Wendy Lunt |
-| seed-agenda-d2-real-talk     | Real Talk: How Title Agents Actually Use AI Solutions in Their Business | 11:25–11:45 AM     | Main Hall                   | Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Fousekis      |
+| seed-agenda-d2-real-talk     | Real Talk: How Title Agents Actually Use AI Solutions in Their Business | 11:25–11:45 AM     | Main Hall                   | Roxanne Kos · Jaime Kosofsky · Hope Ottovini · Leo Foussekis     |
 | seed-agenda-d2-networking-lunch | Networking Lunch                                   | 12:00–1:00 PM      | Main Hall                   | —                                                                |
-| seed-agenda-d2-ai-shift      | The AI Shift: What Title Agents Need to Know          | 1:00–1:30 PM       | Main Hall                   | Mo Choumli · Michael Ruder · Wendy Lunt                          |
+| seed-agenda-d2-ai-shift      | The AI Shift: What Title Agents Need to Know          | 1:00–1:30 PM       | Main Hall                   | Mo Choumil · Michael Ruder · Wendy Lunt                          |
 | seed-agenda-d2-ai-search     | AI Search: Helping You Get Found on AI Platforms      | 1:30–2:00 PM       | Main Hall                   | Jeff Lobb                                                        |
-| seed-agenda-d2-breakout-ai-101 | Don't Get Left Behind: AI for the Modern Title Agent | 2:15–3:00 PM      | Main Hall — Breakout Rooms  | —                                                                |
-| seed-agenda-d2-breakout-workflow | Replace the Busy Work: Automate, Accelerate, Dominate Your Workflow | 3:00–3:45 PM | Main Hall — Breakout Rooms | —                                                      |
+| seed-agenda-d2-breakout-ai-101 | Sales, Marketing and AI Prompts for the Modern Title Agent | 2:15–3:15 PM | Main Hall — Breakout Rooms  | —                                                                |
+| seed-agenda-d2-breakout-workflow | Replace the Busy Work: Automate, Accelerate, Dominate Your Workflow | 2:15–3:15 PM | Main Hall — Breakout Rooms | —                                                      |
 | seed-agenda-d2-ats-demo      | ATS Demo Room — Hands-On AI Demos                     | 2:15–3:35 PM       | ATS Demo Room               | Vedant Upganlawar · Priyal Katudia · Anish Tatke                 |
+| seed-agenda-d2-happy-hour    | Happy Hour with Sponsors                              | 3:15–4:15 PM       | Seacrest Foyer              | —                                                                |
 | seed-agenda-d2-awards        | Top Agent Awards                                      | 6:00–9:30 PM       | Seacrest Ballroom           | WFG Leadership                                                   |
 | seed-agenda-d2-after-party   | After Party                                           | 9:30–10:30 PM      | Seacrest Ballroom           | —                                                                |
 

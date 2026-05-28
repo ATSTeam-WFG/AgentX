@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'crypto'
 import { prisma } from '../../db'
 import { authenticate } from '../../plugins/auth'
-import { badRequest, conflict, forbidden, notFound } from '../../lib/errors'
+import { badRequest, conflict, forbidden, notFound, unauthorized } from '../../lib/errors'
 import { uploadBuffer } from '../../lib/storage'
 
 export async function avatarRoutes(fastify: FastifyInstance) {
@@ -14,23 +14,24 @@ export async function avatarRoutes(fastify: FastifyInstance) {
   fastify.post('/upload', async (request, reply) => {
     const userId = request.user.sub
 
+    const userExists = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })
+    if (!userExists) throw unauthorized('User not found — please log in again')
+
     const parts = request.parts()
     let selfieBuffer: Buffer | null = null
     let selfieContentType = 'image/jpeg'
-    let backdropId = '1'
 
     for await (const part of parts) {
       if (part.type === 'file' && part.fieldname === 'selfie') {
         selfieBuffer = await part.toBuffer()
         selfieContentType = part.mimetype
-      } else if (part.type === 'field' && part.fieldname === 'backdropId') {
-        backdropId = part.value as string
       }
     }
 
     if (!selfieBuffer || selfieBuffer.length === 0) throw badRequest('No selfie file provided')
     if (!selfieContentType.startsWith('image/')) throw badRequest('File must be an image')
-    if (backdropId !== '1' && backdropId !== '2') throw badRequest('backdropId must be "1" or "2"')
+
+    const backdropId = Math.random() < 0.5 ? '1' : '2'
 
     const activity = await prisma.activity.findFirst({ where: { type: 'avatar' } })
     if (!activity) throw notFound('Avatar activity not found')
@@ -62,18 +63,12 @@ export async function avatarRoutes(fastify: FastifyInstance) {
             clientDedupeKey: dedupeKey,
           },
         })
-
-        await tx.userScore.upsert({
-          where: { userId },
-          update: { totalPoints: { increment: 50 } },
-          create: { userId, totalPoints: 50, activitiesCompleted: 1 },
-        })
       }
 
       return newJob
     })
 
-    return reply.status(201).send({ jobId: job.id, pointsAwarded: isFirstTime ? 50 : 0 })
+    return reply.status(201).send({ jobId: job.id })
   })
 
   // GET /v1/activities/avatar/status/:jobId
@@ -123,11 +118,11 @@ export async function avatarRoutes(fastify: FastifyInstance) {
 
       await tx.userScore.upsert({
         where: { userId },
-        update: { totalPoints: { increment: 100 } },
-        create: { userId, totalPoints: 100, activitiesCompleted: 0 },
+        update: { totalPoints: { increment: 50 } },
+        create: { userId, totalPoints: 50, activitiesCompleted: 0 },
       })
     })
 
-    return reply.send({ pointsAwarded: 100 })
+    return reply.send({ pointsAwarded: 50 })
   })
 }

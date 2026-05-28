@@ -41,6 +41,7 @@ const NAV_GROUPS: Array<{
     minRole: 'moderator' as AdminRole,
     items: [
       { href: '/admin/audit-log', label: 'Audit Log' },
+      { href: '/admin/jobs',      label: 'Jobs'                                           },
       { href: '/admin/system',    label: 'System',    minRole: 'super_admin' as AdminRole },
     ],
   },

@@ -3,6 +3,7 @@ import { prisma } from '../../db'
 
 interface VelocityRow { hour: Date; points: number }
 interface DistRow { bucket: string; count: number }
+interface CheckinRow { locationId: string; checkins: number }
 
 async function getAnalyticsSnapshot() {
   const now = new Date()
@@ -22,9 +23,8 @@ async function getAnalyticsSnapshot() {
     promptCompleted,
     avatarCompleted,
     touchpointUniqueUsers,
-    totalTouchpointScans,
+    totalCheckins,
     gpByStatus,
-    touchpointBreakdown,
     jobBreakdown,
     topUsers,
     eventFeedbackCount,
@@ -48,20 +48,11 @@ async function getAnalyticsSnapshot() {
     prisma.activityAttempt.count({
       where: { activity: { type: 'avatar' }, completedAt: { not: null } },
     }),
-    prisma.user.count({ where: { touchpointScans: { some: {} } } }),
-    prisma.touchpointScan.count(),
+    prisma.submission.findMany({ where: { kind: 'touchpoint_checkin' }, select: { userId: true }, distinct: ['userId'] }).then(r => r.length),
+    prisma.submission.count({ where: { kind: 'touchpoint_checkin' } }),
     prisma.goldenPointsSubmission.groupBy({
       by: ['status'],
       _count: { id: true },
-    }),
-    prisma.touchpoint.findMany({
-      select: {
-        name: true,
-        locationDescription: true,
-        points: true,
-        _count: { select: { scans: true } },
-      },
-      orderBy: { scans: { _count: 'desc' } },
     }),
     prisma.job.groupBy({
       by: ['status'],
@@ -89,9 +80,10 @@ async function getAnalyticsSnapshot() {
         WHERE "completedAt" IS NOT NULL
           AND "completedAt" > NOW() - INTERVAL '12 hours'
       UNION ALL
-      SELECT "scannedAt" AS ts, "pointsAwarded" AS pts
-        FROM "TouchpointScan"
-        WHERE "scannedAt" > NOW() - INTERVAL '12 hours'
+      SELECT "createdAt" AS ts, ("payloadJson"->>'pointsAwarded')::int AS pts
+        FROM "Submission"
+        WHERE kind = 'touchpoint_checkin'
+          AND "createdAt" > NOW() - INTERVAL '12 hours'
       UNION ALL
       SELECT "createdAt" AS ts, GREATEST("delta", 0) AS pts
         FROM "PointAdjustment"
@@ -122,6 +114,16 @@ async function getAnalyticsSnapshot() {
     ORDER BY MIN("totalPoints")
   `
 
+  const touchpointBreakdown = await prisma.$queryRaw<CheckinRow[]>`
+    SELECT
+      "payloadJson"->>'locationId' AS "locationId",
+      COUNT(*)::int                AS checkins
+    FROM "Submission"
+    WHERE kind = 'touchpoint_checkin'
+    GROUP BY 1
+    ORDER BY checkins DESC
+  `
+
   const gpMap  = Object.fromEntries(gpByStatus.map(g  => [g.status,  g._count.id]))
   const jobMap = Object.fromEntries(jobBreakdown.map(j => [j.status, j._count.id]))
 
@@ -144,8 +146,8 @@ async function getAnalyticsSnapshot() {
       promptChallenge: { completed: promptCompleted },
       avatar:          { completed: avatarCompleted },
       touchpoints: {
-        uniqueUsers: touchpointUniqueUsers,
-        totalScans:  totalTouchpointScans,
+        uniqueUsers:   touchpointUniqueUsers,
+        totalCheckins: totalCheckins,
       },
       goldenPoints: {
         pending:  gpMap['pending']           ?? 0,
@@ -156,10 +158,8 @@ async function getAnalyticsSnapshot() {
       },
     },
     touchpointBreakdown: touchpointBreakdown.map(t => ({
-      name:     t.name,
-      location: t.locationDescription ?? '',
-      points:   t.points,
-      scans:    t._count.scans,
+      locationId: t.locationId,
+      checkins:   t.checkins,
     })),
     points: {
       total:    totalPointsAgg._sum.totalPoints ?? 0,

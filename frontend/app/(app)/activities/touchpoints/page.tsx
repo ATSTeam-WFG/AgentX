@@ -33,7 +33,7 @@ export default function TouchpointsPage() {
     getTouchpointCheckins().then((checkins) => {
       const restored: Record<string, TpResult> = {};
       for (const c of checkins) {
-        restored[c.locationId] = { pointsAwarded: c.pointsAwarded, reason: 'Previously submitted', answer: '' };
+        restored[c.locationId] = { pointsAwarded: c.pointsAwarded, reason: 'Previously submitted', answer: c.response ?? '' };
       }
       setDone((prev) => ({ ...restored, ...prev }));
     }).catch(() => {});
