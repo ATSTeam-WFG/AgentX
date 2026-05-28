@@ -4,24 +4,20 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 
-const CATEGORIES = ['App Experience', 'Session Content', 'Venue & Logistics', 'Other'] as const;
-type Category = typeof CATEGORIES[number];
-
 type Status = 'idle' | 'submitting' | 'done' | 'error';
 
 export default function FeedbackPage() {
   const router = useRouter();
-  const [category, setCategory] = useState<Category | null>(null);
-  const [text, setText]         = useState('');
-  const [status, setStatus]     = useState<Status>('idle');
+  const [text, setText]     = useState('');
+  const [status, setStatus] = useState<Status>('idle');
 
   async function handleSubmit() {
-    if (!category || !text.trim()) return;
+    if (!text.trim()) return;
     setStatus('submitting');
     try {
       await apiFetch('/v1/feedback', {
         method: 'POST',
-        body: JSON.stringify({ category, text: text.trim() }),
+        body: JSON.stringify({ answers: { feedback: text.trim() }, isAnonymous: false }),
       });
       setStatus('done');
     } catch {
@@ -59,36 +55,9 @@ export default function FeedbackPage() {
           font-size: 15px; color: rgba(204,222,231,.50);
           margin: 0 0 28px; line-height: 1.55;
         }
-        /* ── Category pills ── */
-        .fb-label {
-          font-size: 11px; font-weight: 800; letter-spacing: .10em;
-          text-transform: uppercase; color: rgba(204,222,231,.45);
-          margin-bottom: 12px;
-        }
-        .fb-cats {
-          display: flex; flex-wrap: wrap; gap: 8px;
-          margin-bottom: 24px;
-        }
-        .fb-cat {
-          padding: 9px 18px; border-radius: 24px;
-          border: 1.5px solid rgba(255,255,255,.10);
-          background: rgba(255,255,255,.05);
-          font-size: 14px; font-weight: 600;
-          color: rgba(204,222,231,.70);
-          cursor: pointer; transition: all .18s ease;
-          font-family: inherit;
-        }
-        .fb-cat:active { transform: scale(.97); }
-        .fb-cat.sel {
-          background: rgba(227,149,72,.12);
-          border-color: var(--amber);
-          color: var(--amber);
-          box-shadow: 0 0 0 1px rgba(227,149,72,.12);
-        }
-        /* ── Textarea ── */
         .fb-textarea-wrap { margin-bottom: 6px; }
         .fb-textarea {
-          width: 100%; min-height: 140px;
+          width: 100%; min-height: 180px;
           background: rgba(255,255,255,.06);
           border: 1.5px solid rgba(255,255,255,.10);
           border-radius: 14px;
@@ -104,7 +73,6 @@ export default function FeedbackPage() {
           box-shadow: 0 0 0 3px rgba(227,149,72,.10);
         }
         .fb-textarea:disabled { opacity: .5; }
-        /* ── Submit ── */
         .fb-submit-wrap { margin-top: 20px; }
         .btn-fb-submit {
           width: 100%; height: 54px; border-radius: 14px;
@@ -122,7 +90,6 @@ export default function FeedbackPage() {
           margin-top: 10px; font-size: 14px;
           color: var(--rose); text-align: center;
         }
-        /* ── Success state ── */
         .fb-success {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
@@ -167,26 +134,10 @@ export default function FeedbackPage() {
               <h1 className="fb-heading">Share Feedback</h1>
               <p className="fb-sub">A few minutes helps us make next year even better.</p>
 
-              <div className="fb-label">Category</div>
-              <div className="fb-cats">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    className={`fb-cat${category === cat ? ' sel' : ''}`}
-                    onClick={() => setCategory(cat)}
-                    type="button"
-                    disabled={status === 'submitting'}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              <div className="fb-label">Your Feedback</div>
               <div className="fb-textarea-wrap">
                 <textarea
                   className="fb-textarea"
-                  placeholder="What's on your mind…"
+                  placeholder="Share your overall thoughts on the summit…"
                   value={text}
                   onChange={(e) => { setText(e.target.value); if (status === 'error') setStatus('idle'); }}
                   disabled={status === 'submitting'}
@@ -197,7 +148,7 @@ export default function FeedbackPage() {
                 <button
                   className="btn-fb-submit"
                   onClick={handleSubmit}
-                  disabled={!category || !text.trim() || status === 'submitting'}
+                  disabled={!text.trim() || status === 'submitting'}
                   type="button"
                 >
                   {status === 'submitting' ? 'Sending…' : 'Submit Feedback'}

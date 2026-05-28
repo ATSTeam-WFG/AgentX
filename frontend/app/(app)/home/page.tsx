@@ -312,39 +312,17 @@ export default function HomePage() {
           margin-bottom: 16px;
         }
         .scp-logo-panel {
-          width: 60%;
+          width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 12px 16px;
+          padding: 12px 24px;
           background: #fff;
-          flex-shrink: 0;
         }
         .scp-logo {
           max-height: 48px;
           max-width: 100%;
           object-fit: contain;
-        }
-        .scp-gradient {
-          width: 5%;
-          background: linear-gradient(to right, #fff, var(--bg));
-          flex-shrink: 0;
-        }
-        .scp-text-panel {
-          flex: 1;
-          background: var(--bg);
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding: 10px 14px;
-        }
-        .scp-name {
-          font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 700;
-          color: var(--t); margin-bottom: 3px;
-        }
-        .scp-tagline {
-          font-size: 12px; color: var(--t3); line-height: 1.35;
         }
         /* ── Summit banner ── */
         .summit-banner {
@@ -459,11 +437,6 @@ export default function HomePage() {
                   alt="Pythonic"
                   className="scp-logo"
                 />
-              </div>
-              <div className="scp-gradient" />
-              <div className="scp-text-panel">
-                <div className="scp-name">Pythonic</div>
-                <div className="scp-tagline">AI-driven document intelligence for title</div>
               </div>
             </div>
           </Link>
