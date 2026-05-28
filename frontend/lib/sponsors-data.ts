@@ -103,7 +103,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'accutitle',
     name: 'AccuTitle',
-    logo: '/sponsors/accutitle-logo.png',
+    logo: `${CDN}/sponsors/accutitle-logo.png`,
     dark: false,
     website: 'https://accutitle.com',
     description:
@@ -112,7 +112,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'proplogix',
     name: 'PropLogix',
-    logo: '/sponsors/proplogix-horizontal-logo.png',
+    logo: `${CDN}/sponsors/proplogix-horizontal-logo.png`,
     dark: false,
     website: 'https://www.proplogix.com',
     description:
@@ -121,7 +121,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'rynoh',
     name: 'Rynoh',
-    logo: '/sponsors/rynoh-logo.jpg',
+    logo: `${CDN}/sponsors/rynoh-logo.jpg`,
     dark: false,
     website: 'https://rynoh.com',
     description:
@@ -130,7 +130,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
   {
     slug: 'certifid',
     name: 'CertifID',
-    logo: '/sponsors/certifid-logo.png',
+    logo: `${CDN}/sponsors/certifid-logo.png`,
     dark: false,
     website: 'https://certifid.com',
     description:
