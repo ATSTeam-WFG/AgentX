@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPromptQuestions, answerPrompt, type PromptQuestion } from '@/lib/api/activities';
@@ -75,7 +75,23 @@ const STATIC_PROMPT_QUESTIONS: PromptQuestion[] = [
 ];
 
 
-type ViewState = 'list' | { question: PromptQuestion };
+type ShuffledPromptQuestion = PromptQuestion & { originalIndexMap: number[] };
+type ViewState = 'list' | { question: ShuffledPromptQuestion };
+
+function shuffleArr<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q: PromptQuestion): ShuffledPromptQuestion {
+  const indices = q.optionsJson.map((_, i) => i);
+  const shuffledIndices = shuffleArr(indices);
+  return { ...q, optionsJson: shuffledIndices.map((i) => q.optionsJson[i]), originalIndexMap: shuffledIndices };
+}
 
 export default function PromptChallengePage() {
   const router = useRouter();
@@ -85,6 +101,9 @@ export default function PromptChallengePage() {
   const [selected, setSel]   = useState<number | null>(null);
   const [answered, setAns]   = useState<Map<string, { isCorrect: boolean; pointsAwarded: number; explanation?: string }>>(new Map());
   const [submitting, setSub] = useState(false);
+  const [displayQuestions, setDisplayQ] = useState<ShuffledPromptQuestion[]>([]);
+  const seededRef = useRef(false);
+  const staticShuffledRef = useRef<ShuffledPromptQuestion[] | null>(null);
 
   const { data: apiQuestions } = useQuery({
     queryKey: ['prompt-questions'],
@@ -92,7 +111,31 @@ export default function PromptChallengePage() {
     staleTime: 300_000,
   });
 
-  const questions = apiQuestions?.length ? apiQuestions : STATIC_PROMPT_QUESTIONS;
+  useEffect(() => {
+    if (!apiQuestions?.length || seededRef.current) return;
+    seededRef.current = true;
+    setDisplayQ(apiQuestions.map(shuffleOptions));
+    setAns((prev) => {
+      const seeded = new Map(prev);
+      for (const q of apiQuestions) {
+        if (q.userAnswer && !seeded.has(q.id)) {
+          seeded.set(q.id, {
+            isCorrect: q.userAnswer.isCorrect,
+            pointsAwarded: q.userAnswer.pointsAwarded,
+            explanation: q.explanation ?? undefined,
+          });
+        }
+      }
+      return seeded;
+    });
+  }, [apiQuestions]);
+
+  if (!staticShuffledRef.current) {
+    staticShuffledRef.current = STATIC_PROMPT_QUESTIONS.map(shuffleOptions);
+  }
+  const questions: ShuffledPromptQuestion[] = displayQuestions.length
+    ? displayQuestions
+    : staticShuffledRef.current;
   const totalPts = [...answered.values()].reduce((s, a) => s + a.pointsAwarded, 0);
 
   function goToNext(currentId: string) {
@@ -101,22 +144,24 @@ export default function PromptChallengePage() {
     else { setView('list'); setSel(null); }
   }
 
-  async function handleAnswer(q: PromptQuestion, idx: number) {
+  async function handleAnswer(q: ShuffledPromptQuestion, idx: number) {
     if (submitting || answered.has(q.id)) return;
     setSel(idx);
     setSub(true);
+    const originalIdx = q.originalIndexMap[idx];
     try {
-      const res = await answerPrompt(q.id, idx, crypto.randomUUID());
+      const res = await answerPrompt(q.id, originalIdx, crypto.randomUUID());
       setAns((prev) => new Map(prev).set(q.id, { isCorrect: res.isCorrect, pointsAwarded: res.pointsAwarded, explanation: res.explanation }));
       pushToast({
         message: res.isCorrect ? 'Best prompt selected' : 'Good choice — not the best prompt',
         points: res.pointsAwarded,
         type: res.isCorrect ? 'success' : 'warn',
       });
+      queryClient.invalidateQueries({ queryKey: ['prompt-questions'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
     } catch {
-      const isCorrect = q.correctIndex != null && idx === q.correctIndex;
+      const isCorrect = q.correctIndex != null && originalIdx === q.correctIndex;
       const pts = isCorrect ? 20 : 10;
       setAns((prev) => new Map(prev).set(q.id, { isCorrect, pointsAwarded: pts, explanation: q.explanation ?? undefined }));
       pushToast({

@@ -121,7 +121,7 @@ export default function ActivitiesPage() {
   }, [queryClient]);
   const indicatorRef = usePullToRefresh(scrollRef, onRefresh);
 
-  const { data: apiActivities, isError: activitiesError } = useQuery({
+  const { data: apiActivities, isError: activitiesError, isPending: activitiesPending } = useQuery({
     queryKey: ['activities'],
     queryFn: getActivities,
     staleTime: 0,
@@ -256,6 +256,17 @@ export default function ActivitiesPage() {
           border: 1px solid rgba(20,102,54,.22);
           min-height: 44px;
         }
+        .v7-act-btn-skeleton {
+          width: 100%; min-height: 44px;
+          border-radius: 14px;
+          background: linear-gradient(90deg, #1C283C 25%, #243352 50%, #1C283C 75%);
+          background-size: 200% 100%;
+          animation: v7-shimmer 1.4s infinite;
+        }
+        @keyframes v7-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
         .v7-act-btn {
           display: flex; align-items: center;
           justify-content: center; gap: 9px;
@@ -335,9 +346,9 @@ export default function ActivitiesPage() {
             </div>
           )}
           {ACTIVITIES.map((act) => {
-            const done = doneById[act.id] ?? false;
+            const done = activitiesPending ? false : (doneById[act.id] ?? false);
             const earned = earnedById[act.id] ?? 0;
-            const locked = done;
+            const locked = activitiesPending || done;
             const cardClass = `v7-act-card${done ? ' v7-act-card--done' : ''}`;
             const cardContent = (
               <>
@@ -353,7 +364,9 @@ export default function ActivitiesPage() {
                   </div>
                 </div>
                 <div className="v7-act-desc">{act.desc}</div>
-                {done ? (
+                {activitiesPending ? (
+                  <div className="v7-act-btn-skeleton" />
+                ) : done ? (
                   <div className="v7-act-done">
                     <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
                       <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

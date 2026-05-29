@@ -17,6 +17,10 @@ interface Initiative {
   audience: string;
   why: string;
   rollout: string;
+  logoUrl?: string;
+  logoPadding?: number;
+  splashUrl?: string;
+  thumbnailUrl?: string;
 }
 
 const INITIATIVES: Initiative[] = [
@@ -31,6 +35,8 @@ const INITIATIVES: Initiative[] = [
     audience: 'Title agents and office managers processing monthly remittances.',
     why: 'Manual remittance processes are error-prone, time-consuming, and frustrating. eRemit automates the entire workflow.',
     rollout: 'Live and in use. Visit the ATS kiosk for a walkthrough demo.',
+    splashUrl: 'https://e-remit.vercel.app/',
+    thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/Eremit/splash_thumbnail.png',
   },
   {
     name: 'FieldIQ',
@@ -43,6 +49,9 @@ const INITIATIVES: Initiative[] = [
     audience: 'Title agents and sales representatives doing field business development.',
     why: 'Field sales activities are invisible to management and hard to correlate with results. FieldIQ changes that.',
     rollout: 'Live. Ask the ATS team for a demo at the Innovation Hub kiosk.',
+    logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/fieldIQ/logo_dark.png',
+    splashUrl: 'https://field-iq-ui.vercel.app/',
+    thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/fieldIQ/splash_thumbnail.png',
   },
   {
     name: 'My Home Prompt',
@@ -55,6 +64,10 @@ const INITIATIVES: Initiative[] = [
     audience: 'Homebuyers, real estate agents, and title companies using WFG.',
     why: 'The homebuying process is confusing. My Home Prompt makes it transparent, guided, and human.',
     rollout: 'In development. Launching 2026.',
+    logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/logo.png',
+    logoPadding: 8,
+    splashUrl: 'https://myhomeprompts.vercel.app/',
+    thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/splash_thumbnail.png',
   },
 ];
 
@@ -355,9 +368,13 @@ export default function ExplorePage() {
             <div key={i} className={`init-card${openIdx === i ? ' open' : ''}`} id={`init_${i}`}>
               <div className="init-header" onClick={() => toggleInit(i)}>
                 <div className="init-icon" style={{ background: it.bg, color: it.color }}>
-                  <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-.02em' }}>
-                    {it.mono}
-                  </div>
+                  {it.logoUrl ? (
+                    <img src={it.logoUrl} alt={it.name} style={{ width: '100%', height: '100%', objectFit: it.logoPadding ? 'contain' : 'cover', padding: it.logoPadding ?? 0, borderRadius: it.logoPadding ? 0 : 13, display: 'block' }} />
+                  ) : (
+                    <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-.02em' }}>
+                      {it.mono}
+                    </div>
+                  )}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div className="init-name">{it.name}</div>
@@ -372,16 +389,33 @@ export default function ExplorePage() {
 
               <div className="init-expand" id={`initExp_${i}`}>
                 <div className="init-expand-body">
-                  <div className="init-video-holder">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,.16)', border: '2px solid rgba(255,255,255,.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 18px rgba(6,182,212,.30)' }}>
-                        <svg viewBox="0 0 16 16" fill="white" width="20" height="20">
-                          <polygon points="5,3 13,8 5,13"/>
-                        </svg>
+                  {it.thumbnailUrl && it.splashUrl ? (
+                    <a
+                      href={it.splashUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="init-video-holder"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img
+                        src={it.thumbnailUrl}
+                        alt={`${it.name} splash`}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                      />
+                      <span style={{ position: 'relative', fontSize: 13, color: 'rgba(255,255,255,.95)', fontWeight: 700, background: 'rgba(0,0,0,.40)', backdropFilter: 'blur(4px)', padding: '5px 14px', borderRadius: 20 }}>Open Page</span>
+                    </a>
+                  ) : (
+                    <div className="init-video-holder">
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,.16)', border: '2px solid rgba(255,255,255,.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 18px rgba(6,182,212,.30)' }}>
+                          <svg viewBox="0 0 16 16" fill="white" width="20" height="20">
+                            <polygon points="5,3 13,8 5,13"/>
+                          </svg>
+                        </div>
+                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,.66)', fontWeight: 500 }}>Demo video coming soon</span>
                       </div>
-                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,.66)', fontWeight: 500 }}>Demo video coming soon</span>
                     </div>
-                  </div>
+                  )}
 
                   <div className="init-detail-row">
                     <div className="init-detail-label">What it does</div>

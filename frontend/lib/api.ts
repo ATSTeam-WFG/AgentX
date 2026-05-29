@@ -1,4 +1,4 @@
-import { readToken, readAdminToken } from './auth';
+import { readToken, readAdminToken, clearToken, clearAdminToken } from './auth';
 
 export class ApiError extends Error {
   constructor(
@@ -34,6 +34,15 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
+    if (res.status === 401 && !skipAuth) {
+      if (useAdminToken) {
+        clearAdminToken();
+        window.location.replace('/admin/login');
+      } else {
+        clearToken();
+        window.location.replace('/');
+      }
+    }
     throw new ApiError(res.status, body, `${res.status} ${path}`);
   }
 

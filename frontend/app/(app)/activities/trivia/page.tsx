@@ -1,13 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { startTrivia, completeTrivia, getActivities, type TriviaQuestion } from '@/lib/api/activities';
+import { useUiStore } from '@/store/ui';
 
 type Phase = 'hub' | 'play' | 'result';
+type ShuffledQuestion = TriviaQuestion & { originalIndexMap: number[]; correctDisplayIdx: number };
 
-const TIMER_SECS = 60;
+const TIMER_SECS = 90;
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 function TimerCircle({ seconds, total }: { seconds: number; total: number }) {
   const r = 22;
@@ -43,14 +54,16 @@ export default function TriviaPage() {
   const queryClient = useQueryClient();
   const [phase, setPhase]           = useState<Phase>('hub');
   const [attemptId, setAttemptId]   = useState('');
-  const [questions, setQuestions]   = useState<TriviaQuestion[]>([]);
+  const [questions, setQuestions]   = useState<ShuffledQuestion[]>([]);
   const [qIdx, setQIdx]             = useState(0);
   const [answers, setAnswers]       = useState<{ questionId: string; selectedIndex: number }[]>([]);
   const [selected, setSelected]     = useState<number | null>(null);
   const [timer, setTimer]           = useState(TIMER_SECS);
   const [loading, setLoading]       = useState(false);
   const [result, setResult]         = useState<{ pointsAwarded: number; correctCount: number; totalQuestions: number } | null>(null);
+  const submittedRef                = useRef(false);
 
+  const { pushToast } = useUiStore();
   const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
   const triviaActivity = activities?.find((a) => a.type === 'trivia');
 
@@ -63,57 +76,87 @@ export default function TriviaPage() {
 
   const current = questions[qIdx];
 
+  const doSubmit = useCallback((allAnswers: { questionId: string; selectedIndex: number }[]) => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    completeTrivia(attemptId, allAnswers, crypto.randomUUID())
+      .then((r) => {
+        setResult(r);
+        setPhase('result');
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ['activities'] });
+      })
+      .catch(() => {
+        setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length });
+        setPhase('result');
+      });
+  }, [attemptId, questions.length, queryClient]);
+
   const advanceQuestion = useCallback((idx: number, sel: number | null) => {
-    const ans = sel !== null
-      ? [...answers, { questionId: questions[idx].id, selectedIndex: sel }]
-      : [...answers, { questionId: questions[idx].id, selectedIndex: -1 }];
+    const originalSel = sel !== null ? questions[idx].originalIndexMap[sel] : -1;
+    const ans = [...answers, { questionId: questions[idx].id, selectedIndex: originalSel }];
     setAnswers(ans);
     setSelected(null);
-    setTimer(TIMER_SECS);
 
     if (idx + 1 < questions.length) {
       setQIdx(idx + 1);
     } else {
-      // Submit
-      completeTrivia(attemptId, ans, crypto.randomUUID())
-        .then((r) => {
-          setResult(r);
-          setPhase('result');
-          queryClient.invalidateQueries({ queryKey: ['profile'] });
-          queryClient.invalidateQueries({ queryKey: ['activities'] });
-        })
-        .catch(() => { setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length }); setPhase('result'); });
+      doSubmit(ans);
     }
-  }, [answers, attemptId, questions]);
+  }, [answers, questions, doSubmit]);
 
+  // Global countdown — runs once for the whole quiz, not per question
   useEffect(() => {
-    if (phase !== 'play') return;
-    const t = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(t);
-          advanceQuestion(qIdx, null);
-          return TIMER_SECS;
-        }
-        return prev - 1;
+    if (phase !== 'play' || timer <= 0) return;
+    const t = setTimeout(() => setTimer((prev) => prev - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, timer]);
+
+  // Auto-submit everything when time runs out
+  useEffect(() => {
+    if (phase !== 'play' || timer !== 0 || submittedRef.current) return;
+    submittedRef.current = true;
+    const pending = [...answers];
+    for (let i = qIdx; i < questions.length; i++) {
+      pending.push({ questionId: questions[i].id, selectedIndex: -1 });
+    }
+    completeTrivia(attemptId, pending, crypto.randomUUID())
+      .then((r) => {
+        setResult(r);
+        setPhase('result');
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ['activities'] });
+      })
+      .catch(() => {
+        setResult({ pointsAwarded: 0, correctCount: 0, totalQuestions: questions.length });
+        setPhase('result');
       });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [phase, qIdx, advanceQuestion]);
+  }, [phase, timer, answers, qIdx, questions, attemptId, queryClient]);
 
   async function handleStart() {
+    submittedRef.current = false;
     setLoading(true);
     try {
       const res = await startTrivia();
+      const shuffledQs: ShuffledQuestion[] = shuffle(res.questions).map((q) => {
+        const indices = q.optionsJson.map((_, i) => i);
+        const shuffledIndices = shuffle(indices);
+        return {
+          ...q,
+          optionsJson: shuffledIndices.map((i) => q.optionsJson[i]),
+          originalIndexMap: shuffledIndices,
+          correctDisplayIdx: shuffledIndices.indexOf(1), // original correct is always index 1
+        };
+      });
       setAttemptId(res.attemptId);
-      setQuestions(res.questions);
+      setQuestions(shuffledQs);
       setQIdx(0);
       setAnswers([]);
       setSelected(null);
       setTimer(TIMER_SECS);
       setPhase('play');
     } catch {
-      alert('Could not start trivia. Please try again.');
+      pushToast({ message: 'Could not start trivia. Please try again.', type: 'warn' });
     } finally {
       setLoading(false);
     }
@@ -122,12 +165,15 @@ export default function TriviaPage() {
   function handleSelect(idx: number) {
     if (selected !== null) return;
     setSelected(idx);
-    setTimeout(() => advanceQuestion(qIdx, idx), 1400);
+    setTimeout(() => advanceQuestion(qIdx, idx), 600);
   }
 
   function optionClass(idx: number) {
     if (selected === null) return 'tv-opt';
-    if (idx === selected) return 'tv-opt tv-opt-sel';
+    const correctIdx = current.correctDisplayIdx;
+    if (idx === selected && idx === correctIdx) return 'tv-opt tv-opt-correct';
+    if (idx === selected && idx !== correctIdx) return 'tv-opt tv-opt-wrong';
+    if (idx === correctIdx) return 'tv-opt tv-opt-reveal';
     return 'tv-opt tv-opt-dim';
   }
 
@@ -277,12 +323,23 @@ export default function TriviaPage() {
           text-align: left;
         }
         .tv-opt:active { transform: scale(.98); }
-        .tv-opt-sel {
-          background: rgba(227,149,72,.12);
-          border-color: #E39548;
-          color: #E39548;
+        .tv-opt-correct {
+          background: rgba(34,197,94,.15);
+          border-color: #22c55e;
+          color: #22c55e;
         }
-        .tv-opt-dim { opacity: .45; }
+        .tv-opt-wrong {
+          background: rgba(239,68,68,.12);
+          border-color: var(--rose, #f43f5e);
+          color: var(--rose, #f43f5e);
+        }
+        .tv-opt-reveal {
+          background: rgba(34,197,94,.10);
+          border-color: #22c55e;
+          color: #22c55e;
+          opacity: .75;
+        }
+        .tv-opt-dim { opacity: .35; }
 
         /* Result phase */
         .result-wrap {
@@ -386,7 +443,7 @@ export default function TriviaPage() {
               <div className="rules-title">How it works</div>
               <ul className="rules-list">
                 <li>Answer 10 multiple-choice questions</li>
-                <li>You have 60 seconds per question</li>
+                <li>You have 90 seconds for the entire quiz</li>
                 <li>Earn up to 200 points total</li>
                 <li>Can only be played once</li>
               </ul>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getMe } from '@/lib/api/profile';
@@ -51,9 +51,11 @@ export default function ProfilePage() {
     retry: 1,
   });
 
+  const [lbOpen, setLbOpen] = useState(true);
+
   const { data: lb, isLoading: lbLoading } = useQuery({
-    queryKey: ['leaderboard', 5],
-    queryFn: () => getLeaderboard(5),
+    queryKey: ['leaderboard', 10],
+    queryFn: () => getLeaderboard(10),
     staleTime: 30_000,
     retry: false,
   });
@@ -446,7 +448,7 @@ export default function ProfilePage() {
 
           {/* ── Leaderboard ── */}
           <div className="prof-section">
-            <div className="prof-section-hd">
+            <div className="prof-section-hd" style={{ cursor: 'pointer' }} onClick={() => setLbOpen((o) => !o)}>
               <div className="prof-section-hd-left">
                 <div className="prof-section-icon" style={{ background: 'rgba(212,160,23,.10)', border: '1px solid rgba(166,119,16,.18)' }}>
                   <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
@@ -455,28 +457,30 @@ export default function ProfilePage() {
                 </div>
                 <span className="prof-section-title">Leaderboard</span>
               </div>
-              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16">
+              <svg className="prof-chevron" viewBox="0 0 12 12" fill="none" width="16" height="16" style={{ transition: 'transform .25s', transform: lbOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
                 <path d="M2.5 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
 
-            {lbLoading
-              ? [32, 24, 18, 14, 10].map((w, i) => (
-                <div key={i} className="lb-skel-row">
-                  <div className="lb-skel" style={{ width: 28, height: 28, borderRadius: '50%' }} />
-                  <div className="lb-skel" style={{ flex: 1, height: 14 }} />
-                  <div className="lb-skel" style={{ width: `${w}%`, height: 14 }} />
-                </div>
-              ))
-              : (<>
-                {leaderboard.map((entry) => (
-                  <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
-                ))}
-                {lb?.currentUser && !leaderboard.some((e) => e.rank === lb.currentUser?.rank) && (
-                  <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
-                )}
-              </>)
-            }
+            <div style={{ overflow: 'hidden', maxHeight: lbOpen ? 1200 : 0, transition: 'max-height .35s cubic-bezier(.4,0,.2,1)' }}>
+              {lbLoading
+                ? [32, 24, 18, 14, 10].map((w, i) => (
+                  <div key={i} className="lb-skel-row">
+                    <div className="lb-skel" style={{ width: 28, height: 28, borderRadius: '50%' }} />
+                    <div className="lb-skel" style={{ flex: 1, height: 14 }} />
+                    <div className="lb-skel" style={{ width: `${w}%`, height: 14 }} />
+                  </div>
+                ))
+                : (<>
+                  {leaderboard.slice(0, 10).map((entry) => (
+                    <LbRow key={entry.rank} entry={entry} highlight={entry.rank === lb?.currentUser?.rank} />
+                  ))}
+                  {lb?.currentUser && !leaderboard.slice(0, 10).some((e) => e.rank === lb.currentUser?.rank) && (
+                    <LbRow entry={{ rank: lb.currentUser.rank, name: name, totalPoints: lb.currentUser.totalPoints }} highlight />
+                  )}
+                </>)
+              }
+            </div>
           </div>
 
           {/* ── Feedback ── */}

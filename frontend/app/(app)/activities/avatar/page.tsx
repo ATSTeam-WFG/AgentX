@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import ES26LoadingScreen from '@/components/ES26LoadingScreen';
+import AvatarGeneratingScreen from '@/components/AvatarGeneratingScreen';
 import { useUiStore } from '@/store/ui';
 import { uploadSelfieAndGenerate, getAvatarStatus, downloadAvatar } from '@/lib/api/activities';
+import { ApiError } from '@/lib/api';
 
 type Phase = 'intro' | 'camera' | 'generating' | 'result';
 
@@ -21,8 +22,10 @@ export default function AvatarStudioPage() {
   const [photoUrl, setPhotoUrl]   = useState<string | null>(null);
   const [jobId, setJobId]         = useState('');
   const [resultUrl, setResultUrl] = useState('');
+  const [genProgress, setGenProgress] = useState(0);
 
-  const captureRef = useRef<HTMLInputElement>(null);
+  const captureRef   = useRef<HTMLInputElement>(null);
+  const failCountRef = useRef(0);
 
   // On mount: resume a pending job or show existing avatar
   useEffect(() => {
@@ -60,17 +63,35 @@ export default function AvatarStudioPage() {
   }, [photoUrl]);
 
   useEffect(() => {
+    if (phase !== 'generating') { setGenProgress(0); return; }
+    const t = setInterval(() => {
+      setGenProgress(prev => {
+        if (prev >= 90) return Math.min(90, prev + 0.05);
+        if (prev < 40) return prev + 2;
+        if (prev < 72) return prev + 0.8;
+        return prev + 0.53;
+      });
+    }, 250);
+    return () => clearInterval(t);
+  }, [phase]);
+
+  useEffect(() => {
     if (phase !== 'generating' || !jobId) return;
+    failCountRef.current = 0;
     const t = setInterval(async () => {
       try {
         const res = await getAvatarStatus(jobId);
+        failCountRef.current = 0;
         if (res.status === 'done' && res.avatarUrl) {
           clearInterval(t);
           localStorage.removeItem(JOB_STORAGE_KEY);
           setResultUrl(res.avatarUrl);
-          setPhase('result');
-          pushToast({ message: 'Avatar portrait created!', points: 150 });
-          queryClient.invalidateQueries({ queryKey: ['profile'] });
+          setGenProgress(100);
+          setTimeout(() => {
+            setPhase('result');
+            pushToast({ message: 'Avatar portrait created!', points: 150 });
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+          }, 700);
         } else if (res.status === 'failed') {
           clearInterval(t);
           localStorage.removeItem(JOB_STORAGE_KEY);
@@ -78,7 +99,13 @@ export default function AvatarStudioPage() {
           pushToast({ message: 'Portrait generation failed. Please try again.', type: 'warn' });
         }
       } catch {
-        // silent retry — transient network error, keep polling
+        failCountRef.current += 1;
+        if (failCountRef.current >= 3) {
+          clearInterval(t);
+          localStorage.removeItem(JOB_STORAGE_KEY);
+          setPhase('camera');
+          pushToast({ message: 'Connection lost. Please try again.', type: 'warn' });
+        }
       }
     }, 2000);
     return () => clearInterval(t);
@@ -100,9 +127,18 @@ export default function AvatarStudioPage() {
       const { jobId: id } = await uploadSelfieAndGenerate(photoFile, '1');
       localStorage.setItem(JOB_STORAGE_KEY, id);
       setJobId(id);
-    } catch {
+    } catch (err) {
       setPhase('camera');
-      pushToast({ message: 'Upload failed. Please check your connection and try again.', type: 'warn' });
+      let message = 'Upload failed. Please check your connection and try again.';
+      if (err instanceof ApiError) {
+        if (err.status === 413) {
+          message = 'Photo is too large. Please use a smaller image.';
+        } else if (err.status >= 400 && err.status < 500) {
+          const serverMsg = (err.body as { message?: string })?.message;
+          if (serverMsg) message = serverMsg;
+        }
+      }
+      pushToast({ message, type: 'warn' });
     }
   }
 
@@ -119,8 +155,9 @@ export default function AvatarStudioPage() {
         a.click();
         URL.revokeObjectURL(a.href);
       }
-    } catch {
-      // user cancelled
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      pushToast({ message: 'Could not download portrait. Please try again.', type: 'warn' });
     }
   }
 
@@ -380,7 +417,7 @@ export default function AvatarStudioPage() {
       {/* ── GENERATING ── */}
       {phase === 'generating' && (
         <div className="as-page">
-          <ES26LoadingScreen label="Generating your portrait…" />
+          <AvatarGeneratingScreen progress={genProgress} />
         </div>
       )}
 

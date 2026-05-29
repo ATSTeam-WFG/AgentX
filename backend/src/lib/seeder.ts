@@ -593,7 +593,15 @@ export async function seedPromptChallengeQuestions(prisma: PrismaClient) {
   ]
   const ids = questions.map((q) => q.id)
   await prisma.promptChallengeQuestion.deleteMany({ where: { id: { notIn: ids } } })
-  await prisma.promptChallengeQuestion.createMany({ data: questions, skipDuplicates: true })
+  await Promise.all(
+    questions.map((q) =>
+      prisma.promptChallengeQuestion.upsert({
+        where: { id: q.id },
+        update: { category: q.category, scenarioText: q.scenarioText, optionsJson: q.optionsJson, correctIndex: q.correctIndex, explanation: q.explanation, displayOrder: q.displayOrder },
+        create: q,
+      })
+    )
+  )
   return questions.length
 }
 
