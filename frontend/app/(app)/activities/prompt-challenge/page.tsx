@@ -174,7 +174,7 @@ export default function PromptChallengePage() {
     }
   }
 
-  const isQuestion = (v: ViewState): v is { question: PromptQuestion } => v !== 'list';
+  const isQuestion = (v: ViewState): v is { question: ShuffledPromptQuestion } => v !== 'list';
 
   if (isQuestion(view)) {
     const q   = view.question;
