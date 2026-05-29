@@ -97,7 +97,7 @@ export default function AvatarStudioPage() {
     if (!photoFile) return;
     setPhase('generating');
     try {
-      const { jobId: id } = await uploadSelfieAndGenerate(photoFile);
+      const { jobId: id } = await uploadSelfieAndGenerate(photoFile, '1');
       localStorage.setItem(JOB_STORAGE_KEY, id);
       setJobId(id);
     } catch {
