@@ -8,12 +8,12 @@ const STEPS = [
   {
     targetId: 'nb-home',
     title: 'Home',
-    desc: 'Your summit hub: greeting, sponsor, and what\'s coming up.',
+    desc: 'Your summit hub: live sessions, what\'s happening now, and your daily overview.',
   },
   {
     targetId: 'nb-agenda',
     title: 'Agenda',
-    desc: 'Browse the full 3-day schedule. Sessions, speakers, and locations all in one place.',
+    desc: 'Full 3-day schedule. Tap any session for details, location, and feedback.',
   },
   {
     targetId: 'nb-explore',
@@ -38,6 +38,7 @@ export default function TourOverlay() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
+  const [dir, setDir] = useState<'fwd' | 'bck'>('fwd');
 
   const measureSpot = useCallback((stepIdx: number) => {
     const el = document.getElementById(STEPS[stepIdx].targetId);
@@ -57,12 +58,10 @@ export default function TourOverlay() {
 
   useEffect(() => {
     if (!visible) return;
-    // Small delay lets layout paint before measuring
     const t = setTimeout(() => measureSpot(step), 60);
     return () => clearTimeout(t);
   }, [visible, step, measureSpot]);
 
-  // Re-measure on resize
   useEffect(() => {
     if (!visible) return;
     const handler = () => measureSpot(step);
@@ -76,14 +75,13 @@ export default function TourOverlay() {
   }
 
   function goNext() {
-    if (step < STEPS.length - 1) {
-      setStep((s) => s + 1);
-    } else {
-      dismiss();
-    }
+    setDir('fwd');
+    if (step < STEPS.length - 1) setStep((s) => s + 1);
+    else dismiss();
   }
 
   function goBack() {
+    setDir('bck');
     if (step > 0) setStep((s) => s - 1);
   }
 
@@ -92,7 +90,6 @@ export default function TourOverlay() {
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
 
-  // Card sits above the spotlight — if spot is in bottom half, card goes above it
   const cardBottom = spot
     ? (window.innerHeight - (spot.cy - spot.r - 12))
     : 90;
@@ -117,16 +114,17 @@ export default function TourOverlay() {
           left: 16px; right: 16px;
           background: #fff;
           border-radius: 20px;
-          padding: 22px 20px 18px;
+          padding: 16px 18px 14px;
           box-shadow: 0 8px 40px rgba(8,24,64,.22), 0 2px 8px rgba(8,24,64,.10);
           z-index: 401;
           pointer-events: all;
-          transition: bottom .25s cubic-bezier(.4,0,.2,1);
+          transition: bottom .25s cubic-bezier(.4,0,.2,1),
+                      transform .28s cubic-bezier(.4,0,.2,1);
         }
         .tour-ov-dots {
           display: flex;
           gap: 5px;
-          margin-bottom: 14px;
+          margin-bottom: 10px;
         }
         .tour-ov-dot {
           height: 6px;
@@ -147,49 +145,49 @@ export default function TourOverlay() {
           letter-spacing: .08em;
           text-transform: uppercase;
           color: var(--blue);
-          margin-bottom: 8px;
+          margin-bottom: 5px;
         }
         .tour-ov-title {
           font-family: 'Sora', sans-serif;
-          font-size: 22px;
+          font-size: 18px;
           font-weight: 700;
-          color: var(--t);
-          margin-bottom: 8px;
+          color: #0d1e38;
+          margin-bottom: 5px;
           letter-spacing: -.02em;
         }
         .tour-ov-desc {
-          font-size: 15px;
-          color: var(--t3);
+          font-size: 14px;
+          color: rgba(28,40,60,.76);
           line-height: 1.5;
-          margin-bottom: 20px;
+          margin-bottom: 14px;
         }
         .tour-ov-btns {
           display: flex;
           gap: 10px;
-          margin-bottom: 14px;
+          margin-bottom: 10px;
         }
         .tour-ov-back {
           flex: 1;
-          height: 50px;
+          height: 42px;
           border-radius: 14px;
           background: none;
           border: 1.5px solid var(--border-metal);
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
           color: var(--t3);
           cursor: pointer;
           font-family: inherit;
           transition: background var(--tr);
         }
-        .tour-ov-back:disabled { opacity: .35; }
+        .tour-ov-back:disabled { opacity: .30; cursor: default; }
         .tour-ov-back:not(:disabled):active { background: var(--bg2); }
         .tour-ov-next {
           flex: 1;
-          height: 50px;
+          height: 42px;
           border-radius: 14px;
           background: var(--blue);
           color: #fff;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 700;
           font-family: 'Sora', sans-serif;
           border: none;
@@ -202,19 +200,28 @@ export default function TourOverlay() {
           display: block;
           width: 100%;
           text-align: center;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
           color: var(--t4);
           background: none;
           border: none;
           cursor: pointer;
           font-family: inherit;
-          padding: 4px 0;
+          padding: 2px 0;
         }
         .tour-ov-skip:active { color: var(--t3); }
+        @keyframes tov-fwd {
+          from { opacity: 0; transform: translateX(22px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes tov-bck {
+          from { opacity: 0; transform: translateX(-22px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .tov-anim-fwd { animation: tov-fwd .22s cubic-bezier(.4,0,.2,1); }
+        .tov-anim-bck { animation: tov-bck .22s cubic-bezier(.4,0,.2,1); }
       `}</style>
 
-      {/* SVG overlay with mask cutout */}
       <svg className="tour-ov-svg" onClick={dismiss}>
         <defs>
           <mask id="tourSpotMask">
@@ -237,10 +244,9 @@ export default function TourOverlay() {
         )}
       </svg>
 
-      {/* Tooltip card */}
       <div
         className="tour-ov-card"
-        style={{ bottom: cardBottom }}
+        style={{ bottom: cardBottom, transform: `translateX(${step * 5}px)` }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="tour-ov-dots">
@@ -248,16 +254,19 @@ export default function TourOverlay() {
             <span key={i} className={`tour-ov-dot${i === step ? ' active' : ''}`} />
           ))}
         </div>
-        <div className="tour-ov-step">Step {step + 1} of {STEPS.length}</div>
-        <div className="tour-ov-title">{current.title}</div>
-        <div className="tour-ov-desc">{current.desc}</div>
-        <div className="tour-ov-btns">
-          <button className="tour-ov-back" onClick={goBack} disabled={step === 0}>Back</button>
-          <button className="tour-ov-next" onClick={goNext}>
-            {isLast ? 'Done' : 'Next'}
-          </button>
+
+        <div key={step} className={dir === 'fwd' ? 'tov-anim-fwd' : 'tov-anim-bck'}>
+          <div className="tour-ov-step">Step {step + 1} of {STEPS.length}</div>
+          <div className="tour-ov-title">{current.title}</div>
+          <div className="tour-ov-desc">{current.desc}</div>
+          <div className="tour-ov-btns">
+            <button className="tour-ov-back" onClick={goBack} disabled={step === 0}>← Back</button>
+            <button className="tour-ov-next" onClick={goNext}>
+              {isLast ? 'Done' : 'Next →'}
+            </button>
+          </div>
+          <button className="tour-ov-skip" onClick={dismiss}>Skip tour</button>
         </div>
-        <button className="tour-ov-skip" onClick={dismiss}>Skip tour</button>
       </div>
     </>
   );

@@ -29,12 +29,14 @@ const INITIATIVES: Initiative[] = [
     team: 'Payments · Built with Verndale',
     mono: 'eR',
     color: '#067a98',
-    bg: '#c2e9f3',
+    bg: '#1C283C',
     shortDesc: 'Digital remittance payments for title agents. No manual steps, no back-and-forth.',
     what: 'A platform that lets title agents pay their remittances directly to WFG, eliminating manual wire transfers and reducing errors.',
     audience: 'Title agents and office managers processing monthly remittances.',
     why: 'Manual remittance processes are error-prone, time-consuming, and frustrating. eRemit automates the entire workflow.',
     rollout: 'Live and in use. Visit the ATS kiosk for a walkthrough demo.',
+    logoUrl: '/eremit-logo.png',
+    logoPadding: 6,
     splashUrl: 'https://e-remit.vercel.app/',
     thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/Eremit/splash_thumbnail.png',
   },
@@ -155,6 +157,44 @@ export default function ExplorePage() {
           text-transform: uppercase; color: var(--steel); margin-bottom: 12px;
         }
 
+        /* ── ATS intro card ───────────────── */
+        .ats-intro-card {
+          background: var(--metallic);
+          border: 1.5px solid rgba(255,255,255,.45);
+          border-radius: var(--r);
+          padding: 14px 18px;
+          margin-bottom: 12px;
+          box-shadow: var(--shadow-card);
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .ats-intro-title {
+          font-family: 'Sora', sans-serif;
+          font-size: 22px; font-weight: 800;
+          color: #1C283C; letter-spacing: -.02em; line-height: 1;
+        }
+        .ats-intro-sub {
+          font-size: 12px; font-weight: 600;
+          color: rgba(28,40,60,.65); letter-spacing: .02em; margin-top: 3px;
+        }
+        .ats-visit-btn {
+          display: flex; align-items: center; gap: 8px;
+          background: #1C283C; color: #E39548;
+          border: 1px solid rgba(227,149,72,.18);
+          border-radius: 14px;
+          padding: 10px 14px;
+          font-size: 13px; font-weight: 700; letter-spacing: .02em;
+          font-family: inherit; white-space: nowrap;
+          text-decoration: none;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: background .15s;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .ats-visit-btn:hover { background: #243352; }
+        .ats-visit-btn:active { transform: scale(.97); }
+
         /* ── Initiative cards ───────────────── */
         .init-card {
           background: var(--metallic);
@@ -195,11 +235,6 @@ export default function ExplorePage() {
           letter-spacing: .04em; text-transform: uppercase;
           margin-top: 4px;
         }
-        .init-short-desc {
-          font-size: 17px; color: var(--t2);
-          padding: 0 18px 18px;
-          line-height: 1.6;
-        }
         .init-chevron {
           margin-left: auto; flex-shrink: 0;
           color: var(--t4); transition: transform .25s, color .25s;
@@ -214,7 +249,7 @@ export default function ExplorePage() {
         }
         .init-card.open .init-expand { max-height: 900px; }
         .init-expand-body {
-          padding: 16px 18px 18px;
+          padding: 14px 16px 16px;
           border-top: 1px solid rgba(0,0,0,.10);
           background: rgba(0,0,0,.04);
         }
@@ -258,15 +293,15 @@ export default function ExplorePage() {
 
         /* ── Notes section ───────────────── */
         .init-notes {
-          margin-top: 14px;
-          padding: 16px 18px;
+          margin-top: 12px;
+          padding: 12px 14px;
           border-radius: 14px;
           background: rgba(0,0,0,.07);
           border: 1px solid rgba(0,0,0,.10);
         }
         .init-notes-head {
           display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 10px; gap: 10px;
+          margin-bottom: 8px; gap: 10px;
         }
         .init-notes-label {
           font-family: 'Sora', sans-serif;
@@ -275,19 +310,23 @@ export default function ExplorePage() {
           color: var(--steel);
           display: flex; align-items: center; gap: 8px;
         }
+        .init-notes-disclaimer {
+          font-size: 11px; color: var(--t3);
+          margin: 0; flex-shrink: 0;
+        }
         .init-notes-textarea {
           width: 100%;
           background: rgba(255,255,255,.62);
           border: 1.5px solid rgba(0,0,0,.14);
           border-radius: 12px;
           font-family: inherit;
-          font-size: 16px;
+          font-size: 15px;
           color: #0d1e38;
-          padding: 14px 16px;
+          padding: 10px 14px;
           resize: none;
           line-height: 1.55;
           outline: none;
-          min-height: 80px;
+          min-height: 68px;
           transition: border-color var(--tr), box-shadow var(--tr);
         }
         .init-notes-textarea::placeholder { color: #7a8eae; }
@@ -297,24 +336,24 @@ export default function ExplorePage() {
           box-shadow: 0 0 0 4px rgba(227,149,72,.12);
         }
         .init-notes-submit-wrap {
-          display: flex; flex-direction: column; align-items: center;
-          margin-top: 10px; gap: 6px;
+          display: flex; justify-content: center;
+          margin-top: 8px;
         }
         .init-notes-submit {
-          width: 100%;
-          padding: 12px 18px;
-          border-radius: 10px;
-          background: linear-gradient(180deg, #F0A55A, #E39548, #D07B38);
-          color: #1C283C; border: none; cursor: pointer;
-          font-family: inherit; font-size: 14px; font-weight: 700;
-          min-height: 44px;
-          box-shadow: 0 4px 14px rgba(227,149,72,.40);
+          display: flex; align-items: center; gap: 8px;
+          background: #1C283C; color: #E39548;
+          border: 1px solid rgba(227,149,72,.18);
+          border-radius: 12px;
+          padding: 9px 16px;
+          font-family: inherit; font-size: 13px; font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: background .15s;
+          min-height: 38px;
         }
-        .init-notes-submit:active { opacity: .88; }
-        .init-notes-disclaimer {
-          font-size: 11px; color: var(--t2);
-          text-align: center; margin: 0;
-        }
+        .init-notes-submit:hover { background: #243352; }
+        .init-notes-submit:active { transform: scale(.97); opacity: .88; }
+        .init-notes-submit:disabled { opacity: .4; cursor: not-allowed; }
         .init-notes-saved {
           display: flex; align-items: center; gap: 8px;
           background: linear-gradient(135deg, var(--green-lt), #c8efd9);
@@ -362,6 +401,19 @@ export default function ExplorePage() {
         </div>
 
         <div className="explore-scroll" ref={scrollRef}>
+          <div className="ats-intro-card">
+            <div style={{ flex: 1 }}>
+              <div className="ats-intro-title">ATS</div>
+              <div className="ats-intro-sub">AI Technology &amp; Solutions</div>
+            </div>
+            <a href="#" className="ats-visit-btn">
+              Visit ATS Page
+              <svg viewBox="0 0 12 12" fill="none" width="13" height="13">
+                <path d="M2.5 9.5l7-7M9.5 9.5V2.5H2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
           <div className="sec-label">ATS AI Initiatives</div>
 
           {INITIATIVES.map((it, i) => (
@@ -384,8 +436,6 @@ export default function ExplorePage() {
                   <path d="M2.5 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-
-              <div className="init-short-desc">{it.shortDesc}</div>
 
               <div className="init-expand" id={`initExp_${i}`}>
                 <div className="init-expand-body">
@@ -419,19 +469,7 @@ export default function ExplorePage() {
 
                   <div className="init-detail-row">
                     <div className="init-detail-label">What it does</div>
-                    <div className="init-detail-val">{it.what}</div>
-                  </div>
-                  <div className="init-detail-row">
-                    <div className="init-detail-label">Audience</div>
-                    <div className="init-detail-val">{it.audience}</div>
-                  </div>
-                  <div className="init-detail-row">
-                    <div className="init-detail-label">Why we built it</div>
-                    <div className="init-detail-val">{it.why}</div>
-                  </div>
-                  <div className="init-detail-row">
-                    <div className="init-detail-label">Rollout</div>
-                    <div className="init-detail-val">{it.rollout}</div>
+                    <div className="init-detail-val">{it.shortDesc}</div>
                   </div>
 
                   <div className="init-notes">
@@ -443,6 +481,7 @@ export default function ExplorePage() {
                         </svg>
                         Live Notes for ATS
                       </div>
+                      <span className="init-notes-disclaimer">Anonymous</span>
                     </div>
 
                     {(saved[i] || (!saving[i] && persistedNotes?.[INITIATIVES[i].name] && notes[i] === undefined)) ? (
@@ -469,9 +508,11 @@ export default function ExplorePage() {
                         />
                         <div className="init-notes-submit-wrap">
                           <button className="init-notes-submit" onClick={() => submitNote(i)} disabled={saving[i]}>
-                            {saving[i] ? 'Saving…' : 'Save Note'}
+                            {saving[i] ? 'Sending…' : 'Send Note'}
+                            <svg viewBox="0 0 12 12" fill="none" width="12" height="12">
+                              <path d="M2 6h8M6.5 2.5l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
                           </button>
-                          <p className="init-notes-disclaimer">Only visible to you.</p>
                         </div>
                       </>
                     )}

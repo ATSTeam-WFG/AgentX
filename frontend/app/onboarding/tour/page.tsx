@@ -82,7 +82,7 @@ export default function TourPage() {
   const tooltipY = spotRect
     ? tooltipBelow
       ? spotRect.cy + spotRect.r + 18
-      : spotRect.cy - spotRect.r - 18 - 140
+      : spotRect.cy - spotRect.r - 18 - 120
     : (typeof window !== 'undefined' ? window.innerHeight : 600) / 2 - 70;
 
   return (
@@ -102,7 +102,7 @@ export default function TourPage() {
           left: 24px; right: 24px;
           background: var(--surface);
           border-radius: var(--r-lg);
-          padding: 20px;
+          padding: 14px 18px;
           box-shadow: var(--shadow-lg);
           border: 1px solid var(--border-metal);
           z-index: 501;
@@ -112,17 +112,22 @@ export default function TourPage() {
           display: inline-flex; align-items: center;
           font-size: 11px; font-weight: 800;
           letter-spacing: .08em; text-transform: uppercase;
-          color: var(--blue); margin-bottom: 8px;
+          color: var(--blue); margin-bottom: 6px;
         }
         .tour-title {
           font-family: 'Sora', sans-serif;
-          font-size: 20px; font-weight: 700; color: var(--t);
-          margin-bottom: 6px; letter-spacing: -.02em;
+          font-size: 18px; font-weight: 700; color: var(--t);
+          margin-bottom: 4px; letter-spacing: -.02em;
         }
-        .tour-desc { font-size: 15px; color: var(--t2); line-height: 1.5; margin-bottom: 18px; }
+        .tour-desc { font-size: 14px; color: rgba(28,40,60,.82); line-height: 1.5; margin-bottom: 14px; }
         .tour-dots {
-          display: flex; gap: 5px; margin-bottom: 16px;
+          display: flex; gap: 5px; margin-bottom: 10px;
         }
+        @keyframes tourStepIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .tour-step-content { animation: tourStepIn .22s ease; }
         .tour-dot {
           height: 6px; border-radius: 3px;
           background: var(--border-metal);
@@ -186,19 +191,21 @@ export default function TourPage() {
         {/* Tooltip */}
         {current && (
           <div className="tour-tooltip" style={{ top: tooltipY }}>
-            <div className="tour-step-chip">Step {step + 1} of {TOUR_STEPS.length}</div>
-            <div className="tour-title">{current.title}</div>
-            <div className="tour-desc">{current.desc}</div>
-            <div className="tour-dots">
-              {TOUR_STEPS.map((_, i) => (
-                <span key={i} className={`tour-dot${i === step ? ' active' : ''}`} />
-              ))}
-            </div>
-            <div className="tour-actions">
-              <button className="tour-btn-back" onClick={goBack} disabled={step === 0}>← Back</button>
-              <button className="tour-btn-next" onClick={goNext}>
-                {isLast ? 'Done →' : 'Next →'}
-              </button>
+            <div key={step} className="tour-step-content">
+              <div className="tour-step-chip">Step {step + 1} of {TOUR_STEPS.length}</div>
+              <div className="tour-title">{current.title}</div>
+              <div className="tour-desc">{current.desc}</div>
+              <div className="tour-dots">
+                {TOUR_STEPS.map((_, i) => (
+                  <span key={i} className={`tour-dot${i === step ? ' active' : ''}`} />
+                ))}
+              </div>
+              <div className="tour-actions">
+                <button className="tour-btn-back" onClick={goBack} disabled={step === 0}>← Back</button>
+                <button className="tour-btn-next" onClick={goNext}>
+                  {isLast ? 'Done →' : 'Next →'}
+                </button>
+              </div>
             </div>
           </div>
         )}

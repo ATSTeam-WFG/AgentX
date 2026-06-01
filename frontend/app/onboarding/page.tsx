@@ -10,8 +10,8 @@ type RoleType = 'title_agent' | 'wfg_employee' | 'guest';
 
 const ROLES: { id: RoleType; title: string }[] = [
   { id: 'title_agent',   title: 'Title Agent / Real Estate Services' },
-  { id: 'wfg_employee',  title: 'WFG Employee' },
-  { id: 'guest',         title: 'Guest' },
+  { id: 'wfg_employee',  title: 'I work for WFG' },
+  { id: 'guest',         title: 'Expert/Speaker/Sponsor' },
 ];
 
 export default function OnboardingPage() {
@@ -198,7 +198,7 @@ export default function OnboardingPage() {
             <Image src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES 26" width={120} height={48} style={{ objectFit: 'contain', mixBlendMode: 'screen' }} />
           </div>
 
-          <h2 className="onboard-heading">Tell us about you</h2>
+          <h2 className="onboard-heading">Set up your profile</h2>
           <p className="onboard-sub">Set up your summit profile to get started.</p>
 
           <div className="field-group">
