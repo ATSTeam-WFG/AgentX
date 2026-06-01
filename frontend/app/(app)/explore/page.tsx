@@ -35,14 +35,30 @@ const INITIATIVES: Initiative[] = [
     audience: 'Title agents and office managers processing monthly remittances.',
     why: 'Manual remittance processes are error-prone, time-consuming, and frustrating. eRemit automates the entire workflow.',
     rollout: 'Live and in use. Visit the ATS kiosk for a walkthrough demo.',
-    logoUrl: '/eremit-logo.png',
+    logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/Eremit/eremit-logo.png',
     logoPadding: 6,
     splashUrl: 'https://e-remit.vercel.app/',
     thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/Eremit/splash_thumbnail.png',
   },
   {
+    name: 'My Home Prompt',
+    team: 'WFG Advisory · AI Homebuyer Guide',
+    mono: 'mH',
+    color: '#1d4dd9',
+    bg: '#d0e2ff',
+    shortDesc: 'MyHome Prompts is an AI-powered marketing and productivity platform designed for real estate professionals. It helps agents generate emails, social media content, listing descriptions, flyers, and client communication faster using personalized AI workflows and brand voice technology.',
+    what: 'Gives homebuyers and real estate agents AI-guided assistance through the full transaction lifecycle, from offer to close.',
+    audience: 'Homebuyers, real estate agents, and title companies using WFG.',
+    why: 'The homebuying process is confusing. My Home Prompt makes it transparent, guided, and human.',
+    rollout: 'In development. Launching 2026.',
+    logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/logo.png',
+    logoPadding: 8,
+    splashUrl: 'https://myhomeprompts.vercel.app/',
+    thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/splash_thumbnail.png',
+  },
+  {
     name: 'FieldIQ',
-    team: 'Field Sales Intelligence · Live',
+    team: 'Field Sales Intelligence · Coming',
     mono: 'FQ',
     color: '#a45f0a',
     bg: '#f5d8b0',
@@ -54,22 +70,6 @@ const INITIATIVES: Initiative[] = [
     logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/fieldIQ/logo_dark.png',
     splashUrl: 'https://field-iq-ui.vercel.app/',
     thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/fieldIQ/splash_thumbnail.png',
-  },
-  {
-    name: 'My Home Prompt',
-    team: 'WFG Advisory · AI Homebuyer Guide',
-    mono: 'mH',
-    color: '#1d4dd9',
-    bg: '#d0e2ff',
-    shortDesc: 'AI-guided support for homebuyers through every step of a real estate transaction.',
-    what: 'Gives homebuyers and real estate agents AI-guided assistance through the full transaction lifecycle, from offer to close.',
-    audience: 'Homebuyers, real estate agents, and title companies using WFG.',
-    why: 'The homebuying process is confusing. My Home Prompt makes it transparent, guided, and human.',
-    rollout: 'In development. Launching 2026.',
-    logoUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/logo.png',
-    logoPadding: 8,
-    splashUrl: 'https://myhomeprompts.vercel.app/',
-    thumbnailUrl: 'https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/initiatives/MyHomePrompts/splash_thumbnail.png',
   },
 ];
 
@@ -468,7 +468,6 @@ export default function ExplorePage() {
                   )}
 
                   <div className="init-detail-row">
-                    <div className="init-detail-label">What it does</div>
                     <div className="init-detail-val">{it.shortDesc}</div>
                   </div>
 

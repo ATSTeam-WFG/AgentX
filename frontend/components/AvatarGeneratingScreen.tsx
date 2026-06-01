@@ -42,8 +42,8 @@ export default function AvatarGeneratingScreen({ progress }: Props) {
           gap: 0; z-index: 10;
         }
         .avgen-logo {
-          width: 88px; border-radius: 16px;
-          box-shadow: 0 0 48px rgba(227,149,72,.18);
+          width: 88px;
+          border-radius: 5px;
           animation: avgenBreath 2.4s ease-in-out infinite;
           margin-bottom: 32px;
         }

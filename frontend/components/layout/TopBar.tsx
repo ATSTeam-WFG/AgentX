@@ -55,12 +55,6 @@ export default function TopBar() {
           flex-shrink: 0;
           text-decoration: none;
         }
-        .tb-es26-img {
-          border-radius: 10px;
-          box-shadow:
-            0 2px 8px rgba(0,0,0,.40),
-            inset 0 1px 0 rgba(255,255,255,.12);
-        }
 
         /* WFG right */
         .tb-wfg {
@@ -83,14 +77,13 @@ export default function TopBar() {
           {/* ES26 left — hidden on avatar studio */}
           {pathname !== '/activities/avatar-studio' && (
             <Link href="/home" className="tb-es26" aria-label="Go to home">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png"
                 alt="ES 26"
                 width={42}
                 height={42}
-                className="tb-es26-img"
-                style={{ width: 42, height: 42, objectFit: 'cover' }}
-                priority
+                style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 5 }}
               />
             </Link>
           )}

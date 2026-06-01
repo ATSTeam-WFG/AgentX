@@ -16,8 +16,8 @@ export default function ES26LoadingScreen({ label = 'Loading…' }: Props) {
           gap: 28px; z-index: 10;
         }
         .es26-ls-logo {
-          width: 96px; border-radius: 16px;
-          box-shadow: 0 0 48px rgba(227,149,72,.18);
+          width: 96px;
+          border-radius: 5px;
           animation: es26Breath 2.4s ease-in-out infinite;
         }
         @keyframes es26Breath {

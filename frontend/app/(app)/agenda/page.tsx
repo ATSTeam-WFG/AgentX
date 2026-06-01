@@ -14,6 +14,20 @@ const DAY_TABS = [
   { day: 3, label: 'Fri · Jun 5',  title: 'Departures',                   badge: 'Day 2'      },
 ];
 
+function getDefaultDay(): number {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed; June = 5
+  const d = now.getDate();
+  // On an actual summit day, open that day.
+  if (y === 2026 && m === 5) {
+    if (d === 4) return 2;
+    if (d === 5) return 3;
+  }
+  // Before the event (or any other time), open the first day.
+  return 1;
+}
+
 function formatTimeParts(iso: string) {
   const str = new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric', minute: '2-digit', hour12: true,
@@ -83,7 +97,7 @@ function SessionCard({ event }: { event: AgendaEvent }) {
 }
 
 export default function AgendaPage() {
-  const [activeDay, setActiveDay] = useState(2);
+  const [activeDay, setActiveDay] = useState(getDefaultDay);
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {

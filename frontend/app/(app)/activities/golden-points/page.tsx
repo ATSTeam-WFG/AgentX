@@ -120,7 +120,15 @@ export default function GoldenPointsPage() {
           font-family: 'Sora', sans-serif;
           font-size: 17px; font-weight: 600; color: rgba(204,222,231,.90); line-height: 1.45;
         }
-        .textarea-wrap { position: relative; margin-bottom: 10px; }
+        .textarea-wrap { position: relative; margin-bottom: 6px; }
+        .gp-progress-bar {
+          height: 3px; background: rgba(255,255,255,.08);
+          border-radius: 2px; margin-bottom: 6px; overflow: hidden;
+        }
+        .gp-progress-fill {
+          height: 100%; border-radius: 2px;
+          transition: width .15s ease, background .3s ease;
+        }
         .gp-textarea {
           width: 100%; min-height: 180px;
           background: rgba(255,255,255,.06);
@@ -157,7 +165,7 @@ export default function GoldenPointsPage() {
         .scoring-spinner {
           width: 52px; height: 52px;
           border: 4px solid var(--border-metal);
-          border-top-color: var(--blue);
+          border-top-color: var(--amber);
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -231,7 +239,7 @@ export default function GoldenPointsPage() {
             <div className="done-title">{points > 0 ? 'Points Awarded!' : 'No Points This Time'}</div>
             <div className="done-pts">+{points}</div>
             {points === 0
-              ? <div className="done-sub">Your response scored 0 — try a more relevant answer next time.</div>
+              ? <div className="done-sub">Your response didn&apos;t meet the quality threshold for this activity.</div>
               : <div className="done-sub">Your response was scored by Agent X.</div>
             }
             {feedback && <div className="done-feedback">&ldquo;{feedback}&rdquo;</div>}
@@ -239,13 +247,12 @@ export default function GoldenPointsPage() {
           </div>
         ) : (
           <>
-            <button className="back-btn" onClick={() => router.back()}>‹ Activities</button>
+            <button className="back-btn" onClick={() => router.push('/activities')}>‹ Activities</button>
             <div className="gp-scroll">
-            <h1 className="page-title">Golden Points</h1>
-            <p className="page-sub">Share a real insight. AI evaluates quality and awards up to 100 pts.</p>
+            <h1 className="page-title">Sharp Insight</h1>
+            <p className="page-sub">Share a real insight. AI evaluates quality and awards up to 100 pts. One submission only. Make it count.</p>
 
             <div className="prompt-card">
-              <div className="prompt-label">Your Prompt</div>
               <div className="prompt-text">
                 How is AI transforming the title &amp; escrow industry, and what excites you most about WFG&#39;s use of technology at this summit?
               </div>
@@ -258,6 +265,15 @@ export default function GoldenPointsPage() {
                 value={text}
                 onChange={(e) => { setText(e.target.value); if (status === 'error') setStatus('idle'); }}
                 disabled={status === 'submitting'}
+              />
+            </div>
+            <div className="gp-progress-bar">
+              <div
+                className="gp-progress-fill"
+                style={{
+                  width: `${Math.min(100, (cc / MIN_CHARS) * 100)}%`,
+                  background: cc >= MIN_CHARS ? 'var(--green)' : 'var(--amber)',
+                }}
               />
             </div>
             <div className={`char-count${cc >= MIN_CHARS ? ' ok' : ''}`}>

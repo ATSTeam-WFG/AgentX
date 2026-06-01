@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import AvatarGeneratingScreen from '@/components/AvatarGeneratingScreen';
 import { useUiStore } from '@/store/ui';
 import { uploadSelfieAndGenerate, getAvatarStatus, downloadAvatar } from '@/lib/api/activities';
+import { getMe } from '@/lib/api/profile';
 import { ApiError } from '@/lib/api';
 
 type Phase = 'intro' | 'camera' | 'generating' | 'result';
@@ -27,7 +28,7 @@ export default function AvatarStudioPage() {
   const captureRef   = useRef<HTMLInputElement>(null);
   const failCountRef = useRef(0);
 
-  // On mount: resume a pending job or show existing avatar
+  // On mount: resume a pending job, or fetch profile to restore completed avatar
   useEffect(() => {
     const storedJobId = localStorage.getItem(JOB_STORAGE_KEY);
 
@@ -50,12 +51,15 @@ export default function AvatarStudioPage() {
       return;
     }
 
-    // No pending job — check if they already have a generated avatar
-    const cached = queryClient.getQueryData<{ avatarUrl?: string }>(['profile']);
-    if (cached?.avatarUrl) {
-      setResultUrl(cached.avatarUrl);
-      setPhase('result');
-    }
+    // Fetch profile (uses React Query cache if warm, otherwise hits API)
+    queryClient.fetchQuery({ queryKey: ['profile'], queryFn: getMe })
+      .then((profile) => {
+        if (profile?.avatarUrl) {
+          setResultUrl(profile.avatarUrl);
+          setPhase('result');
+        }
+      })
+      .catch(() => {}); // silently fall through to intro if profile unavailable
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -220,8 +224,8 @@ export default function AvatarStudioPage() {
           margin: 8px 0 28px;
         }
         .intro-logo {
-          width: 120px; border-radius: 20px;
-          box-shadow: 0 0 40px rgba(227,149,72,.20), 0 4px 20px rgba(0,0,0,.28);
+          width: 120px;
+          border-radius: 5px;
         }
         .intro-card {
           background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
@@ -271,15 +275,14 @@ export default function AvatarStudioPage() {
           to   { opacity: 1; transform: scale(1); }
         }
         .result-frame {
-          width: 100%;
-          aspect-ratio: 4 / 5;
+          flex: 1; min-height: 0;
+          margin: 0 18px;
           border-radius: 20px; overflow: hidden;
           border: 1.5px solid rgba(255,255,255,.18);
           box-shadow: 0 0 0 1px rgba(227,149,72,.20),
                       0 12px 48px rgba(0,0,0,.60),
                       0 0 80px rgba(227,149,72,.08);
           animation: revealPortrait .7s cubic-bezier(.22,1,.36,1) both;
-          flex-shrink: 0;
         }
         .result-portrait-img {
           width: 100%; height: 100%;
@@ -288,7 +291,8 @@ export default function AvatarStudioPage() {
         }
         .result-meta {
           display: flex; align-items: center; justify-content: space-between;
-          margin-top: 14px; margin-bottom: 16px;
+          flex-shrink: 0;
+          margin: 12px 18px 10px;
         }
         .result-label {
           font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800;
@@ -303,6 +307,9 @@ export default function AvatarStudioPage() {
         }
         .result-action-row {
           display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+          flex-shrink: 0;
+          margin: 0 18px;
+          padding-bottom: calc(12px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
         }
         .btn-action {
           height: 56px; border-radius: 14px;
@@ -424,37 +431,35 @@ export default function AvatarStudioPage() {
       {/* ── RESULT ── */}
       {phase === 'result' && (
         <div className="as-page">
-          <div className="as-scroll">
-            <button className="back-btn" onClick={() => router.push('/activities')}>
-              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Activities
+          <button className="back-btn" onClick={() => router.push('/activities')}>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Activities
+          </button>
+
+          {/* Portrait — fills all remaining vertical space */}
+          <div className="result-frame">
+            <img className="result-portrait-img" src={resultUrl} alt="Your AI executive portrait" />
+          </div>
+
+          {/* Label + points */}
+          <div className="result-meta">
+            <span className="result-label">Your Portrait</span>
+            <span className="result-pts-earned">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              +150 pts earned
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="result-action-row">
+            <button className="btn-action" onClick={handleSaveToGallery}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Save
             </button>
-
-            {/* Portrait frame */}
-            <div className="result-frame">
-              <img className="result-portrait-img" src={resultUrl} alt="Your AI executive portrait" />
-            </div>
-
-            {/* Label + points */}
-            <div className="result-meta">
-              <span className="result-label">Your Portrait</span>
-              <span className="result-pts-earned">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                +150 pts earned
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className="result-action-row">
-              <button className="btn-action" onClick={handleSaveToGallery}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Save
-              </button>
-              <button className="btn-action" onClick={handleShare}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                Share
-              </button>
-            </div>
+            <button className="btn-action" onClick={handleShare}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share
+            </button>
           </div>
         </div>
       )}

@@ -13,8 +13,8 @@ const ACTIVITIES = [
     id: 'trivia',
     name: 'Title Trivia',
     pts: 500,
-    iconBg: '#dde9ff',
-    iconColor: '#1a3d9e',
+    iconBg: '#1C283C',
+    iconColor: '#E39548',
     desc: 'Test your title industry knowledge. 10 questions, instant scoring.',
     href: '/activities/trivia',
     icon: (
@@ -29,8 +29,8 @@ const ACTIVITIES = [
     id: 'avatar',
     name: 'Avatar Studio',
     pts: 150,
-    iconBg: '#ead9ed',
-    iconColor: '#7c2d9e',
+    iconBg: '#1C283C',
+    iconColor: '#E39548',
     desc: 'AI-generated executive portrait in the ES26 summit backdrop.',
     href: '/activities/avatar',
     icon: (
@@ -45,8 +45,8 @@ const ACTIVITIES = [
     id: 'prompt_challenge',
     name: 'Prompt Challenge',
     pts: 100,
-    iconBg: '#cef5f8',
-    iconColor: '#036b80',
+    iconBg: '#1C283C',
+    iconColor: '#E39548',
     desc: '5 real title scenarios. Pick the sharpest AI prompt.',
     href: '/activities/prompt-challenge',
     icon: (
@@ -58,10 +58,10 @@ const ACTIVITIES = [
   },
   {
     id: 'golden_points',
-    name: 'Golden Points',
+    name: 'Sharp Insight',
     pts: 100,
-    iconBg: '#faecc8',
-    iconColor: '#a67710',
+    iconBg: '#1C283C',
+    iconColor: '#E39548',
     desc: 'Share a real industry insight. AI scores your response for quality.',
     href: '/activities/golden-points',
     icon: (
@@ -74,8 +74,8 @@ const ACTIVITIES = [
     id: 'touchpoint',
     name: 'Touchpoints',
     pts: 150,
-    iconBg: '#d5f5e3',
-    iconColor: '#146636',
+    iconBg: '#1C283C',
+    iconColor: '#E39548',
     desc: 'Respond to 5 summit zone prompts to earn reflection points.',
     href: '/activities/touchpoints',
     icon: (
@@ -90,24 +90,24 @@ const ACTIVITIES = [
 ];
 
 function PtsRing({ pts, max }: { pts: number; max: number }) {
-  const r = 20;
+  const r = 30;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, pts / max));
   return (
-    <svg width="54" height="54" viewBox="0 0 52 52" aria-label={`${pts} of ${max} points`}>
-      <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="4"/>
+    <svg width="80" height="80" viewBox="0 0 76 76" aria-label={`${pts} of ${max} points`}>
+      <circle cx="38" cy="38" r={r} fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="5.5"/>
       <circle
-        cx="26" cy="26" r={r} fill="none"
+        cx="38" cy="38" r={r} fill="none"
         stroke={pts > 0 ? 'var(--gold-rich)' : 'rgba(227,149,72,.25)'}
-        strokeWidth="4"
+        strokeWidth="5.5"
         strokeDasharray={circ}
         strokeDashoffset={offset}
         strokeLinecap="round"
-        transform="rotate(-90 26 26)"
+        transform="rotate(-90 38 38)"
         style={{ transition: 'stroke-dashoffset .8s ease' }}
       />
-      <text x="26" y="24" textAnchor="middle" fill={pts > 0 ? 'var(--gold-rich)' : 'rgba(204,222,231,.45)'} fontSize="10" fontWeight="800" fontFamily="Sora, sans-serif">{pts}</text>
-      <text x="26" y="35" textAnchor="middle" fill="rgba(204,222,231,.28)" fontSize="7" fontFamily="Sora, sans-serif">/ {max}</text>
+      <text x="38" y="36" textAnchor="middle" fill={pts > 0 ? 'var(--gold-rich)' : 'rgba(204,222,231,.45)'} fontSize="15" fontWeight="800" fontFamily="Sora, sans-serif">{pts}</text>
+      <text x="38" y="50" textAnchor="middle" fill="rgba(204,222,231,.28)" fontSize="10" fontFamily="Sora, sans-serif">/ {max}</text>
     </svg>
   );
 }
@@ -141,7 +141,6 @@ export default function ActivitiesPage() {
 
   const totalPts = Object.values(earnedById).reduce((s, v) => s + v, 0);
   const maxPts = 1000;
-  const pct = Math.min(100, (totalPts / maxPts) * 100);
 
   return (
     <>
@@ -158,7 +157,7 @@ export default function ActivitiesPage() {
         .acts-title-row {
           display: flex; align-items: center;
           justify-content: space-between;
-          margin-bottom: 16px;
+          margin-bottom: 4px;
         }
         .acts-title {
           font-family: 'Sora', sans-serif;
@@ -167,22 +166,14 @@ export default function ActivitiesPage() {
           text-transform: uppercase;
           margin: 0; line-height: 1;
         }
-        .acts-progress-wrap {
-          height: 6px; background: rgba(255,255,255,.10);
-          border-radius: 4px; overflow: hidden;
-          margin-bottom: 18px;
-        }
-        .acts-progress-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--amber-rich), var(--gold-rich), #e8c840);
-          border-radius: 4px;
-          transition: width .5s ease;
-          box-shadow: 0 0 10px rgba(212,160,23,.35);
+        .acts-subtitle {
+          font-size: 17px; color: var(--t3);
+          line-height: 1.6; margin: 6px 0 14px;
         }
         .acts-scroll {
           flex: 1; overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 0 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
+          padding: 0 18px calc(16px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
           overscroll-behavior: contain;
         }
         /* Activity card */
@@ -191,25 +182,28 @@ export default function ActivitiesPage() {
           background: var(--metallic);
           border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r);
-          padding: 14px 16px;
-          margin-bottom: 12px;
+          padding: 18px 16px;
+          margin-bottom: 14px;
           box-shadow: var(--shadow-card);
           cursor: pointer;
           text-decoration: none;
           display: block;
           color: inherit;
+          overflow: hidden;
         }
         .v7-act-card:active { opacity: .88; }
-        .v7-act-card--done { opacity: .72; }
+        .v7-act-card--done {
+          opacity: .72;
+          border-left: 3px solid #125c34;
+        }
         .v7-act-done-overlay {
           position: absolute; inset: 0;
           border-radius: var(--r);
-          background: rgba(20,102,54,.04);
+          background: rgba(0,0,0,.18);
           pointer-events: none;
         }
-        .v7-act-header {
-          display: flex; align-items: center;
-          gap: 12px; margin-bottom: 10px;
+        .v7-act-row {
+          display: flex; align-items: center; gap: 12px;
         }
         .v7-act-icon {
           width: 46px; height: 46px;
@@ -220,72 +214,60 @@ export default function ActivitiesPage() {
           border: 1px solid rgba(255,255,255,.50);
           box-shadow: 0 1px 4px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.50);
         }
-        .v7-act-name {
-          font-family: 'Sora', sans-serif;
-          font-size: 17px; font-weight: 700;
-          letter-spacing: -.01em; color: #1C283C;
+        .v7-act-body {
           flex: 1; min-width: 0;
         }
-        .v7-act-pts-wrap {
-          display: flex; align-items: baseline; gap: 3px;
+        .v7-act-name {
+          font-family: 'Sora', sans-serif;
+          font-size: 16px; font-weight: 700;
+          letter-spacing: -.01em; color: #243352;
+          line-height: 1.2; margin-bottom: 4px;
+        }
+        .v7-act-desc {
+          font-size: 13px; color: #4a6080;
+          line-height: 1.4;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .v7-act-right {
+          display: flex; flex-direction: column;
+          align-items: flex-end; gap: 3px;
           flex-shrink: 0;
+        }
+        .v7-act-pts-wrap {
+          display: flex; align-items: baseline; gap: 2px;
         }
         .v7-act-pts {
           font-family: 'Sora', sans-serif;
           font-size: 20px; font-weight: 700; letter-spacing: -.03em;
-          color: var(--blue); line-height: 1;
+          color: #243352; line-height: 1;
         }
         .v7-act-pts-label {
           font-family: 'Sora', sans-serif;
-          font-size: 9px; font-weight: 700; letter-spacing: .10em;
-          text-transform: uppercase; color: var(--blue);
+          font-size: 8px; font-weight: 700; letter-spacing: .10em;
+          text-transform: uppercase; color: #243352;
         }
-        .v7-act-desc {
-          font-size: 15px; color: #4a6080;
-          line-height: 1.55; margin-bottom: 12px;
+        .v7-act-pts-done {
+          font-family: 'Sora', sans-serif;
+          font-size: 20px; font-weight: 700; letter-spacing: -.03em;
+          line-height: 1;
         }
-        .v7-act-done {
-          display: flex; align-items: center;
-          gap: 8px;
-          background: linear-gradient(135deg, #d5f5e3, #c8efd9);
-          color: #146636;
-          border-radius: 12px;
-          padding: 10px 16px;
-          font-size: 14px; font-weight: 700;
-          width: 100%; justify-content: center;
-          border: 1px solid rgba(20,102,54,.22);
-          min-height: 44px;
+        .v7-act-go-circle {
+          width: 26px; height: 26px; border-radius: 50%;
+          background: #243352;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,.22);
+          flex-shrink: 0;
+          margin-top: 6px;
         }
-        .v7-act-btn-skeleton {
-          width: 100%; min-height: 44px;
-          border-radius: 14px;
-          background: linear-gradient(90deg, #1C283C 25%, #243352 50%, #1C283C 75%);
+        .v7-act-pts-skeleton {
+          width: 52px; height: 22px; border-radius: 6px;
+          background: linear-gradient(90deg, rgba(28,40,60,.12) 25%, rgba(28,40,60,.22) 50%, rgba(28,40,60,.12) 75%);
           background-size: 200% 100%;
           animation: v7-shimmer 1.4s infinite;
         }
         @keyframes v7-shimmer {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
-        }
-        .v7-act-btn {
-          display: flex; align-items: center;
-          justify-content: center; gap: 9px;
-          background: #1C283C;
-          color: #E39548;
-          border: 1px solid rgba(227,149,72,.18);
-          border-radius: 14px;
-          padding: 11px 18px; font-size: 14px;
-          font-weight: 700; letter-spacing: .02em;
-          font-family: inherit;
-          width: 100%; min-height: 44px;
-          cursor: pointer;
-          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
-          transition: transform .18s cubic-bezier(.4,0,.2,1), box-shadow .18s, background .15s;
-        }
-        .v7-act-btn:hover { background: #243352; }
-        .v7-act-btn:active {
-          transform: scale(.97);
-          box-shadow: 0 1px 6px rgba(0,0,0,.16);
         }
         /* Locked state */
         .acts-locked {
@@ -327,12 +309,9 @@ export default function ActivitiesPage() {
         <div className="acts-header">
           <div className="acts-title-row">
             <h1 className="acts-title">Activities</h1>
-
             <PtsRing pts={totalPts} max={maxPts} />
           </div>
-          <div className="acts-progress-wrap">
-            <div className="acts-progress-fill" style={{ width: `${pct}%` }} />
-          </div>
+          <p className="acts-subtitle">Win points in activities and get a chance to win WFG branded Merch at ES26</p>
         </div>
 
         <div className="acts-scroll" ref={scrollRef}>
@@ -348,46 +327,51 @@ export default function ActivitiesPage() {
           {ACTIVITIES.map((act) => {
             const done = activitiesPending ? false : (doneById[act.id] ?? false);
             const earned = earnedById[act.id] ?? 0;
-            const locked = activitiesPending || done;
-            const cardClass = `v7-act-card${done ? ' v7-act-card--done' : ''}`;
+            const disabled = done && act.id !== 'avatar';
+            const locked = activitiesPending || disabled;
+            const cardClass = `v7-act-card${disabled ? ' v7-act-card--done' : ''}`;
             const cardContent = (
               <>
-                {done && <div className="v7-act-done-overlay" aria-hidden />}
-                <div className="v7-act-header">
+                {disabled && <div className="v7-act-done-overlay" aria-hidden />}
+                <div className="v7-act-row">
                   <div className="v7-act-icon" style={{ background: act.iconBg, color: act.iconColor }}>
                     {act.icon}
                   </div>
-                  <div className="v7-act-name">{act.name}</div>
-                  <div className="v7-act-pts-wrap">
-                    <span className="v7-act-pts">{act.pts}</span>
-                    <span className="v7-act-pts-label">PTS</span>
+                  <div className="v7-act-body">
+                    <div className="v7-act-name">{act.name}</div>
+                    <div className="v7-act-desc">{act.desc}</div>
+                  </div>
+                  <div className="v7-act-right">
+                    {activitiesPending ? (
+                      <div className="v7-act-pts-skeleton" />
+                    ) : done ? (
+                      <div className="v7-act-pts-done">
+                        <span style={{ color: '#125c34' }}>{earned}</span>
+                        <span style={{ color: '#125c34', fontSize: 14 }}>/{act.pts}</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '.10em', textTransform: 'uppercase' as const, color: '#125c34', marginLeft: 2 }}>PTS</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="v7-act-pts-wrap">
+                          <span className="v7-act-pts">{act.pts}</span>
+                          <span className="v7-act-pts-label">PTS</span>
+                        </div>
+                        <div className="v7-act-go-circle">
+                          <svg viewBox="0 0 10 10" fill="none" width="10" height="10">
+                            <path d="M3 2l4 3-4 3" stroke="#E39548" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="v7-act-desc">{act.desc}</div>
-                {activitiesPending ? (
-                  <div className="v7-act-btn-skeleton" />
-                ) : done ? (
-                  <div className="v7-act-done">
-                    <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
-                      <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Completed · {earned} pts earned
-                  </div>
-                ) : (
-                  <div className="v7-act-btn">
-                    Start Activity
-                    <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-                      <path d="M6 3l5 5-5 5" stroke="#E39548" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                )}
               </>
             );
             return locked
               ? <div key={act.id} className={cardClass} style={{ cursor: 'default' }}>{cardContent}</div>
               : <Link key={act.id} href={act.href} className={cardClass}>{cardContent}</Link>;
           })}
-          <div style={{ height: 28 }} />
+          <div style={{ height: 16 }} />
         </div>
         </>
         )}
