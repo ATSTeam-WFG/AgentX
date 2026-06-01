@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { login } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -10,8 +9,8 @@ type RoleType = 'title_agent' | 'wfg_employee' | 'guest';
 
 const ROLES: { id: RoleType; title: string }[] = [
   { id: 'title_agent',   title: 'Title Agent / Real Estate Services' },
-  { id: 'wfg_employee',  title: 'WFG Employee' },
-  { id: 'guest',         title: 'Guest' },
+  { id: 'wfg_employee',  title: 'I work for WFG' },
+  { id: 'guest',         title: 'Expert/Speaker/Sponsor' },
 ];
 
 export default function OnboardingPage() {
@@ -103,6 +102,7 @@ export default function OnboardingPage() {
           letter-spacing: .08em; text-transform: uppercase;
           margin-bottom: 8px;
         }
+        .req { color: var(--amber); margin-left: 3px; }
         .input-field {
           width: 100%;
           background: rgba(255,255,255,.92);
@@ -195,14 +195,14 @@ export default function OnboardingPage() {
       <div className="onboard-page">
         <div className="onboard-scroll">
           <div className="onboard-logo">
-            <Image src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES 26" width={120} height={48} style={{ objectFit: 'contain', mixBlendMode: 'screen' }} />
+            <img src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/brand/es26logo.png" alt="ES 26" width={96} height={38} style={{ objectFit: 'contain', borderRadius: 5 }} />
           </div>
 
-          <h2 className="onboard-heading">Tell us about you</h2>
+          <h2 className="onboard-heading">Set up your profile</h2>
           <p className="onboard-sub">Set up your summit profile to get started.</p>
 
           <div className="field-group">
-            <label className="input-label" htmlFor="ob-name">Full Name</label>
+            <label className="input-label" htmlFor="ob-name">Full Name<span className="req">*</span></label>
             <input
               id="ob-name"
               className="input-field"
@@ -211,20 +211,22 @@ export default function OnboardingPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoComplete="name"
+              required
             />
           </div>
 
           <div className="field-group">
-            <label className="input-label" htmlFor="ob-email">Email Address</label>
+            <label className="input-label" htmlFor="ob-email">Email Address<span className="req">*</span></label>
             <input
               id="ob-email"
               className="input-field"
               type="email"
-              placeholder="you@wfgtitle.com"
+              placeholder="attendee@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               inputMode="email"
+              required
             />
           </div>
 

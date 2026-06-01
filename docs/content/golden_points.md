@@ -49,7 +49,7 @@ If the user navigates away and returns, the second `POST /submit` call returns t
 
 | Rule | Detail |
 |---|---|
-| Minimum length | 50 words (enforced on frontend and backend) |
+| Minimum length | 100 characters (enforced on frontend and backend) |
 | One-shot | A second submit returns the existing submission ID — no new record is created |
 | Activity must be open | Submissions are rejected with 400 if the activity's `isOpen` flag is false |
 | Authentication | JWT required; 401 without a valid token |

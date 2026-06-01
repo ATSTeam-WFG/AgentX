@@ -14,8 +14,26 @@ const DAY_TABS = [
   { day: 3, label: 'Fri · Jun 5',  title: 'Departures',                   badge: 'Day 2'      },
 ];
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+function getDefaultDay(): number {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed; June = 5
+  const d = now.getDate();
+  // On an actual summit day, open that day.
+  if (y === 2026 && m === 5) {
+    if (d === 4) return 2;
+    if (d === 5) return 3;
+  }
+  // Before the event (or any other time), open the first day.
+  return 1;
+}
+
+function formatTimeParts(iso: string) {
+  const str = new Date(iso).toLocaleTimeString('en-US', {
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+  const [time, period] = str.split(' ');
+  return { time, period };
 }
 
 function getStatus(startsAt: string, endsAt: string): 'past' | 'live' | 'upcoming' {
@@ -27,64 +45,59 @@ function getStatus(startsAt: string, endsAt: string): 'past' | 'live' | 'upcomin
   return 'upcoming';
 }
 
-function SessionCard({ event, hideTime }: { event: AgendaEvent; hideTime?: boolean }) {
+function SessionCard({ event }: { event: AgendaEvent }) {
   const status = getStatus(event.startsAt, event.endsAt);
+  const speakers = event.speakerName
+    ? event.speakerName.split(/\s*·\s*/).filter(Boolean)
+    : [];
+
   return (
     <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none' }}>
       <div className={`session-card ${status}`}>
-        {!hideTime && (
-          <div className="session-time-col">
-            <span className="session-time">{formatTime(event.startsAt)}</span>
-            {status === 'live' && <span className="live-pip" />}
-            {status === 'past' && (
-              <span className="past-dot">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-            )}
-          </div>
-        )}
         <div className="session-info">
-          <div className="session-name-row">
-            {hideTime && status === 'live' && <span className="live-pip-inline" />}
-            {hideTime && status === 'past' && (
-              <span className="past-check-inline">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-            )}
-            <div className="session-name">{event.name}</div>
-          </div>
-          {event.speakerName && (
-            <div className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
-              {event.speakerName}
-            </div>
-          )}
-          {event.location && (
-            <div className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              {event.location}
+          {status === 'live' && <div className="now-badge">NOW</div>}
+          <div className="session-name">{event.name}</div>
+          {(speakers.length > 0 || event.location) && (
+            <div className="session-meta-row">
+              {speakers.length > 0 && (
+                <div className="session-speakers">
+                  {speakers.map((name, i) => (
+                    <div key={i} className="session-speaker">
+                      {i === 0 ? (
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                          <circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/>
+                        </svg>
+                      ) : (
+                        <span className="speaker-indent" />
+                      )}
+                      <span>{name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {event.location && (
+                <div className="session-location">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span>{event.location}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
-        {status === 'live' && <span className="live-badge">Live</span>}
-        {status !== 'live' && (
-          <span className="session-chev" style={event.description ? { color: '#E39548' } : {}}>
-            <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
-              <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        )}
+        <span className="session-chev" style={event.description ? { color: '#E39548' } : {}}>
+          <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
+            <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </span>
       </div>
     </Link>
   );
 }
 
 export default function AgendaPage() {
-  const [activeDay, setActiveDay] = useState(2);
+  const [activeDay, setActiveDay] = useState(getDefaultDay);
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const onRefresh = useCallback(async () => {
@@ -98,7 +111,6 @@ export default function AgendaPage() {
     staleTime: 60_000,
   });
 
-  // While fetching: show skeleton. Once settled: use live data or fall back to V7_EVENTS.
   const allEvents = isLoading ? [] : (data?.events ?? V7_EVENTS);
   const filtered  = allEvents.filter((e) => e.day === activeDay);
 
@@ -145,59 +157,63 @@ export default function AgendaPage() {
           box-shadow: 0 1px 6px rgba(227,149,72,.18);
         }
 
+        /* ── Scroll container ── */
         .agenda-scroll {
           flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-          padding: 12px 18px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px);
+          padding: 12px 14px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px) 14px;
           overscroll-behavior: contain;
         }
-        .time-group { margin-bottom: 4px; }
-        .time-header {
-          font-size: 13px; font-weight: 700; letter-spacing: .06em;
-          color: #E39548;
-          padding: 10px 2px 5px;
-        }
-        .session-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-        .live-pip-inline {
-          width: 7px; height: 7px; border-radius: 50%;
-          background: var(--green); flex-shrink: 0;
-          box-shadow: 0 0 6px rgba(20,102,54,.6);
-          animation: pipPulse 2s ease-in-out infinite;
-        }
-        .past-check-inline { color: var(--green); display: flex; flex-shrink: 0; }
 
+        /* ── Time-rail row ── */
+        .time-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .time-rail {
+          flex-shrink: 0;
+          width: 44px;
+          display: flex; flex-direction: column; align-items: flex-end;
+          padding-top: 14px;
+        }
+        .rail-hour {
+          font-family: 'Sora', sans-serif;
+          font-size: 16px; font-weight: 800;
+          color: #E39548; line-height: 1; white-space: nowrap;
+        }
+        .rail-period {
+          font-size: 10px; font-weight: 700;
+          letter-spacing: .06em; text-transform: uppercase;
+          color: rgba(227,149,72,.65); margin-top: 2px;
+        }
+        .time-cards {
+          flex: 1; display: flex; flex-direction: column; gap: 8px;
+        }
+
+        /* ── Session card ── */
         .session-card {
           background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
-          border-radius: var(--r-lg); padding: 14px 16px;
-          margin-bottom: 10px; box-shadow: var(--shadow-card);
-          display: flex; align-items: flex-start; gap: 12px;
+          border-radius: var(--r-lg); padding: 14px 14px;
+          box-shadow: var(--shadow-card);
+          display: flex; align-items: flex-start; gap: 10px;
           transition: box-shadow var(--tr), transform var(--tr);
         }
         .session-card:active { transform: scale(.98); opacity: .88; }
         .session-card.past { opacity: .52; }
         .session-card.live {
-          border-color: rgba(212,160,23,.55);
-          box-shadow: var(--shadow-card), 0 0 0 3px rgba(212,160,23,.15);
+          border-left: 3px solid #E39548;
+          box-shadow: var(--shadow-card), 0 0 0 1px rgba(212,160,23,.18);
         }
 
-        .session-time-col {
-          display: flex; flex-direction: column; align-items: center;
-          min-width: 56px; flex-shrink: 0; padding-top: 2px;
-          gap: 4px;
+        .now-badge {
+          display: inline-flex; align-items: center;
+          background: #E39548; color: #1C283C;
+          font-size: 10px; font-weight: 800; letter-spacing: .08em;
+          text-transform: uppercase;
+          border-radius: 5px; padding: 2px 8px;
+          margin-bottom: 6px;
         }
-        .session-time {
-          font-family: 'Sora', sans-serif;
-          font-size: 14px; font-weight: 700; color: #1C283C;
-          white-space: nowrap; text-align: center;
-        }
-        .session-card.past .session-time { color: var(--t4); }
-        .live-pip {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: var(--green);
-          box-shadow: 0 0 6px rgba(20,102,54,.6);
-          animation: pipPulse 2s ease-in-out infinite;
-        }
-        @keyframes pipPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        .past-dot { color: var(--green); }
 
         .session-info { flex: 1; min-width: 0; }
         .session-name {
@@ -205,17 +221,31 @@ export default function AgendaPage() {
           line-height: 1.3;
         }
         .session-card.past .session-name { color: var(--t3); }
-        .session-meta { font-size: 15px; color: var(--t3); margin-top: 3px; }
 
-        .session-chev { color: var(--t4); flex-shrink: 0; margin-top: 2px; }
-        .live-badge {
-          flex-shrink: 0; align-self: flex-start;
-          font-size: 11px; font-weight: 800; letter-spacing: .06em;
-          text-transform: uppercase;
-          background: var(--green); color: #fff;
-          border-radius: 6px; padding: 3px 8px; margin-top: 2px;
+        .session-meta-row {
+          display: flex; align-items: flex-end;
+          justify-content: space-between;
+          gap: 8px; margin-top: 5px;
+        }
+        .session-speakers {
+          flex: 1; min-width: 0;
+          display: flex; flex-direction: column; gap: 2px;
+        }
+        .session-speaker {
+          display: flex; align-items: center; gap: 4px;
+          font-size: 13px; font-weight: 500; color: var(--t3);
+        }
+        .session-speaker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .speaker-indent { width: 15px; flex-shrink: 0; }
+        .session-location {
+          display: flex; align-items: center; gap: 3px;
+          font-size: 12px; font-weight: 500; color: var(--t4);
+          flex-shrink: 0; white-space: nowrap; margin-left: auto;
         }
 
+        .session-chev { color: var(--t4); flex-shrink: 0; margin-top: 2px; }
+
+        /* ── Empty / skeleton ── */
         .empty-state {
           text-align: center; padding: 60px 20px;
           color: var(--t4); font-size: 15px;
@@ -274,12 +304,20 @@ export default function AgendaPage() {
                     return acc;
                   }, {});
                   const timeSlots = Object.keys(groups).sort();
-                  return timeSlots.map((ts) => (
-                    <div key={ts} className="time-group">
-                      <div className="time-header">{formatTime(ts)}</div>
-                      {groups[ts].map((e) => <SessionCard key={e.id} event={e} hideTime />)}
-                    </div>
-                  ));
+                  return timeSlots.map((ts) => {
+                    const { time, period } = formatTimeParts(ts);
+                    return (
+                      <div key={ts} className="time-row">
+                        <div className="time-rail">
+                          <span className="rail-hour">{time}</span>
+                          <span className="rail-period">{period}</span>
+                        </div>
+                        <div className="time-cards">
+                          {groups[ts].map((e) => <SessionCard key={e.id} event={e} />)}
+                        </div>
+                      </div>
+                    );
+                  });
                 })()
               : <div className="empty-state">No sessions for this day.</div>
           }

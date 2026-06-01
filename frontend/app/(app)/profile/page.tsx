@@ -336,12 +336,12 @@ export default function ProfilePage() {
         .lb-pts-v7 {
           font-family: 'Sora', sans-serif;
           font-size: 14px; font-weight: 800;
-          color: var(--blue); letter-spacing: -.02em;
+          color: #243352; letter-spacing: -.02em;
           display: flex; align-items: baseline; gap: 3px;
         }
         .lb-pts-label {
           font-size: 9px; font-weight: 700; letter-spacing: .10em;
-          color: var(--blue); font-style: normal;
+          color: #243352; font-style: normal;
         }
 
         /* ── Feedback / Sponsor link rows ── */
