@@ -176,7 +176,7 @@ export default function WelcomePage() {
             <video
               ref={videoRef}
               className="welcome-video"
-              src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/videos/Gene%20Rebadow%20ES26_1080.mp4"
+              src="/Gene Rebadow ES26_updated.mp4"
               playsInline
               preload="metadata"
               onEnded={() => { setPlaying(false); setBuffering(false); }}
