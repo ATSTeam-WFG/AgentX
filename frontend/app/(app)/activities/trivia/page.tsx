@@ -315,12 +315,13 @@ export default function TriviaPage() {
           border: 1.5px solid var(--border-metal);
           border-radius: 14px;
           padding: 14px 18px;
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 600;
           color: var(--navy);
           cursor: pointer;
           transition: all var(--tr);
           text-align: left;
+          line-height: 1.45;
         }
         .tv-opt:active { transform: scale(.98); }
         .tv-opt-correct {
@@ -384,7 +385,7 @@ export default function TriviaPage() {
           text-align: center;
         }
         .result-sub {
-          font-size: 15px;
+          font-size: 17px;
           color: rgba(204,222,231,.55);
           margin-bottom: 28px;
           text-align: center;

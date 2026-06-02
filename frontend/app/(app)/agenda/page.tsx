@@ -233,13 +233,13 @@ export default function AgendaPage() {
         }
         .session-speaker {
           display: flex; align-items: center; gap: 4px;
-          font-size: 13px; font-weight: 500; color: var(--t3);
+          font-size: 15px; font-weight: 500; color: var(--t3);
         }
         .session-speaker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .speaker-indent { width: 15px; flex-shrink: 0; }
         .session-location {
           display: flex; align-items: center; gap: 3px;
-          font-size: 12px; font-weight: 500; color: var(--t4);
+          font-size: 13px; font-weight: 500; color: var(--t4);
           flex-shrink: 0; white-space: nowrap; margin-left: auto;
         }
 

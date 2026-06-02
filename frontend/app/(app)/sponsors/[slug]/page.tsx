@@ -58,7 +58,7 @@ export default function SponsorDetailPage({ params }: { params: Promise<{ slug: 
           margin-bottom: 10px;
         }
         .sp-desc-text {
-          font-size: 15px; color: #1C283C; line-height: 1.65;
+          font-size: 17px; color: #1C283C; line-height: 1.6;
         }
         .sp-website-btn {
           display: flex; align-items: center; justify-content: center; gap: 8px;

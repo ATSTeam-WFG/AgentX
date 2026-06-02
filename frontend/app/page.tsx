@@ -177,12 +177,14 @@ export default function WelcomePage() {
               ref={videoRef}
               className="welcome-video"
               src="https://pub-9849080621014a8e9c12e5989f01a96e.r2.dev/videos/Gene%20Rebadow%20ES26_1080.mp4"
+              autoPlay
+              muted
               playsInline
-              preload="metadata"
+              preload="auto"
               onEnded={() => { setPlaying(false); setBuffering(false); }}
               onWaiting={() => setBuffering(true)}
               onCanPlay={() => setBuffering(false)}
-              onPlaying={() => setBuffering(false)}
+              onPlaying={() => { setPlaying(true); setBuffering(false); }}
             />
             <div className={`video-overlay${playing ? ' playing' : ''}`}>
               <div className="video-play-btn">
