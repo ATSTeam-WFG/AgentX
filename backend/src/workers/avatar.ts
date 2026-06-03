@@ -1,9 +1,9 @@
-import { randomUUID } from 'crypto'
 import { GoogleGenAI } from '@google/genai'
 import { prisma } from '../db'
 import { config } from '../config'
 import { downloadBuffer, uploadBuffer, deleteObject, publicUrl } from '../lib/storage'
 import { sendPushToUser } from '../lib/push'
+import { invalidateLeaderboardCache } from '../lib/leaderboard-cache'
 
 const SYSTEM_PROMPT = `TASK: Composite the uploaded person into the uploaded ES26 ATS backdrop as a photorealistic executive portrait.
 
@@ -47,7 +47,7 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
   const selfieMime = selfieExt === 'png' ? 'image/png' : 'image/jpeg'
 
   // 2. Download backdrop from R2
-  const backdropBuffer = await downloadBuffer(`backdrops/backdrop-${backdropId}.png`)
+  const backdropBuffer = await downloadBuffer(`backdrops/backdrop-${backdropId}.jpg`)
   const backdropBase64 = backdropBuffer.toString('base64')
 
   // 3. Call Gemini image generation
@@ -61,7 +61,7 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
         role: 'user',
         parts: [
           { inlineData: { mimeType: selfieMime as 'image/jpeg' | 'image/png', data: selfieBase64 } },
-          { inlineData: { mimeType: 'image/png', data: backdropBase64 } },
+          { inlineData: { mimeType: 'image/jpeg', data: backdropBase64 } },
           { text: USER_TURN_TEXT },
         ],
       },
@@ -90,24 +90,40 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
   }
 
   // 4. Upload generated avatar to R2
-  const avatarKey = `avatars/${userId}/${randomUUID()}.jpg`
+  const userRecord = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } })
+  const nameSlug = (userRecord?.name ?? 'unknown')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const avatarKey = `avatars/${nameSlug}-${userId.slice(0, 6)}.jpg`
   const imageBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
   await uploadBuffer(avatarKey, imageBuffer, 'image/jpeg', 'public, max-age=31536000, immutable')
   const avatarUrl = publicUrl(avatarKey)
 
-  // 5. Persist avatar URL, award 100 pts, mark job done
+  // 5. Persist avatar URL, award 150 pts, mark job done
+  // Guard against re-awarding on crash+retry: if avatarUrl is already set the points were
+  // already credited in a prior attempt's committed transaction, so skip the increment.
   await prisma.$transaction(async (tx) => {
+    const current = await tx.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } })
+    const alreadyAwarded = !!current?.avatarUrl
+
     await tx.user.update({ where: { id: userId }, data: { avatarUrl } })
-    await tx.userScore.upsert({
-      where: { userId },
-      update: { totalPoints: { increment: 150 }, activitiesCompleted: { increment: 1 } },
-      create: { userId, totalPoints: 150, activitiesCompleted: 1 },
-    })
+
+    if (!alreadyAwarded) {
+      await tx.userScore.upsert({
+        where: { userId },
+        update: { totalPoints: { increment: 150 }, activitiesCompleted: { increment: 1 } },
+        create: { userId, totalPoints: 150, activitiesCompleted: 1 },
+      })
+    }
+
     await tx.job.update({
       where: { id: jobId },
       data: { status: 'done', completedAt: new Date() },
     })
   })
+
+  invalidateLeaderboardCache()
 
   // 6. Delete selfie (no longer needed)
   await deleteObject(selfieKey).catch(() => {})
@@ -117,7 +133,7 @@ export async function handleAvatarGeneration(jobId: string, payload: Record<stri
     sendPushToUser(userId, {
       title: 'Your avatar is ready!',
       body: 'Tap to view your AI-generated summit avatar.',
-      url: '/activities/avatar-studio',
+      url: '/activities/avatar',
     }).catch(() => {})
   }, 3_000)
 }

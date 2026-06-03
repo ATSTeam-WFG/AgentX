@@ -10,7 +10,10 @@ async function main() {
   const app = await buildApp()
   process.stdout.write('[startup] app built, calling listen\n')
 
+  let stopWorker: (() => Promise<void>) | undefined
+
   const shutdown = async () => {
+    if (stopWorker) await stopWorker()
     await app.close()
     process.exit(0)
   }
@@ -19,7 +22,7 @@ async function main() {
 
   await app.listen({ port: config.PORT, host: '0.0.0.0' })
   process.stdout.write('[startup] server up\n')
-  startWorker()
+  stopWorker = startWorker()
 }
 
 main().catch((err) => {

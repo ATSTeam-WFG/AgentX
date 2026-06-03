@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
+import { prisma } from '../db'
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
@@ -31,7 +32,15 @@ export async function authenticateAdmin(request: FastifyRequest, reply: FastifyR
     if (request.user.aud !== 'admin') {
       return reply.status(403).send({ error: 'FORBIDDEN', message: 'Admin access required' })
     }
-  } catch {
+    const { tokenId } = request.user
+    if (tokenId) {
+      const session = await prisma.adminSession.findUnique({ where: { tokenId } })
+      if (!session || session.revokedAt !== null || session.expiresAt < new Date()) {
+        return reply.status(401).send({ error: 'UNAUTHORIZED', message: 'Admin session expired or revoked' })
+      }
+    }
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'statusCode' in err) throw err
     return reply.status(401).send({ error: 'UNAUTHORIZED', message: 'Invalid or missing admin token' })
   }
 }

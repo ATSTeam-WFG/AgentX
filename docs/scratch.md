@@ -1,113 +1,103 @@
-Context
-    - 300-400 users
-    - 2-3 day event
-    - High Traffic, Quiet Nights
-    
+CRITICAL — Must fix before launch
 
-WorkFlow:
-    - User logs in with QR code
+  1. Touchpoints have no location validation
+    Lets have no location validation for touchpoints. 
 
-    - Some Welcome page, Speaker Intro Video
+  2. Push notifications never fire for announcements
+    Lets fix this
 
-    - Basic details
-        - No auth, No SSO, No Passwords
-        - Only name and email
-        - Type of attendee
-            - Verify from invitee list
+  3. Avatar worker: unknown Gemini errors retry forever
+    Lets look into this
 
-    - Inside the app
-        - Starts with a Tour
-            - Options: Next, Back, Skip Tour
-        - Will live as PWA on users phone
-        - User must come back to this point when
-        
-        - Dashboard
-            - Live Ongoing Events
-            - Points earned
-            - Some Sponsor
+  5. Golden Points double-submit possible
+    Lets fix this
 
-        - Agenda
-            - Day 1, 2, 3: Agenda of each day
-                - Event: Name, Location, From Time - To Time
-            - User can give feedback after event is done
+  6. No admin logout / token revocation
+    Lets add logout and token revocation
 
-        - Explore
-            - Initiatives
-                - Project: Name, Context, Preview, Splash
-            - Feedback to ATS team
-                - Each user can give this
-                
-        - Activities
-            - Interactive games with points
-                - Ways to earn point for each user
-                - Each activity has points
-                - Each activity is one-time
+  7. Worker crash = duplicate side effects
+    Lets fix this
 
-                - AI Avatar
-                    - User uploads picture/clicks picture
-                    - AI generates an avatar based on a prompt
-                    - Avatar gets generated, previewed and saved as profile picture
-                    - User can also get this printed
+  ---
+  HIGH PRIORITY — Real risk during the event
 
-                - Trivia
-                    - Q/A 50 questions in 60 minutes
-                    - MCQ based
-                    - Has a timer
+  Auth & Access
 
-                - Prompt Challenge
-                    - Categories
-                        - Each catergory has a question and 5 prompts
-                        - Chose correct one
-                    - No timer
+  - WebSocket auth is one-time only (ws.ts:6–35): Tokens are verified on connect but never revalidated. A revoked token stays connected for the session lifetime.
+  - Tokens in localStorage (frontend/lib/auth.ts:48–62): Auth tokens stored in localStorage are vulnerable to XSS. Admin token too.
+  - No session cleanup cron: Sessions expire after 7 days but are never automatically purged from the DB.
 
-                    - Same change for the prompt challenge. We don't have a timer here but the user should be able to leave the activity mid way and resume his/her progress after trying to get back to it. 
+  Real-time / Notifications
+  - Synchronous broadcast blocks event loop (ws-connections.ts:26–30): broadcastAll() is a tight synchronous loop. With 500 connected users, the request thread is blocked until all sends complete.
+  - No WebSocket heartbeat: No keepalive mechanism. Load balancers and proxies will silently kill idle connections.
 
-                - Golden Points
-                    - Will be active in breakout rooms
-                    - Users type pain points
-                    - Points given on submission
-                    - AI will score based on quality of text user gives
+  Activity Integrity
+  - Trivia: no server-side time limit (trivia.ts:74–171): startedAt is stored but never checked on completion. Users can take unlimited time.
+  - Scoring not atomic with leaderboard cache (leaderboard.ts:26–50): Points write to DB in a transaction but the Redis leaderboard update happens outside. A failed
+  Redis write leaves the leaderboard stale until next poll.
+  - Avatar claim-print double-claim via fresh dedupeKey (avatar.ts:114): The print claim endpoint checks clientDedupeKey but a new unique key bypasses the check. No
+  DB-level uniqueness constraint on (userId, kind: 'avatar_print').
 
-                    - The Golden Points Activity is to get some real pain points from the agents attending the event. We plan to capture their pain points and how technology and AI can be used. For this, the user types thier answer and that answer is reviewed by a AI Agent. The scoring is returned in the output and the points are given accordingly. For this, we need to think of a standard way of doing this. 
+  Workers
 
-                    I have a sample prompt ready for this, which we will use for evalauting and scoring thier answers. Lets think about this first and see what all things I need to consider, what all can I do, etc
+  - Dead jobs accumulate silently: Failed jobs sit in the DB with no alerting, no TTL, no dead-letter queue. Ops must manually poll /v1/admin/jobs?status=failed.
+  - Golden Points: race condition on retry (golden-points.ts:18–26): The retry check reads submission status, then opens a transaction — there's a window where two
+  concurrent workers both see pending and both score.
 
-                - Touch Points
-                    - Still not decided but will share with you soon
-                    - Will have points as well
-    
+  Frontend
 
-        - Profile
-            - Profile Picture
-            - Total activities done by user
-            - Total points earned
-            - Leaderboard
-                - Top 5 scorers
-                - User's position on the leaderboard
+  - No root error boundary: Any unhandled component throw crashes the entire app with a blank screen. No error.tsx exists.
+  - Avatar polling orphaned after timeout: After the 40s foreground cap, the user has no indication the job is still running. If they navigate away, they lose the job
+  context on return.
+  - Golden Points timeout triggers retry: After 5-minute timeout the UI shows "taking longer than expected" with no notification, leading users to resubmit and create
+  duplicate submissions.
+  - Push subscription failure is silent (golden-points/page.tsx:93–97): State updates to 'granted' even if the backend save failed. User thinks they're subscribed but
+  isn't.
 
-            - All Sponsors
-                - List of all Sponsors
-                - Each collapsible card with all info about the sponsor
-        
+  Database
 
+  - No indexes on activity tables: ActivityAttempt, TriviaAnswer, PromptChallengeAnswer, GoldenPointsSubmission — all missing userId indexes. Full-table scans on every
+  user profile load.
+  - No connection pool config (db.ts): Prisma uses Postgres driver defaults. Under event-day load (concurrent activities + admin SSE analytics stream), pool exhaustion
+  is possible.
+  - Pending migration unclear: 20260601000000_remove_touchpoint_tables exists in the migrations directory but deployment status is unknown. Run prisma migrate status
+  before launch.
+  - Dashboard count query is O(n) (admin/dashboard.ts:9): findMany() + .length to count distinct users loads every submission row into memory. Use count(distinct: 
+  ['userId']).
 
-Data Schema
-- User
-    - Name, Email
-    - AI Avatar (generated in activity)
-    - Points earned
-    - Leaderboard standing
+  ---
+  MEDIUM PRIORITY — Degrade UX but won't break the event
+  
+  - No rate limiting on activity submissions (queue flood risk with bad actors)
+  - Trivia answers: unauthorized question IDs silently dropped, not rejected
+  - Golden Points admin panel has no approve/reject endpoints despite the schema having those statuses
+  - Outbox entries not retried if user closes app before coming back online
+  - Photo size check happens after upload, not before (wasted bandwidth)
+  - Service worker push URLs hardcoded to specific routes (sw.ts:87,96)
+  - Token refresh never implemented (tokens expire silently mid-session)
+  - Notes save race condition in explore page (explore/page.tsx:112–124)
+  - 5-entry backoff array for 5-attempt max but index 3 is reused on attempt 5
 
+  ---
+  Deployment Checklist
 
-- Agenda
-    - Event
-        - Name, Location, From Time - To Time
-    - 3 days, every day has multiple events
+  CRITICAL
+  [ ] Add requireSuperAdmin() to /system/seed
+  [ ] Add push notification fanout to announcement creation
+  [ ] Fix isTransientError() default to return false
+  [ ] Store clientDedupeKey in golden points submission creation
+  [ ] Add admin session record + logout endpoint
+  [ ] Add idempotency guards to avatar and golden-points workers
+  [ ] Set CORS_ORIGIN explicitly, reject '*' in production
 
-- Initiatives
-    - Name, Context, Video, Splash link
-    
-- Activity
-    - Name, Type, Score associated with it, Time based on not, Timer
-
-
+  HIGH
+  [ ] Add unique constraint on (userId, kind) for avatar print claims
+  [ ] Enforce time limit in trivia complete handler
+  [ ] Make WS broadcast async (non-blocking)
+  [ ] Add indexes: userId on ActivityAttempt, TriviaAnswer, PromptChallengeAnswer, GoldenPointsSubmission
+  [ ] Configure Postgres connection pool
+  [ ] Run `prisma migrate status` and confirm 20260601 is applied
+  [ ] Add root error boundary (error.tsx) in Next.js app
+  [ ] Remove hardcoded admin password from seeder.ts; use env var
+  [ ] Add push notification call in announcement create handler (or wire up existing push.lib)
+  [ ] Add WS keepalive/heartbeat

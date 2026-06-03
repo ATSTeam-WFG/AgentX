@@ -5,11 +5,11 @@ import { closeTestApp } from './app'
 
 // Single atomic TRUNCATE with CASCADE — avoids FK violations from pgbouncer
 // running individual DELETEs on separate connections. Seed fixtures (Activity,
-// TriviaQuestion, Touchpoint, Invitee, etc.) are intentionally omitted so that
+// TriviaQuestion, Invitee, etc.) are intentionally omitted so that
 // tests which rely on seeded records (e.g. admin-invitees.test.ts) keep working
 // across files.
 const USER_DATA_TABLES = [
-  'TriviaAnswer', 'TouchpointScan', 'PromptChallengeAnswer',
+  'TriviaAnswer', 'PromptChallengeAnswer',
   'GoldenPointsSubmission', 'SponsorImpression', 'EventFeedback', 'AppFeedback',
   'Job', 'ActivityAttempt', 'Submission', 'AuditLog', 'PointAdjustment',
   'UserScore', 'Session', 'User', 'PushSubscription',

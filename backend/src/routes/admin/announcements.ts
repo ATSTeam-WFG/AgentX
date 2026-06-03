@@ -5,6 +5,7 @@ import { badRequest, notFound } from '../../lib/errors'
 import { requireMinRole } from '../../lib/role-guard'
 import { broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
+import { sendPushToAll } from '../../lib/push'
 
 const CreateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -45,6 +46,13 @@ export async function adminAnnouncementsRoutes(fastify: FastifyInstance) {
       event: 'announcements.new',
       data: { id: announcement.id, title: announcement.title, body: announcement.body },
     }))
+
+    sendPushToAll({
+      title: announcement.title,
+      body: announcement.body,
+      url: '/announcements',
+    }).catch(() => {})
+
     return reply.status(201).send({
       id: announcement.id,
       title: announcement.title,

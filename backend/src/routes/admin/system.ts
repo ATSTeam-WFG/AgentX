@@ -20,7 +20,7 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
     const [
       users, invitees, agendaEvents, sponsors, initiatives,
       announcements, activities, triviaQuestions, promptChallengeQuestions,
-      touchpoints, activityAttempts, submissions, goldenPointsSubmissions,
+      activityAttempts, submissions, goldenPointsSubmissions,
       sessions, auditLogs, jobs,
     ] = await Promise.all([
       prisma.user.count(),
@@ -32,7 +32,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       prisma.activity.count(),
       prisma.triviaQuestion.count(),
       prisma.promptChallengeQuestion.count(),
-      prisma.touchpoint.count(),
       prisma.activityAttempt.count(),
       prisma.submission.count(),
       prisma.goldenPointsSubmission.count(),
@@ -44,7 +43,7 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       tables: {
         users, invitees, agendaEvents, sponsors, initiatives,
         announcements, activities, triviaQuestions, promptChallengeQuestions,
-        touchpoints, activityAttempts, submissions, goldenPointsSubmissions,
+        activityAttempts, submissions, goldenPointsSubmissions,
         sessions, auditLogs, jobs,
       },
     }
@@ -87,7 +86,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await tx.activityAttempt.deleteMany({})
       await tx.promptChallengeAnswer.deleteMany({})
       await tx.goldenPointsSubmission.deleteMany({})
-      await tx.touchpointScan.deleteMany({})
       await tx.submission.deleteMany({})
       await tx.userScore.deleteMany({})
       await tx.pointAdjustment.deleteMany({})
@@ -122,7 +120,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await tx.activityAttempt.deleteMany({})
       await tx.promptChallengeAnswer.deleteMany({})
       await tx.goldenPointsSubmission.deleteMany({})
-      await tx.touchpointScan.deleteMany({})
       await tx.submission.deleteMany({})
       await tx.pointAdjustment.deleteMany({})
       await tx.userScore.updateMany({ data: { totalPoints: 0, activitiesCompleted: 0 } })
@@ -166,8 +163,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
           await tx.promptChallengeAnswer.deleteMany({ where: { userId: { in: affectedUserIds } } })
         } else if (activity.type === 'golden_points' && affectedUserIds.length > 0) {
           await tx.goldenPointsSubmission.deleteMany({ where: { userId: { in: affectedUserIds } } })
-        } else if (activity.type === 'touchpoint') {
-          await tx.touchpointScan.deleteMany({})
         }
 
         for (const { userId, pointsAwarded } of attempts) {
@@ -216,7 +211,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await prisma.activityAttempt.deleteMany({})
       await prisma.promptChallengeAnswer.deleteMany({})
       await prisma.goldenPointsSubmission.deleteMany({})
-      await prisma.touchpointScan.deleteMany({})
       await prisma.submission.deleteMany({})
       await prisma.userScore.deleteMany({})
       await prisma.pointAdjustment.deleteMany({})
@@ -232,7 +226,6 @@ export async function adminSystemRoutes(fastify: FastifyInstance) {
       await prisma.activity.deleteMany({})
       await prisma.triviaQuestion.deleteMany({})
       await prisma.promptChallengeQuestion.deleteMany({})
-      await prisma.touchpoint.deleteMany({})
       await prisma.sponsorImpression.deleteMany({})
       await prisma.sponsor.deleteMany({})
       await prisma.initiative.deleteMany({})

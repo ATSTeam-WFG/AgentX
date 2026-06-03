@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { submitGoldenPoints, getGoldenPointsStatus, getActivities } from '@/lib/api/activities';
@@ -21,6 +21,7 @@ export default function GoldenPointsPage() {
   const [pushState, setPushState] = useState<'idle' | 'asking' | 'granted' | 'denied' | 'unsupported'>('idle');
   const cc = text.length;
   const canSubmit = cc >= MIN_CHARS && (status === 'idle' || status === 'error');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
   const gpActivity = activities?.find((a) => a.type === 'golden_points');
@@ -41,10 +42,19 @@ export default function GoldenPointsPage() {
 
   useEffect(() => {
     if (status !== 'scoring' || !submissionId) return;
+
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(interval);
+      setStatus('error');
+      setError('Scoring is taking longer than expected. Please see a staff member.');
+    }, 5 * 60 * 1000);
+
     const interval = setInterval(async () => {
       try {
         const res = await getGoldenPointsStatus(submissionId);
         if (res.status === 'scored' && res.pointsAwarded != null) {
+          clearTimeout(timeoutRef.current!);
+          timeoutRef.current = null;
           setPoints(res.pointsAwarded);
           if (res.feedback) setFeedback(res.feedback);
           setStatus('done');
@@ -53,11 +63,18 @@ export default function GoldenPointsPage() {
           queryClient.invalidateQueries({ queryKey: ['activities'] });
         }
       } catch {
+        clearTimeout(timeoutRef.current!);
+        timeoutRef.current = null;
         setStatus('error');
         clearInterval(interval);
       }
     }, 2000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutRef.current!);
+      timeoutRef.current = null;
+    };
   }, [status, submissionId]);
 
   async function handleSubmit() {

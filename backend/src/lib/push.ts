@@ -46,3 +46,15 @@ export async function sendPushToUser(userId: string, payload: PushPayload): Prom
     }),
   )
 }
+
+/**
+ * Sends a push notification to every user with at least one active push subscription.
+ * Fire-and-forget safe — never throws.
+ */
+export async function sendPushToAll(payload: PushPayload): Promise<void> {
+  const rows = await prisma.pushSubscription.findMany({
+    select: { userId: true },
+    distinct: ['userId'],
+  })
+  await Promise.allSettled(rows.map((r) => sendPushToUser(r.userId, payload)))
+}

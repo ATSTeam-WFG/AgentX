@@ -6,7 +6,7 @@ export async function adminDashboardRoutes(fastify: FastifyInstance) {
     const [totalUsers, goldenPointsTotal, touchpointsEngaged, scoreAgg] = await Promise.all([
       prisma.user.count(),
       prisma.goldenPointsSubmission.count(),
-      prisma.submission.findMany({ where: { kind: 'touchpoint_checkin' }, select: { userId: true }, distinct: ['userId'] }).then(r => r.length),
+      prisma.submission.groupBy({ by: ['userId'], where: { kind: 'touchpoint_checkin' } }).then(r => r.length),
       prisma.userScore.aggregate({ _avg: { totalPoints: true } }),
     ])
 

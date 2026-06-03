@@ -171,7 +171,6 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
       await tx.sponsorImpression.deleteMany({ where: { userId: id } })
       await tx.appFeedback.deleteMany({ where: { userId: id } })
       await tx.eventFeedback.deleteMany({ where: { userId: id } })
-      await tx.touchpointScan.deleteMany({ where: { userId: id } })
       await tx.goldenPointsSubmission.deleteMany({ where: { userId: id } })
       await tx.promptChallengeAnswer.deleteMany({ where: { userId: id } })
       await tx.triviaAnswer.deleteMany({ where: { userId: id } })

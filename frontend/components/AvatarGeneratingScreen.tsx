@@ -107,7 +107,7 @@ export default function AvatarGeneratingScreen({ progress }: Props) {
             <div className="avgen-bar-fill" style={{ width: `${clampedProgress}%` }} />
           </div>
           {!isDone && (
-            <div className="avgen-sub">Usually 20–30 seconds</div>
+            <div className="avgen-sub">Usually 30–60 seconds</div>
           )}
           {isDone && (
             <div className="avgen-done-label">Done!</div>

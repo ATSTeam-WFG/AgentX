@@ -18,7 +18,6 @@ import { announcementsRoutes } from './routes/announcements'
 import { leaderboardRoutes } from './routes/leaderboard'
 import { feedbackRoutes } from './routes/feedback'
 import { syncRoutes } from './routes/sync'
-import { jobsRoutes } from './routes/jobs'
 import { wsRoutes } from './routes/ws'
 import { activitiesRoutes } from './routes/activities/index'
 import { triviaRoutes } from './routes/activities/trivia'
@@ -129,7 +128,6 @@ export async function buildApp() {
   // Authenticated user routes
   app.register(profileRoutes, { prefix: '/v1' })
   app.register(feedbackRoutes, { prefix: '/v1' })
-  app.register(jobsRoutes, { prefix: '/v1' })
   app.register(wsRoutes, { prefix: '/v1' })
   app.register(activitiesRoutes, { prefix: '/v1' })
   app.register(triviaRoutes, { prefix: '/v1/activities/trivia' })

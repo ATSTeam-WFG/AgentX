@@ -5,6 +5,7 @@ import { authenticate } from '../../plugins/auth'
 import { badRequest, conflict, notFound, forbidden } from '../../lib/errors'
 import { broadcastUser, broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
+import { invalidateLeaderboardCache } from '../../lib/leaderboard-cache'
 
 const CompleteBodySchema = z.object({
   attemptId: z.string().uuid(),
@@ -89,6 +90,14 @@ export async function triviaRoutes(fastify: FastifyInstance) {
     if (attempt.userId !== userId) throw forbidden('Not your attempt')
     if (!activity) throw badRequest('Trivia activity not configured')
 
+    // Server-side time limit — default 20 min, overridable via activity configJson
+    const configJson = activity.configJson as { pointsPerQuestion?: number; timeLimitSeconds?: number } | null
+    const timeLimitSeconds = configJson?.timeLimitSeconds ?? 1200
+    const elapsedSeconds = (Date.now() - attempt.startedAt.getTime()) / 1000
+    if (elapsedSeconds > timeLimitSeconds) {
+      throw badRequest('Time limit exceeded')
+    }
+
     // Idempotent: already completed
     if (attempt.completedAt !== null) {
       const prevAnswers = await prisma.triviaAnswer.findMany({ where: { attemptId } })
@@ -119,7 +128,6 @@ export async function triviaRoutes(fastify: FastifyInstance) {
       }))
 
     const correctCount = scored.filter((a) => a.isCorrect).length
-    const configJson = activity.configJson as { pointsPerQuestion?: number } | null
     const pointsPerQuestion = configJson?.pointsPerQuestion ?? 10
     const pointsAwarded = correctCount * pointsPerQuestion
 
@@ -162,6 +170,7 @@ export async function triviaRoutes(fastify: FastifyInstance) {
 
     const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
     if (updatedScore) {
+      invalidateLeaderboardCache()
       broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
       broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
     }
