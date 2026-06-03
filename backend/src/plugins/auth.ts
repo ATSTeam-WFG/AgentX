@@ -39,8 +39,7 @@ export async function authenticateAdmin(request: FastifyRequest, reply: FastifyR
         return reply.status(401).send({ error: 'UNAUTHORIZED', message: 'Admin session expired or revoked' })
       }
     }
-  } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'statusCode' in err) throw err
+  } catch {
     return reply.status(401).send({ error: 'UNAUTHORIZED', message: 'Invalid or missing admin token' })
   }
 }
