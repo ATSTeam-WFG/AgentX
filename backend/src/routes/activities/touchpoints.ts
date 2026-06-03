@@ -5,6 +5,7 @@ import { authenticate } from '../../plugins/auth'
 import { badRequest, conflict } from '../../lib/errors'
 import { broadcastUser, broadcastAll } from '../../ws-connections'
 import { makeWsMessage } from '../../ws-events'
+import { invalidateLeaderboardCache } from '../../lib/leaderboard-cache'
 
 const CheckinBodySchema = z.object({
   locationId: z.string().min(1),
@@ -13,6 +14,7 @@ const CheckinBodySchema = z.object({
 })
 
 const CHECKIN_POINTS = 30
+const TOUCHPOINT_MAX = 5
 
 export async function touchpointsRoutes(fastify: FastifyInstance) {
   fastify.get('/checkins', { preHandler: [authenticate] }, async (request: FastifyRequest, reply) => {
@@ -66,10 +68,19 @@ export async function touchpointsRoutes(fastify: FastifyInstance) {
         update: { totalPoints: { increment: CHECKIN_POINTS } },
         create: { userId, totalPoints: CHECKIN_POINTS, activitiesCompleted: 0 },
       })
+      const checkinCount = await tx.submission.count({ where: { userId, kind: 'touchpoint_checkin' } })
+      if (checkinCount === TOUCHPOINT_MAX) {
+        await tx.userScore.upsert({
+          where: { userId },
+          update: { activitiesCompleted: { increment: 1 } },
+          create: { userId, totalPoints: CHECKIN_POINTS, activitiesCompleted: 1 },
+        })
+      }
     }, { maxWait: 10000, timeout: 15000 })
 
     const updatedScore = await prisma.userScore.findUnique({ where: { userId }, select: { totalPoints: true } })
     if (updatedScore) {
+      invalidateLeaderboardCache()
       broadcastUser(userId, makeWsMessage({ event: 'scores.update', data: { userId, totalPoints: updatedScore.totalPoints } }))
       broadcastAll(makeWsMessage({ event: 'leaderboard.update', data: null }))
     }

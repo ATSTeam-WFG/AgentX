@@ -24,9 +24,10 @@ export default function AvatarStudioPage() {
   const [jobId, setJobId]         = useState('');
   const [resultUrl, setResultUrl] = useState('');
   const [genProgress, setGenProgress] = useState(0);
+  const [longWait, setLongWait] = useState(false);
 
-  const captureRef   = useRef<HTMLInputElement>(null);
-  const failCountRef = useRef(0);
+  const captureRef    = useRef<HTMLInputElement>(null);
+  const failCountRef  = useRef(0);
 
   // On mount: resume a pending job, or fetch profile to restore completed avatar
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function AvatarStudioPage() {
             setPhase('result');
           } else if (res.status === 'failed') {
             localStorage.removeItem(JOB_STORAGE_KEY);
+            pushToast({ message: 'Portrait generation failed. Please try again.', type: 'warn' });
           } else {
             // still pending/running — resume polling
             setJobId(storedJobId);
@@ -66,22 +68,31 @@ export default function AvatarStudioPage() {
     return () => { if (photoUrl) URL.revokeObjectURL(photoUrl); };
   }, [photoUrl]);
 
+  const FOREGROUND_CAP_MS = 40_000;
+
   useEffect(() => {
-    if (phase !== 'generating') { setGenProgress(0); return; }
+    if (phase !== 'generating') { setGenProgress(0); setLongWait(false); return; }
     const t = setInterval(() => {
       setGenProgress(prev => {
-        if (prev >= 90) return Math.min(90, prev + 0.05);
-        if (prev < 40) return prev + 2;
-        if (prev < 72) return prev + 0.8;
-        return prev + 0.53;
+        if (prev >= 90) return Math.min(90, prev + 0.08);
+        if (prev < 40)  return prev + 1.0;
+        if (prev < 72)  return prev + 0.45;
+        return prev + 0.18;
       });
     }, 250);
     return () => clearInterval(t);
   }, [phase]);
 
   useEffect(() => {
+    if (phase !== 'generating') { setLongWait(false); return; }
+    const t = setTimeout(() => setLongWait(true), FOREGROUND_CAP_MS);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
     if (phase !== 'generating' || !jobId) return;
     failCountRef.current = 0;
+
     const t = setInterval(async () => {
       try {
         const res = await getAvatarStatus(jobId);
@@ -112,7 +123,8 @@ export default function AvatarStudioPage() {
         }
       }
     }, 2000);
-    return () => clearInterval(t);
+
+    return () => { clearInterval(t); };
   }, [phase, jobId, pushToast]);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -424,7 +436,21 @@ export default function AvatarStudioPage() {
       {/* ── GENERATING ── */}
       {phase === 'generating' && (
         <div className="as-page">
-          <AvatarGeneratingScreen progress={genProgress} />
+          {longWait ? (
+            <div className="as-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+              <div className="intro-card">
+                <p className="intro-card-text">
+                  Your portrait is taking a little longer than usual. We&apos;ll notify you the moment it&apos;s ready — feel free to keep exploring.
+                </p>
+                <button className="btn-cta" onClick={() => router.push('/activities')}>
+                  Keep Exploring
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <AvatarGeneratingScreen progress={genProgress} />
+          )}
         </div>
       )}
 

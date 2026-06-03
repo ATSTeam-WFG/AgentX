@@ -406,7 +406,7 @@ export default function ExplorePage() {
               <div className="ats-intro-title">ATS</div>
               <div className="ats-intro-sub">AI Technology &amp; Solutions</div>
             </div>
-            <a href="#" className="ats-visit-btn">
+            <a href="https://wfgtitle.com/ats/" target="_blank" rel="noopener noreferrer" className="ats-visit-btn">
               Visit ATS Page
               <svg viewBox="0 0 12 12" fill="none" width="13" height="13">
                 <path d="M2.5 9.5l7-7M9.5 9.5V2.5H2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>

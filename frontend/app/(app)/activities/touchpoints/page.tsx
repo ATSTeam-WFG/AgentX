@@ -109,8 +109,8 @@ export default function TouchpointsPage() {
         }
         .tp-card.tp-done .tp-zone-chip { color: #0f5028; background: rgba(20,102,54,.10); border-color: rgba(20,102,54,.22); }
         .tp-prompt-text {
-          font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
-          color: #1C283C; line-height: 1.35; flex: 1;
+          font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700;
+          color: #1C283C; line-height: 1.45; flex: 1;
         }
         .tp-done-pts {
           font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800;

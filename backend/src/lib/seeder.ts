@@ -35,17 +35,53 @@ export async function seedInvitees(prisma: PrismaClient) {
 
 export async function seedAgenda(prisma: PrismaClient) {
   const events = [
-    // ── Day 1 — Wednesday, June 3 ─────────────────────────────────────────
+    // ── Day 1 — Wednesday, June 3 (Women's Leadership Seminar) ───────────
     {
-      id: 'seed-agenda-d1-wls',
+      id: 'seed-agenda-d1-amy-franko',
       day: 1,
-      name: "Women's Leadership Seminar",
+      name: 'The Ripple Effect: Leading with Impact and Influence',
       description:
-        "A premier half-day experience dedicated to empowering women leading the future of title and settlement services. The seminar brings together high-impact female leaders for advanced discussions on leadership, innovation, and influence — with a focus on leveraging technology as a catalyst for personal and organizational transformation. Attendees build meaningful peer relationships with other women championing progress across the industry.\n\nKeynote Speaker: Amy Franko — Growth Strategist, Keynote Speaker, Author, Board Director, Angel Investor",
+        "Keynote Address by Amy Franko — Growth Strategist, Keynote Speaker, Author, Board Director, and Angel Investor. Amy explores how intentional leadership creates ripples of impact that extend far beyond the immediate team, shaping industry culture and driving lasting influence. Drawing on her work with Fortune 500 companies and growth-stage firms, she delivers a framework for leading with conviction in an era of rapid change.",
       location: 'Opal Grand Resort',
       speaker: 'Amy Franko',
       startsAt: new Date('2026-06-03T17:00:00Z'), // 1:00 PM EDT
-      endsAt:   new Date('2026-06-03T21:15:00Z'), // 5:15 PM EDT
+      endsAt:   new Date('2026-06-03T17:50:00Z'), // 1:50 PM EDT
+      version: 1,
+    },
+    {
+      id: 'seed-agenda-d1-panel',
+      day: 1,
+      name: 'The Ripple Effect of Leadership: How Women Leaders in Title Insurance Shape Client Experience and Leave a Lasting Industry Legacy',
+      description:
+        "A panel discussion featuring senior women leaders across the title and escrow industry. Panelists share how their leadership philosophy has shaped client outcomes, built stronger teams, and left a lasting mark on the industry — and what it takes to sustain that impact over a career.\n\nModerated by: Rachel Richardson, WFG National Title Insurance Company\n\nPanelists:\n• Leslie Trice, Escrow Manager/Owner, Legacy Title & Escrow\n• Brooke Sharrard, Vice President of Operations, Proliant Settlement Services\n• Heather Kilmer, Vice President, Business Development, WFG National Title Insurance Company, Oregon\n• Rhonda Utecht, SVP, South Florida Regional Manager, WFG National Title Insurance Company",
+      location: 'Opal Grand Resort',
+      speaker: 'Rachel Richardson · Leslie Trice · Brooke Sharrard · Heather Kilmer · Rhonda Utecht',
+      startsAt: new Date('2026-06-03T18:00:00Z'), // 2:00 PM EDT
+      endsAt:   new Date('2026-06-03T19:00:00Z'), // 3:00 PM EDT
+      version: 1,
+    },
+    {
+      id: 'seed-agenda-d1-erin-alder',
+      day: 1,
+      name: 'The Hidden Cost of Always On: Leading with Boundaries, Presence & Longevity',
+      description:
+        "A candid session by Erin Alder, VP and National Marketing Officer at MyHome, a Williston Financial Group Company. Erin examines the invisible toll of always-on leadership culture — on performance, presence, and long-term effectiveness — and makes the case for boundaries as a strategic leadership asset, not a personal indulgence. Practical frameworks for sustaining high performance without burning out.",
+      location: 'Opal Grand Resort',
+      speaker: 'Erin Alder',
+      startsAt: new Date('2026-06-03T19:15:00Z'), // 3:15 PM EDT
+      endsAt:   new Date('2026-06-03T19:45:00Z'), // 3:45 PM EDT
+      version: 1,
+    },
+    {
+      id: 'seed-agenda-d1-marta-drobyn',
+      day: 1,
+      name: 'From the Inside Out | How EX Shapes Leadership, Culture, & CX',
+      description:
+        "Presented by Marta Drobyn, SVP and Director of Customer Experience at WFG National Title Insurance Company. Marta connects the dots between employee experience (EX), leadership culture, and the client experience that title companies ultimately deliver. Using WFG's own transformation as a case study, she demonstrates why sustainable CX improvement always starts from within — and how leaders at every level can drive that change.",
+      location: 'Opal Grand Resort',
+      speaker: 'Marta Drobyn',
+      startsAt: new Date('2026-06-03T20:00:00Z'), // 4:00 PM EDT
+      endsAt:   new Date('2026-06-03T20:45:00Z'), // 4:45 PM EDT
       version: 1,
     },
 
@@ -259,6 +295,7 @@ export async function seedAgenda(prisma: PrismaClient) {
   ]
 
   const ids = events.map((e) => e.id)
+  await prisma.eventFeedback.deleteMany({ where: { agendaEventId: { notIn: ids } } })
   await prisma.agendaEvent.deleteMany({ where: { id: { notIn: ids } } })
   for (const event of events) {
     await prisma.agendaEvent.upsert({ where: { id: event.id }, update: {}, create: event })
@@ -425,16 +462,15 @@ export async function seedInitiatives(prisma: PrismaClient) {
 // ── Announcements ──────────────────────────────────────────────────────────
 
 export async function seedAnnouncements(prisma: PrismaClient, adminId: string) {
+  const announcement = {
+    title: 'Welcome to WFG Executive Summit 2026!',
+    body: "Check the Agenda tab for today's sessions. Activities open at 8am. See you in the main hall!",
+    expiresAt: new Date('2026-06-03T16:00:00Z'), // June 3, 12:00 PM EDT
+  }
   await prisma.announcement.upsert({
     where: { id: 'seed-announcement-1' },
-    update: {},
-    create: {
-      id: 'seed-announcement-1',
-      title: 'Welcome to WFG Executive Summit 2026!',
-      body: "Check the Agenda tab for today's sessions. Activities open at 8am. See you in the main hall!",
-      publishedByAdminId: adminId,
-      expiresAt: new Date('2026-12-31T23:59:59Z'),
-    },
+    update: { ...announcement, publishedByAdminId: adminId },
+    create: { id: 'seed-announcement-1', ...announcement, publishedByAdminId: adminId },
   })
 }
 

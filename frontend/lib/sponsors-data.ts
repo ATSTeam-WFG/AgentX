@@ -105,7 +105,7 @@ export const SPONSORS_DATA: SponsorEntry[] = [
     name: 'AccuTitle',
     logo: `${CDN}/sponsors/accutitle-logo.png`,
     dark: false,
-    website: 'https://accutitle.com',
+    website: 'https://accu-title.com',
     description:
       "AccuTitle delivers smart, streamlined title management solutions built for how title professionals actually work. Our platform suite, including TitleFusion, AccuAir, Landtech, Closers' Choice, and TrackerPro, supports firms of every size with intuitive tools, seamless workflows, and the responsive service you deserve. We don't just provide software. We show up for you. AccuTitle. The Friendly Company.",
   },

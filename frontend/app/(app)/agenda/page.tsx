@@ -52,45 +52,45 @@ function SessionCard({ event }: { event: AgendaEvent }) {
     : [];
 
   return (
-    <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none' }}>
+    <Link href={`/agenda/${event.id}`} style={{ textDecoration: 'none', display: 'block', width: '100%' }}>
       <div className={`session-card ${status}`}>
-        <div className="session-info">
-          {status === 'live' && <div className="now-badge">NOW</div>}
+        {status === 'live' && <div className="now-badge">NOW</div>}
+        <div className="session-header">
           <div className="session-name">{event.name}</div>
-          {(speakers.length > 0 || event.location) && (
-            <div className="session-meta-row">
-              {speakers.length > 0 && (
-                <div className="session-speakers">
-                  {speakers.map((name, i) => (
-                    <div key={i} className="session-speaker">
-                      {i === 0 ? (
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                          <circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/>
-                        </svg>
-                      ) : (
-                        <span className="speaker-indent" />
-                      )}
-                      <span>{name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {event.location && (
-                <div className="session-location">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  <span>{event.location}</span>
-                </div>
-              )}
-            </div>
-          )}
+          <span className="session-chev" style={event.description ? { color: '#E39548' } : {}}>
+            <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
+              <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
         </div>
-        <span className="session-chev" style={event.description ? { color: '#E39548' } : {}}>
-          <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
-            <path d="M4.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </span>
+        {(speakers.length > 0 || event.location) && (
+          <div className="session-meta-row">
+            {speakers.length > 0 && (
+              <div className="session-speakers">
+                <div className="session-speaker">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/>
+                  </svg>
+                  <span>{speakers[0]}</span>
+                </div>
+                {speakers.length > 1 && (
+                  <div className="session-speaker">
+                    <span className="speaker-indent" />
+                    <span>+{speakers.length - 1} more</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {event.location && (
+              <div className="session-location">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>{event.location}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -159,7 +159,7 @@ export default function AgendaPage() {
 
         /* ── Scroll container ── */
         .agenda-scroll {
-          flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+          flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
           padding: 12px 14px calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px) + 96px) 14px;
           overscroll-behavior: contain;
         }
@@ -188,7 +188,7 @@ export default function AgendaPage() {
           color: rgba(227,149,72,.65); margin-top: 2px;
         }
         .time-cards {
-          flex: 1; display: flex; flex-direction: column; gap: 8px;
+          flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;
         }
 
         /* ── Session card ── */
@@ -196,8 +196,12 @@ export default function AgendaPage() {
           background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
           border-radius: var(--r-lg); padding: 14px 14px;
           box-shadow: var(--shadow-card);
-          display: flex; align-items: flex-start; gap: 10px;
+          display: flex; flex-direction: column;
           transition: box-shadow var(--tr), transform var(--tr);
+          width: 100%; box-sizing: border-box;
+        }
+        .session-header {
+          display: flex; align-items: flex-start; gap: 10px;
         }
         .session-card:active { transform: scale(.98); opacity: .88; }
         .session-card.past { opacity: .52; }
@@ -215,8 +219,8 @@ export default function AgendaPage() {
           margin-bottom: 6px;
         }
 
-        .session-info { flex: 1; min-width: 0; }
         .session-name {
+          flex: 1; min-width: 0;
           font-size: 17px; font-weight: 700; color: var(--t);
           line-height: 1.3;
         }
@@ -225,7 +229,7 @@ export default function AgendaPage() {
         .session-meta-row {
           display: flex; align-items: flex-end;
           justify-content: space-between;
-          gap: 8px; margin-top: 5px;
+          gap: 8px; margin-top: 5px; width: 100%;
         }
         .session-speakers {
           flex: 1; min-width: 0;
@@ -233,13 +237,13 @@ export default function AgendaPage() {
         }
         .session-speaker {
           display: flex; align-items: center; gap: 4px;
-          font-size: 13px; font-weight: 500; color: var(--t3);
+          font-size: 15px; font-weight: 500; color: var(--t3);
         }
         .session-speaker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .speaker-indent { width: 15px; flex-shrink: 0; }
         .session-location {
           display: flex; align-items: center; gap: 3px;
-          font-size: 12px; font-weight: 500; color: var(--t4);
+          font-size: 13px; font-weight: 500; color: var(--t4);
           flex-shrink: 0; white-space: nowrap; margin-left: auto;
         }
 

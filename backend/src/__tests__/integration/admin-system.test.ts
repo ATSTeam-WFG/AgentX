@@ -41,7 +41,7 @@ describe('GET /v1/admin/system/status', () => {
     const expectedKeys = [
       'users', 'invitees', 'agendaEvents', 'sponsors', 'initiatives',
       'announcements', 'activities', 'triviaQuestions', 'promptChallengeQuestions',
-      'touchpoints', 'activityAttempts', 'submissions', 'goldenPointsSubmissions',
+      'activityAttempts', 'submissions', 'goldenPointsSubmissions',
       'sessions', 'auditLogs', 'jobs',
     ]
     for (const key of expectedKeys) {

@@ -117,22 +117,26 @@ export async function avatarRoutes(fastify: FastifyInstance) {
     const activity = await prisma.activity.findFirst({ where: { type: 'avatar' } })
     if (!activity) throw notFound('Avatar activity not found')
 
-    await prisma.$transaction(async (tx) => {
-      await tx.submission.create({
-        data: {
-          userId,
-          activityId: activity.id,
-          kind: 'avatar_print',
-          clientDedupeKey: dedupeKey,
-        },
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.submission.create({
+          data: {
+            userId,
+            activityId: activity.id,
+            kind: 'avatar_print',
+            clientDedupeKey: dedupeKey,
+          },
+        })
+        await tx.userScore.upsert({
+          where: { userId },
+          update: { totalPoints: { increment: 50 } },
+          create: { userId, totalPoints: 50, activitiesCompleted: 0 },
+        })
       })
-
-      await tx.userScore.upsert({
-        where: { userId },
-        update: { totalPoints: { increment: 50 } },
-        create: { userId, totalPoints: 50, activitiesCompleted: 0 },
-      })
-    })
+    } catch (err: unknown) {
+      if ((err as { code?: string }).code === 'P2002') throw conflict('Print already claimed')
+      throw err
+    }
 
     return reply.send({ pointsAwarded: 50 })
   })

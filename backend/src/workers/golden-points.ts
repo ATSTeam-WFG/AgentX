@@ -1,6 +1,7 @@
 import { prisma } from '../db'
 import { scoreGoldenPoints } from '../lib/scoring'
 import { sendPushToUser } from '../lib/push'
+import { invalidateLeaderboardCache } from '../lib/leaderboard-cache'
 
 export async function handleGoldenPointsScoring(jobId: string, payload: Record<string, unknown>) {
   const { submissionId, questionText } = payload as { submissionId: string; questionText: string }
@@ -53,6 +54,8 @@ export async function handleGoldenPointsScoring(jobId: string, payload: Record<s
       data: { status: 'done', completedAt: new Date() },
     })
   }, { maxWait: 10000, timeout: 15000 })
+
+  invalidateLeaderboardCache()
 
   // Delay push by 10 s to cover the race where the user clicks "Notify me" while scoring
   // is already in progress — the browser permission + pushManager.subscribe() + POST back

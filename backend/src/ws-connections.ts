@@ -24,9 +24,13 @@ function trySend(socket: SocketLike, payload: string): void {
 }
 
 export function broadcastAll(payload: string): void {
-  for (const sockets of connections.values()) {
-    for (const socket of sockets) trySend(socket, payload)
-  }
+  // Defer to the next event loop tick so the calling request handler can return
+  // its response before 500+ socket sends queue up on the TCP layer.
+  setImmediate(() => {
+    for (const sockets of connections.values()) {
+      for (const socket of sockets) trySend(socket, payload)
+    }
+  })
 }
 
 export function broadcastUser(userId: string, payload: string): void {

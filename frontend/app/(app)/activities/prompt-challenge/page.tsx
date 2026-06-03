@@ -213,9 +213,9 @@ export default function PromptChallengePage() {
           .opt-btn {
             background: var(--metallic); border: 1.5px solid rgba(255,255,255,.45);
             border-radius: 14px; padding: 14px 18px;
-            font-size: 15px; font-weight: 600; color: #1C283C;
+            font-size: 17px; font-weight: 600; color: #1C283C;
             cursor: pointer; text-align: left; transition: all var(--tr);
-            box-shadow: var(--shadow-card); line-height: 1.45;
+            box-shadow: var(--shadow-card); line-height: 1.5;
           }
           .opt-btn:active { transform: scale(.98); }
           .opt-btn.correct { background: rgba(20,102,54,.08); border-color: var(--green); color: #146636; }
@@ -245,7 +245,7 @@ export default function PromptChallengePage() {
             font-size: 10px; font-weight: 800; letter-spacing: .10em;
             text-transform: uppercase; color: rgba(28,40,60,.45); margin-bottom: 6px;
           }
-          .result-exp-text { font-size: 14px; color: #4a6080; line-height: 1.55; }
+          .result-exp-text { font-size: 16px; color: #4a6080; line-height: 1.6; }
           .btn-back-list {
             margin-top: 16px; width: 100%; height: 52px; border-radius: 14px;
             background: #1C283C; color: #E39548;

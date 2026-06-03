@@ -99,7 +99,6 @@ model User {
   triviaAnswers           TriviaAnswer[]
   promptChallengeAnswers  PromptChallengeAnswer[]
   goldenPointsSubmissions GoldenPointsSubmission[]
-  touchpointScans         TouchpointScan[]
   userScore               UserScore?
   pointAdjustments        PointAdjustment[]
   eventFeedbacks          EventFeedback[]
@@ -138,10 +137,20 @@ model AdminUser {
   role         AdminRole
   createdAt    DateTime  @default(now())
 
+  sessions            AdminSession[]
   pointAdjustments    PointAdjustment[]
   goldenPointsReviews GoldenPointsSubmission[]
   auditLogs           AuditLog[]
   announcements       Announcement[]
+}
+
+model AdminSession {
+  tokenId   String    @id @default(uuid())
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
 }
 
 // ============================================================
@@ -252,17 +261,6 @@ model PromptChallengeQuestion {
   answers      PromptChallengeAnswer[]
 }
 
-model Touchpoint {
-  id                  String   @id @default(uuid())
-  name                String
-  qrToken             String   @unique
-  points              Int
-  locationDescription String?
-  isActive            Boolean  @default(true)
-
-  scans               TouchpointScan[]
-}
-
 // ============================================================
 // Activity User Data
 // ============================================================
@@ -308,6 +306,8 @@ model TriviaAnswer {
   selectedIndex Int
   isCorrect     Boolean
   answeredAt    DateTime        @default(now())
+
+  @@index([userId])
 }
 
 model PromptChallengeAnswer {
@@ -339,18 +339,8 @@ model GoldenPointsSubmission {
   reviewedBy        AdminUser?         @relation(fields: [reviewedByAdminId], references: [id])
   reviewedAt        DateTime?
   createdAt         DateTime           @default(now())
-}
 
-model TouchpointScan {
-  id            String     @id @default(uuid())
-  userId        String
-  user          User       @relation(fields: [userId], references: [id])
-  touchpointId  String
-  touchpoint    Touchpoint @relation(fields: [touchpointId], references: [id])
-  scannedAt     DateTime   @default(now())
-  pointsAwarded Int
-
-  @@unique([userId, touchpointId])
+  @@unique([userId])
 }
 
 // ============================================================
@@ -376,6 +366,8 @@ model PointAdjustment {
   adminUserId String
   adminUser   AdminUser @relation(fields: [adminUserId], references: [id])
   createdAt   DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // ============================================================

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { submitGoldenPoints, getGoldenPointsStatus, getActivities } from '@/lib/api/activities';
@@ -21,6 +21,7 @@ export default function GoldenPointsPage() {
   const [pushState, setPushState] = useState<'idle' | 'asking' | 'granted' | 'denied' | 'unsupported'>('idle');
   const cc = text.length;
   const canSubmit = cc >= MIN_CHARS && (status === 'idle' || status === 'error');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useQuery({ queryKey: ['activities'], queryFn: getActivities, staleTime: 30_000 });
   const gpActivity = activities?.find((a) => a.type === 'golden_points');
@@ -41,10 +42,19 @@ export default function GoldenPointsPage() {
 
   useEffect(() => {
     if (status !== 'scoring' || !submissionId) return;
+
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(interval);
+      setStatus('error');
+      setError('Scoring is taking longer than expected. Please see a staff member.');
+    }, 5 * 60 * 1000);
+
     const interval = setInterval(async () => {
       try {
         const res = await getGoldenPointsStatus(submissionId);
         if (res.status === 'scored' && res.pointsAwarded != null) {
+          clearTimeout(timeoutRef.current!);
+          timeoutRef.current = null;
           setPoints(res.pointsAwarded);
           if (res.feedback) setFeedback(res.feedback);
           setStatus('done');
@@ -53,11 +63,18 @@ export default function GoldenPointsPage() {
           queryClient.invalidateQueries({ queryKey: ['activities'] });
         }
       } catch {
+        clearTimeout(timeoutRef.current!);
+        timeoutRef.current = null;
         setStatus('error');
         clearInterval(interval);
       }
     }, 2000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutRef.current!);
+      timeoutRef.current = null;
+    };
   }, [status, submissionId]);
 
   async function handleSubmit() {
@@ -174,7 +191,7 @@ export default function GoldenPointsPage() {
           font-family: 'Sora', sans-serif;
           font-size: 18px; font-weight: 700; color: var(--t);
         }
-        .scoring-sub { font-size: 14px; color: var(--t3); text-align: center; }
+        .scoring-sub { font-size: 16px; color: var(--t3); text-align: center; }
         .done-wrap {
           display: flex; flex-direction: column; align-items: center;
           padding: 60px 24px; gap: 12px;
@@ -188,20 +205,22 @@ export default function GoldenPointsPage() {
           font-family: 'Sora', sans-serif;
           font-size: 48px; font-weight: 800; color: var(--gold-rich); line-height: 1;
         }
-        .done-sub { font-size: 15px; color: var(--t3); text-align: center; margin-bottom: 8px; }
+        .done-sub { font-size: 17px; color: var(--t3); text-align: center; margin-bottom: 8px; }
         .done-feedback {
-          font-size: 14px; color: var(--t2); text-align: center;
-          font-style: italic; margin-bottom: 20px; line-height: 1.5;
+          font-size: 16px; color: var(--t2); text-align: center;
+          font-style: italic; margin-bottom: 20px; line-height: 1.6;
           padding: 0 8px;
         }
         .btn-back {
-          width: 100%; height: 54px; border-radius: 14px;
-          background: var(--surface); color: var(--t);
+          width: 100%; height: 52px; border-radius: 14px;
+          background: #1C283C; color: #E39548;
           font-size: 16px; font-weight: 700;
           font-family: 'Sora', sans-serif;
-          border: 1.5px solid var(--border-metal); cursor: pointer;
-          box-shadow: var(--shadow-card);
+          border: 1px solid rgba(227,149,72,.18); cursor: pointer;
+          box-shadow: 0 2px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
+          transition: opacity .15s;
         }
+        .btn-back:active { opacity: .88; }
         .error-msg { font-size: 14px; color: var(--rose); margin-top: 8px; text-align: center; }
         .push-prompt {
           display: flex; flex-direction: column; align-items: center; gap: 10px;

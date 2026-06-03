@@ -41,20 +41,28 @@ export async function goldenPointsRoutes(fastify: FastifyInstance) {
     const configJson = activity.configJson as { questionText?: string } | null
     const questionText = configJson?.questionText ?? GOLDEN_POINTS_QUESTION
 
-    const result = await prisma.$transaction(async (tx) => {
-      const submission = await tx.goldenPointsSubmission.create({
-        data: { userId, text, wordCount: wordCount(text) },
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const submission = await tx.goldenPointsSubmission.create({
+          data: { userId, text, wordCount: wordCount(text) },
+        })
+        await tx.job.create({
+          data: {
+            type: 'golden_points_scoring',
+            payloadJson: { submissionId: submission.id, questionText },
+          },
+        })
+        return submission
       })
-      await tx.job.create({
-        data: {
-          type: 'golden_points_scoring',
-          payloadJson: { submissionId: submission.id, questionText },
-        },
-      })
-      return submission
-    })
-
-    return reply.status(201).send({ id: result.id })
+      return reply.status(201).send({ id: result.id })
+    } catch (err: unknown) {
+      // Concurrent request raced past the findFirst check — return the winner's record
+      if ((err as { code?: string }).code === 'P2002') {
+        const dup = await prisma.goldenPointsSubmission.findFirst({ where: { userId } })
+        if (dup) return reply.send({ id: dup.id })
+      }
+      throw err
+    }
   })
 
   fastify.get('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {

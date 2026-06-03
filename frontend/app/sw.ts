@@ -84,7 +84,7 @@ self.addEventListener('push', (event: any) => {
       badge:    '/icons/icon-192.png',
       tag:      'gp-score',
       renotify: false,
-      data:     { url: data.url ?? '/activities/golden-points' },
+      data:     { url: data.url ?? '/activities/avatar' },
     }),
   )
 })

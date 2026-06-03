@@ -2,9 +2,17 @@ import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
+function buildUrl(): string | undefined {
+  const url = process.env.DATABASE_URL
+  if (!url || url.includes('connection_limit')) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}connection_limit=20&pool_timeout=30`
+}
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    datasources: { db: { url: buildUrl() } },
     log: ['warn', 'error'],
   })
 

@@ -26,7 +26,13 @@ export async function wsRoutes(fastify: FastifyInstance) {
 
     registerConnection(userId, connection.socket)
 
+    // Ping every 30 s so Railway / proxies don't drop the idle connection (typical idle timeout ~60 s)
+    const pingInterval = setInterval(() => {
+      if (connection.socket.readyState === 1) connection.socket.ping()
+    }, 30_000)
+
     connection.socket.on('close', () => {
+      clearInterval(pingInterval)
       removeConnection(userId, connection.socket)
     })
 

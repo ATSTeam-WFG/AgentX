@@ -15,7 +15,6 @@ vi.mock('../../config', () => ({
   config: {
     ANTHROPIC_API_KEY: 'test-anthropic-key',
     JWT_SECRET: 'test-jwt-secret-that-is-long-enough',
-    QR_HMAC_SECRET: 'test-qr-secret-that-is-long-enough',
   },
 }))
 
