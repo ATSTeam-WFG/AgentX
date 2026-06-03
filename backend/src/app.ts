@@ -41,6 +41,7 @@ import { adminSystemRoutes } from './routes/admin/system'
 import { adminFeaturesRoutes } from './routes/admin/features'
 import { adminAnalyticsRoutes } from './routes/admin/analytics'
 import { adminJobsRoutes } from './routes/admin/jobs'
+import { adminAvatarsRoutes } from './routes/admin/avatars'
 import { featuresRoutes } from './routes/features'
 import { chatRoutes } from './routes/chat'
 
@@ -159,6 +160,7 @@ export async function buildApp() {
       adminApp.register(adminFeaturesRoutes,  { prefix: ''            })
       adminApp.register(adminAnalyticsRoutes, { prefix: '/analytics'  })
       adminApp.register(adminJobsRoutes,     { prefix: '/jobs'       })
+      adminApp.register(adminAvatarsRoutes,  { prefix: '/avatars'    })
     },
     { prefix: '/v1/admin' },
   )

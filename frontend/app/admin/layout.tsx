@@ -24,6 +24,7 @@ const NAV_GROUPS: Array<{
     items: [
       { href: '/admin/golden-points',   label: 'Golden Points'  },
       { href: '/admin/users',           label: 'Users'          },
+      { href: '/admin/avatars',         label: 'Avatars'        },
       { href: '/admin/announcements',   label: 'Announcements'  },
     ],
   },
